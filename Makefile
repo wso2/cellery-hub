@@ -28,6 +28,8 @@ clean:
 init:
 	cd ./components/portal; \
 	npm ci
+	cd ./components/portal/node-server; \
+	npm ci
 
 .PHONY: lint
 lint: init
@@ -41,6 +43,7 @@ build: clean init
 .PHONY: docker
 docker: build
 	docker build -t $(DOCKER_REPO)/cellery-hub-proxy:$(DOCKER_IMAGE_TAG) -f ./docker/proxy/Dockerfile .
+	docker build -t $(DOCKER_REPO)/cellery-hub-portal:$(DOCKER_IMAGE_TAG) -f ./docker/portal/Dockerfile .
 
 .PHONY: deploy
 deploy:

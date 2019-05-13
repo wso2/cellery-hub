@@ -16,28 +16,21 @@
 #
 # ------------------------------------------------------------------------
 
-FROM ballerina/ballerina:0.991.0 as builder
-LABEL MAINTAINER="WSO2 Cellery Maintainers <dev@wso2.org>"
+FROM node:11.2.0-slim
+MAINTAINER WSO2 Cellery Maintainers "dev@wso2.org"
 
-ARG PROJECT_DIR="/workspace"
-WORKDIR ${PROJECT_DIR}
-USER root
+ARG PORTAL_PORT=3000
+ARG APP_DIR=/portal
 
-COPY ./components/proxy/registry_proxy.bal .
+WORKDIR ${APP_DIR}
 
-RUN chown -R ballerina ${PROJECT_DIR}
-USER ballerina
+COPY ./components/portal/node-server ${APP_DIR}/
+COPY ./components/portal/build ${APP_DIR}/public/
 
-RUN ballerina build registry_proxy.bal
+ENV PORTAL_PORT=${PORTAL_PORT}
 
-FROM ballerina/ballerina:0.991.0
+EXPOSE ${PORTAL_PORT}
 
-ARG WORK_DIR="/home/ballerina"
-WORKDIR ${WORK_DIR}
-USER ballerina
+RUN npm ci
 
-COPY --from=builder /workspace/** ./
-
-EXPOSE 9090
-
-ENTRYPOINT ballerina run registry_proxy.balx 2>&1 | tee registry_proxy.log
+ENTRYPOINT ["node", "serve.js"]

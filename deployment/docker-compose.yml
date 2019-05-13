@@ -1,5 +1,12 @@
 version: "3"
 services:
+  hub.cellery.io:
+    image: wso2cellery/cellery-hub-portal:latest
+    restart: always
+    ports:
+      - "9000:9000"
+    environment:
+      - PORTAL_PORT=9000
   registry.hub.cellery.io:
     image: wso2cellery/cellery-hub-proxy:latest
     restart: always
