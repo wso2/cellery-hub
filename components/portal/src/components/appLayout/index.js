@@ -34,8 +34,8 @@ const styles = () => ({
     }
 });
 
-const AppLayout = () => {
-    const {classes, children} = this.props;
+const AppLayout = (props) => {
+    const {classes, children} = props;
 
     return (
         <div className={classes.root}>

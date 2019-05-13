@@ -28,8 +28,8 @@ const styles = (theme) => ({
     }
 });
 
-const Images = () => {
-    const {classes} = this.props;
+const MyImages = (props) => {
+    const {classes} = props;
 
     return (
         <div className={classes.content}>
@@ -42,8 +42,8 @@ const Images = () => {
     );
 };
 
-Images.propTypes = {
+MyImages.propTypes = {
     classes: PropTypes.object.isRequired
 };
 
-export default withStyles(styles)(Images);
+export default withStyles(styles)(MyImages);

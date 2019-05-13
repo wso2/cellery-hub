@@ -16,28 +16,27 @@
  * under the License.
  */
 
-import "./App.css";
 import "typeface-roboto";
 import AppLayout from "./appLayout";
 import CssBaseline from "@material-ui/core/CssBaseline/CssBaseline";
 import Explore from "./explore";
 import Home from "./home";
-import Images from "./images";
-import Orgs from "./orgs";
+import MyImages from "./myImages";
+import MyOrgs from "./myOrgs";
 import React from "react";
 import {BrowserRouter, Route, Switch} from "react-router-dom";
 import {MuiThemeProvider, createMuiTheme} from "@material-ui/core/styles";
 
 const Portal = () => {
     // TODO: Integrate user authentication.
-    const isLoggedIn = false;
+    const isLoggedIn = true;
     return (
         isLoggedIn
             ? (
                 <AppLayout>
                     <Switch>
-                        <Route exact path={["/", "/images"]} component={Images}/>
-                        <Route exact path={"/orgs"} component={Orgs}/>
+                        <Route exact path={["/", "/my-images"]} component={MyImages}/>
+                        <Route exact path={"/my-orgs"} component={MyOrgs}/>
                         <Route exact path={"/explore"} component={Explore}/>
                     </Switch>
                 </AppLayout>

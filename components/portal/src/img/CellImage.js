@@ -1,7 +1,7 @@
 import React from "react";
 import SvgIcon from "@material-ui/core/SvgIcon";
 
-const Image = (props) => (
+const CellImage = (props) => (
     <SvgIcon {...props} viewBox="0 0 948.346 948.346" xmlSpace="preserve">
         <g>
             <g>
@@ -15,4 +15,4 @@ L120.58,674.775V272.488L440.173,449.494z"/>
     </SvgIcon>
 );
 
-export default Image;
+export default CellImage;

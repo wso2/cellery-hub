@@ -28,8 +28,8 @@ const styles = (theme) => ({
     }
 });
 
-const Orgs = () => {
-    const {classes} = this.props;
+const MyOrgs = (props) => {
+    const {classes} = props;
 
     return (
         <div className={classes.content}>
@@ -42,8 +42,8 @@ const Orgs = () => {
     );
 };
 
-Orgs.propTypes = {
+MyOrgs.propTypes = {
     classes: PropTypes.object.isRequired
 };
 
-export default withStyles(styles)(Orgs);
+export default withStyles(styles)(MyOrgs);

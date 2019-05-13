@@ -51,8 +51,8 @@ const styles = (theme) => ({
     }
 });
 
-const Footer = () => {
-    const {classes} = this.props;
+const Footer = (props) => {
+    const {classes} = props;
 
     return (
         <footer>

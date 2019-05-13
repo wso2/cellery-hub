@@ -28,8 +28,8 @@ const styles = (theme) => ({
     }
 });
 
-const Explore = () => {
-    const {classes} = this.props;
+const Explore = (props) => {
+    const {classes} = props;
 
     return (
         <div className={classes.content}>
