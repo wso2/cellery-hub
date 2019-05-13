@@ -1,0 +1,13 @@
+node_js:
+  - 9.11.2
+go:
+  - 1.11.x
+services:
+  - docker
+cache:
+  directories:
+    - .autoconf
+before_install:
+  - npm i -g npm
+script:
+  - make clean init check-style build docker

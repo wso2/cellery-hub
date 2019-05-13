@@ -18,7 +18,7 @@ PROJECT_ROOT := $(realpath $(dir $(abspath $(lastword $(MAKEFILE_LIST)))))
 DOCKER_REPO ?= wso2cellery
 DOCKER_IMAGE_TAG ?= latest
 
-all: init clean build docker
+all: clean init build docker
 
 .PHONY: clean
 clean:
@@ -31,8 +31,11 @@ init:
 	cd ./components/portal/node-server; \
 	npm ci
 
-.PHONY: lint
-lint: init
+.PHONY: check-style
+check-style: init
+	cd components; \
+	test -z "$$(goimports -l . | tee /dev/stderr)"
+	cd ./components/portal; \
 	npm run lint
 
 .PHONY: build
