@@ -16,8 +16,8 @@
  * under the License.
  */
 
-import './App.css';
-import 'typeface-roboto';
+import "./App.css";
+import "typeface-roboto";
 import AppLayout from "./appLayout";
 import CssBaseline from "@material-ui/core/CssBaseline/CssBaseline";
 import Explore from "./explore";
@@ -28,26 +28,24 @@ import React from "react";
 import {BrowserRouter, Route, Switch} from "react-router-dom";
 import {MuiThemeProvider, createMuiTheme} from "@material-ui/core/styles";
 
-class Portal extends React.Component {
+const Portal = () => {
+    // TODO: Integrate user authentication.
+    const isLoggedIn = false;
+    return (
+        isLoggedIn
+            ? (
+                <AppLayout>
+                    <Switch>
+                        <Route exact path={["/", "/images"]} component={Images}/>
+                        <Route exact path={"/orgs"} component={Orgs}/>
+                        <Route exact path={"/explore"} component={Explore}/>
+                    </Switch>
+                </AppLayout>
+            )
+            : <Home/>
+    );
+};
 
-    render = () => {
-        //TODO: Integrate user authentication.
-        const isLoggedIn = false;
-        return (
-            isLoggedIn
-                ? (
-                    <AppLayout>
-                        <Switch>
-                            <Route exact path={["/", "/images"]} component={Images}/>
-                            <Route exact path={"/orgs"} component={Orgs}/>
-                            <Route exact path={"/explore"} component={Explore}/>
-                        </Switch>
-                    </AppLayout>
-                )
-                : <Home/>
-        )
-    };
-}
 
 // Create the main theme of the App
 const theme = createMuiTheme({
@@ -71,16 +69,14 @@ const theme = createMuiTheme({
  *
  * @returns {React.Component} App react component
  */
-const App = () => {
-    return (
-        <MuiThemeProvider theme={theme}>
-            <CssBaseline/>
-            <BrowserRouter>
-                <Portal/>
-            </BrowserRouter>
-        </MuiThemeProvider>
-    );
-};
+const App = () => (
+    <MuiThemeProvider theme={theme}>
+        <CssBaseline/>
+        <BrowserRouter>
+            <Portal/>
+        </BrowserRouter>
+    </MuiThemeProvider>
+);
 
 export default App;
 

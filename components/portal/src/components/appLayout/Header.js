@@ -16,16 +16,16 @@
  * under the License.
  */
 
-import AccountCircle from '@material-ui/icons/AccountCircle';
-import AppBar from '@material-ui/core/AppBar';
-import Button from '@material-ui/core/Button';
-import CelleryLogo from '../../img/celleryLogo.svg';
-import Container from '@material-ui/core/Container';
-import Menu from '@material-ui/core/Menu';
-import MenuItem from '@material-ui/core/MenuItem';
+import AccountCircle from "@material-ui/icons/AccountCircle";
+import AppBar from "@material-ui/core/AppBar";
+import Button from "@material-ui/core/Button";
+import CelleryLogo from "../../img/celleryLogo.svg";
+import Container from "@material-ui/core/Container";
+import Menu from "@material-ui/core/Menu";
+import MenuItem from "@material-ui/core/MenuItem";
 import React from "react";
-import Toolbar from '@material-ui/core/Toolbar';
-import classNames from 'classnames';
+import Toolbar from "@material-ui/core/Toolbar";
+import classNames from "classnames";
 import {withStyles} from "@material-ui/core/styles";
 import * as PropTypes from "prop-types";
 
@@ -33,19 +33,19 @@ const styles = (theme) => ({
     appbar: {
         backgroundColor: "#ffffff",
         color: theme.palette.primary.main,
-        boxShadow: "none",
+        boxShadow: "none"
     },
     headerLogo: {
-        flexGrow: 1,
+        flexGrow: 1
     },
     logo: {
         fontSize: 32,
         fontWeight: 400,
-        color: '#43AB00'
+        color: "#43AB00"
     },
     celleryLogo: {
         height: 40,
-        verticalAlign: 'middle',
+        verticalAlign: "middle",
         paddingRight: 2
     },
     navButton: {
@@ -72,7 +72,7 @@ const styles = (theme) => ({
         borderBottomColor: theme.palette.primary.main
     },
     leftIcon: {
-        marginRight: theme.spacing(1),
+        marginRight: theme.spacing(1)
     }
 });
 
@@ -129,26 +129,26 @@ class Header extends React.Component {
                                     </div>
                                 </div>
                                 <Button disableTouchRipple={true} color="inherit" href="/images"
-                                        className={classes.navButton}>Images</Button>
+                                    className={classes.navButton}>Images</Button>
                                 <Button disableTouchRipple={true} color="inherit" href="/orgs"
-                                        className={classes.navButton}>Organisations</Button>
+                                    className={classes.navButton}>Organisations</Button>
                                 <Button disableTouchRipple={true} color="inherit" href="/explore"
-                                        className={classes.navButton}>Explore</Button>
+                                    className={classes.navButton}>Explore</Button>
                                 <div>
                                     <Button disableTouchRipple={true} color="inherit"
-                                            className={classes.navButton} ria-haspopup="true"
-                                            onClick={this.handleDocsPopoverOpen}>Docs</Button>
+                                        className={classes.navButton} ria-haspopup="true"
+                                        onClick={this.handleDocsPopoverOpen}>Docs</Button>
                                     <Menu id="user-info" anchorEl={docsPopoverElement}
-                                          anchorOrigin={{
-                                              vertical: "top",
-                                              horizontal: "right"
-                                          }}
-                                          transformOrigin={{
-                                              vertical: "top",
-                                              horizontal: "right"
-                                          }}
-                                          open={isDocsPopoverOpen}
-                                          onClose={this.handleDocsPopoverClose}>
+                                        anchorOrigin={{
+                                            vertical: "top",
+                                            horizontal: "right"
+                                        }}
+                                        transformOrigin={{
+                                            vertical: "top",
+                                            horizontal: "right"
+                                        }}
+                                        open={isDocsPopoverOpen}
+                                        onClose={this.handleDocsPopoverClose}>
                                         <MenuItem onClick={this.handleDocsPopoverClose}>
                                             Get stared with Cellery hub
                                         </MenuItem>
@@ -159,21 +159,21 @@ class Header extends React.Component {
                                 </div>
                                 <div>
                                     <Button disableTouchRipple={true} color="inherit"
-                                            className={classNames(classes.usernameBtn, classes.navButton)}
-                                            aria-haspopup="true"
-                                            onClick={this.handleAccountPopoverOpen}>
+                                        className={classNames(classes.usernameBtn, classes.navButton)}
+                                        aria-haspopup="true"
+                                        onClick={this.handleAccountPopoverOpen}>
                                         <AccountCircle className={classes.leftIcon}/> john</Button>
                                     <Menu id="user-info" anchorEl={accountPopoverElement}
-                                          anchorOrigin={{
-                                              vertical: "top",
-                                              horizontal: "right"
-                                          }}
-                                          transformOrigin={{
-                                              vertical: "top",
-                                              horizontal: "right"
-                                          }}
-                                          open={isAccountPopoverOpen}
-                                          onClose={this.handleAccountPopoverClose}>
+                                        anchorOrigin={{
+                                            vertical: "top",
+                                            horizontal: "right"
+                                        }}
+                                        transformOrigin={{
+                                            vertical: "top",
+                                            horizontal: "right"
+                                        }}
+                                        open={isAccountPopoverOpen}
+                                        onClose={this.handleAccountPopoverClose}>
                                         <MenuItem onClick={this.handleAccountPopoverClose}>
                                             My Profile
                                         </MenuItem>
@@ -193,7 +193,7 @@ class Header extends React.Component {
 }
 
 Header.propTypes = {
-    classes: PropTypes.object.isRequired,
+    classes: PropTypes.object.isRequired
 };
 
 export default withStyles(styles)(Header);

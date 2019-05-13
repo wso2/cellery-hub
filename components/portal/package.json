@@ -7,6 +7,7 @@
     "@material-ui/core": "^4.0.0-beta.0",
     "@material-ui/icons": "^3.0.2",
     "classnames": "^2.2.6",
+    "prop-types": "^15.7.2",
     "react": "^16.8.6",
     "react-dom": "^16.8.6",
     "react-router-dom": "^5.0.0",
@@ -16,6 +17,8 @@
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
+    "lint": "eslint --color src/",
+    "lint:fix": "eslint --color --fix src/",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },
@@ -35,6 +38,7 @@
     ]
   },
   "devDependencies": {
-    "eslint": "^5.16.0"
+    "eslint": "^5.16.0",
+    "eslint-plugin-jest": "^22.1.3"
   }
 }

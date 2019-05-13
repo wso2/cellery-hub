@@ -16,9 +16,9 @@
  * under the License.
  */
 
-import Divider from '@material-ui/core/Divider';
+import Divider from "@material-ui/core/Divider";
 import React from "react";
-import Typography from '@material-ui/core/Typography';
+import Typography from "@material-ui/core/Typography";
 import {withStyles} from "@material-ui/core/styles";
 import * as PropTypes from "prop-types";
 
@@ -28,23 +28,19 @@ const styles = (theme) => ({
     }
 });
 
-class Orgs extends React.Component {
+const Orgs = () => {
+    const {classes} = this.props;
 
-    render = () => {
-        const {classes} = this.props;
-
-        return (
-            <div className={classes.content}>
-                <Typography variant="h5" color="inherit">
-                    Organizations
-                </Typography>
-                //TODO: Add organizations page content
-                <Divider/>
-            </div>
-        );
-    };
-
-}
+    return (
+        <div className={classes.content}>
+            <Typography variant="h5" color="inherit">
+                Organizations
+            </Typography>
+            {/* TODO: Add organizations page content*/}
+            <Divider/>
+        </div>
+    );
+};
 
 Orgs.propTypes = {
     classes: PropTypes.object.isRequired

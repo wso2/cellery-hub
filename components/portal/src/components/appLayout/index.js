@@ -16,47 +16,43 @@
  * under the License.
  */
 
-import Container from '@material-ui/core/Container';
-import Footer from "./footer";
-import Header from "./header";
+import Container from "@material-ui/core/Container";
+import Footer from "./Footer";
+import Header from "./Header";
 import React from "react";
 import {withStyles} from "@material-ui/core/styles";
 import * as PropTypes from "prop-types";
 
 const styles = () => ({
     root: {
-        display: 'flex',
-        minHeight: '100vh',
-        flexDirection: 'column'
+        display: "flex",
+        minHeight: "100vh",
+        flexDirection: "column"
     },
     mainContent: {
         flex: 1
-    },
+    }
 });
 
-class AppLayout extends React.Component {
+const AppLayout = () => {
+    const {classes, children} = this.props;
 
-    render = () => {
-        const {classes, children} = this.props;
-
-        return (
-            <div className={classes.root}>
-                <Header/>
-                <main className={classes.mainContent}>
-                    <Container maxWidth="md">
-                        {children}
-                    </Container>
-                </main>
-                <Footer/>
-            </div>
-        );
-    };
-
-}
+    return (
+        <div className={classes.root}>
+            <Header/>
+            <main className={classes.mainContent}>
+                <Container maxWidth="md">
+                    {children}
+                </Container>
+            </main>
+            <Footer/>
+        </div>
+    );
+};
 
 AppLayout.propTypes = {
     classes: PropTypes.object.isRequired,
-    children: PropTypes.any.isRequired,
+    children: PropTypes.any.isRequired
 };
 
 export default withStyles(styles)(AppLayout);

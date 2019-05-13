@@ -14,31 +14,31 @@
  * limitations under the License.
  */
 
-import AppBar from '@material-ui/core/AppBar';
-import BgImg from '../../img/celleryBg.png';
-import Button from '@material-ui/core/Button';
-import CelleryOverview from '../../img/celleryOverview.jpg';
-import Container from '@material-ui/core/Container';
-import CelleryLogo from '../../img/celleryLogo.svg';
-import Footer from "../appLayout/footer";
-import GithubLogo from '../../img/githubLogo';
-import GoogleLogo from '../../img/googleLogo';
-import Grid from '@material-ui/core/Grid';
-import Image from '../../img/image';
-import Link from '@material-ui/core/Link';
-import Menu from '@material-ui/core/Menu';
-import MenuItem from '@material-ui/core/MenuItem';
+import AppBar from "@material-ui/core/AppBar";
+import BgImg from "../../img/celleryBg.png";
+import Button from "@material-ui/core/Button";
+import CelleryLogo from "../../img/celleryLogo.svg";
+import CelleryOverview from "../../img/celleryOverview.jpg";
+import Container from "@material-ui/core/Container";
+import Footer from "../appLayout/Footer";
+import GithubLogo from "../../img/githubLogo";
+import GoogleLogo from "../../img/googleLogo";
+import Grid from "@material-ui/core/Grid";
+import Image from "../../img/image";
+import Link from "@material-ui/core/Link";
+import Menu from "@material-ui/core/Menu";
+import MenuItem from "@material-ui/core/MenuItem";
 import React from "react";
-import Toolbar from '@material-ui/core/Toolbar';
-import Typography from '@material-ui/core/Typography';
+import Toolbar from "@material-ui/core/Toolbar";
+import Typography from "@material-ui/core/Typography";
 import {withStyles} from "@material-ui/core/styles";
 import * as PropTypes from "prop-types";
 
 const styles = (theme) => ({
     root: {
-        display: 'flex',
-        minHeight: '100vh',
-        flexDirection: 'column'
+        display: "flex",
+        minHeight: "100vh",
+        flexDirection: "column"
     },
     mainContent: {
         flex: 1
@@ -54,7 +54,7 @@ const styles = (theme) => ({
         boxShadow: "none"
     },
     title: {
-        flexGrow: 1,
+        flexGrow: 1
     },
     headerSubTitle: {
         display: "flex",
@@ -65,11 +65,11 @@ const styles = (theme) => ({
         paddingTop: theme.spacing.unit * 4,
         fontSize: 48,
         fontWeight: 400,
-        color: '#43AB00'
+        color: "#43AB00"
     },
     celleryLogo: {
         height: 60,
-        verticalAlign: 'middle',
+        verticalAlign: "middle",
         paddingRight: 2
     },
     navButton: {
@@ -87,7 +87,7 @@ const styles = (theme) => ({
     toolbar: {
         paddingLeft: 0,
         paddingRight: 0,
-        justifyContent: 'flex-end'
+        justifyContent: "flex-end"
     },
     summary: {
         fontSize: 32,
@@ -99,31 +99,31 @@ const styles = (theme) => ({
     },
     description: {
         fontSize: 18,
-        fontWeight: 300,
+        fontWeight: 300
     },
     desContainer: {
         marginTop: theme.spacing.unit * 4
     },
     bgImg: {
         backgroundImage: `url(${BgImg})`,
-        backgroundColor: '#ffffff',
+        backgroundColor: "#ffffff",
         height: 100,
-        backgroundRepeat: 'no-repeat',
-        backgroundPosition: 'bottom center'
+        backgroundRepeat: "no-repeat",
+        backgroundPosition: "bottom center"
     },
     celleryOverview: {
         backgroundImage: `url(${CelleryOverview})`,
         height: "100%",
-        backgroundRepeat: 'no-repeat',
-        backgroundSize: 'contain',
-        backgroundPosition: 'bottom right'
+        backgroundRepeat: "no-repeat",
+        backgroundSize: "contain",
+        backgroundPosition: "bottom right"
     },
     loginText: {
         paddingTop: theme.spacing.unit * 4,
         fontSize: 16
     },
     leftIcon: {
-        marginRight: theme.spacing.unit,
+        marginRight: theme.spacing.unit
     },
     button: {
         borderColor: theme.palette.primary.main,
@@ -199,22 +199,22 @@ class Home extends React.Component {
                                 <AppBar position="static" className={classes.appbar}>
                                     <Toolbar className={classes.toolbar}>
                                         <Button disableTouchRipple={true} color="inherit" href="/explore"
-                                                className={classes.navButton}>EXPLORE</Button>
+                                            className={classes.navButton}>EXPLORE</Button>
                                         <div>
                                             <Button disableTouchRipple={true} color="inherit"
-                                                    className={classes.navButton} aria-haspopup="true"
-                                                    onClick={this.handleAccountPopoverOpen}>SIGN IN/ SIGN UP</Button>
+                                                className={classes.navButton} aria-haspopup="true"
+                                                onClick={this.handleAccountPopoverOpen}>SIGN IN/ SIGN UP</Button>
                                             <Menu id="user-info-appbar" anchorEl={accountPopoverElement}
-                                                  anchorOrigin={{
-                                                      vertical: "top",
-                                                      horizontal: "right"
-                                                  }}
-                                                  transformOrigin={{
-                                                      vertical: "top",
-                                                      horizontal: "right"
-                                                  }}
-                                                  open={isAccountPopoverOpen}
-                                                  onClose={this.handleAccountPopoverClose}>
+                                                anchorOrigin={{
+                                                    vertical: "top",
+                                                    horizontal: "right"
+                                                }}
+                                                transformOrigin={{
+                                                    vertical: "top",
+                                                    horizontal: "right"
+                                                }}
+                                                open={isAccountPopoverOpen}
+                                                onClose={this.handleAccountPopoverClose}>
                                                 <MenuItem onClick={this.handleAccountPopoverClose}>
                                                     <GithubLogo className={classes.leftIcon}/> Github
                                                 </MenuItem>
