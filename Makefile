@@ -43,6 +43,11 @@ build: clean init
 	cd ./components/portal; \
 	npm run build
 
+.PHONY: test
+test: build
+	cd ./components/portal; \
+	npm run test
+
 .PHONY: docker
 docker: build
 	docker build -t $(DOCKER_REPO)/cellery-hub-proxy:$(DOCKER_IMAGE_TAG) -f ./docker/proxy/Dockerfile .

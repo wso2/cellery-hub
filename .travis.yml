@@ -10,4 +10,6 @@ cache:
 before_install:
   - npm i -g npm
 script:
-  - make clean init check-style build docker
+  - make clean init check-style build test docker
+after_success:
+  - bash <(curl -s https://codecov.io/bash)
