@@ -1,5 +1,5 @@
 {
-  "name": "@wso2-cellery/hub",
+  "name": "@wso2-cellery/hub-portal",
   "version": "0.1.0",
   "private": true,
   "homepage": ".",
@@ -19,7 +19,7 @@
     "build": "react-scripts build",
     "lint": "eslint --color src/",
     "lint:fix": "eslint --color --fix src/",
-    "test": "react-scripts test",
+    "test": "CI=true react-scripts test --colors --testURL=http://hub.cellery.io --coverage",
     "eject": "react-scripts eject"
   },
   "eslintConfig": {
