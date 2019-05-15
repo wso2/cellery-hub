@@ -15,31 +15,46 @@
 #  under the License.
 
 PROJECT_ROOT := $(realpath $(dir $(abspath $(lastword $(MAKEFILE_LIST)))))
+PROJECT_PKG := github.com/cellery-io/cellery-hub
 DOCKER_REPO ?= wso2cellery
 DOCKER_IMAGE_TAG ?= latest
+GO_FILES	= $(shell find . -type f -name '*.go' -not -path "./vendor/*")
 
 all: clean init build docker
 
 .PHONY: clean
 clean:
+	rm -rf ./components/docker-auth/target/
 	rm -rf ./components/portal/build
 
 .PHONY: init
 init:
+	@command -v goimports >/dev/null; \
+	if [ $$? -ne 0 ]; then \
+		echo "goimports not found. Running 'go get golang.org/x/tools/cmd/goimports'"; \
+		go get golang.org/x/tools/cmd/goimports; \
+	fi
 	cd ./components/portal; \
 	npm ci
 	cd ./components/portal/node-server; \
 	npm ci
 
+.PHONY: code-format
+code-format:
+	@goimports -local $(PROJECT_PKG) -w -l ./components/
+	cd ./components/portal; \
+	npm run lint:fix
+
 .PHONY: check-style
-check-style: init
-	cd components; \
-	test -z "$$(goimports -l . | tee /dev/stderr)"
+check-style:
+	test -z "$$(goimports -local $(PROJECT_PKG) -l ./components/ | tee /dev/stderr)"
 	cd ./components/portal; \
 	npm run lint
 
 .PHONY: build
 build: clean init
+	GOOS=linux GOARCH=amd64 go build -o ./components/docker-auth/target/authentication ./components/docker-auth/cmd/authn/authentication.go
+	GOOS=linux GOARCH=amd64 go build -o ./components/docker-auth/target/authorization ./components/docker-auth/cmd/authz/authorization.go
 	cd ./components/portal; \
 	npm run build
 
@@ -50,11 +65,14 @@ test: build
 
 .PHONY: docker
 docker: build
+	docker build -t $(DOCKER_REPO)/cellery-hub-auth:$(DOCKER_IMAGE_TAG) -f ./docker/docker-auth/Dockerfile .
 	docker build -t $(DOCKER_REPO)/cellery-hub-proxy:$(DOCKER_IMAGE_TAG) -f ./docker/proxy/Dockerfile .
 	docker build -t $(DOCKER_REPO)/cellery-hub-portal:$(DOCKER_IMAGE_TAG) -f ./docker/portal/Dockerfile .
 
 .PHONY: deploy
 deploy:
+	mkdir -p deployment/docker-registry/extension-logs
+	mkdir -p deployment/docker-registry/mnt
 	cd deployment; \
 	docker-compose up
 

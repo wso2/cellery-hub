@@ -1,0 +1,17 @@
+{
+   "schemaVersion": 1,
+   "mediaType": "application/vnd.docker.distribution.manifest.v1+prettyjws",
+   "name": "nadunrds/pet-fe",
+   "tag": "0.1.0",
+   "architecture": "amd64",
+   "fsLayers": [
+      {
+         "blobSum": "sha256:4054a8388a6186c67d1097e5afda087f9dc5bc97587fdd8ebabf2b85cbdb1d14"
+      }
+   ],
+   "history": [
+      {
+         "v1Compatibility": ""
+      }
+   ]
+}

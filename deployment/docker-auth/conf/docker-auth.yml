@@ -1,0 +1,18 @@
+server:
+  addr: ":5001"
+  certificate: "/security/docker-auth-TLS.crt"
+  key: "/security/docker-auth-TLS.key"
+
+token:
+  issuer: "auth.registry.hub.cellery.io"
+  expiration: 900
+  certificate: "/security/docker-auth-sign.crt"
+  key: "/security/docker-auth-sign.key"
+
+ext_auth:
+  command: "/extensions/authentication"
+  args: ["-log_dir=/extension-logs"]
+
+ext_authz:
+  command: "/extensions/authorization"
+  args: [""]
