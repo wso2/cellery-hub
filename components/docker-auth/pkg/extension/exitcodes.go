@@ -16,10 +16,10 @@
  * under the License.
  */
 
-package pkg
+package extension
 
-const(
-SuccessExitCode = 0
-ErrorExitCode = 1
-MisuseExitCode = 2
+const (
+	SuccessExitCode = 0
+	ErrorExitCode   = 1
+	MisuseExitCode  = 2
 )

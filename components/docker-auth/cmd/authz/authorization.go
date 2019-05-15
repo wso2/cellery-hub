@@ -22,20 +22,20 @@ import (
 	"encoding/json"
 	"os"
 
-	"github.com/cesanta/docker_auth/auth_server/authz"
+	"github.com/cellery-io/cellery-hub/components/docker-auth/pkg/extension"
 
-	"github.com/cellery-io/cellery-hub/components/docker-auth/pkg"
+	"github.com/cesanta/docker_auth/auth_server/authz"
 )
 
 func main() {
-	text := pkg.ReadStdIn()
+	text := extension.ReadStdIn()
 	// Create the authReqInfo object from the input
 	var authReqInfo authz.AuthRequestInfo
 	err := json.Unmarshal([]byte(text), &authReqInfo)
 	if err != nil {
-		os.Exit(pkg.ErrorExitCode)
+		os.Exit(extension.ErrorExitCode)
 	}
 
-	os.Exit(pkg.SuccessExitCode)
+	os.Exit(extension.SuccessExitCode)
 
 }

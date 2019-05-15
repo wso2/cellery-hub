@@ -18,7 +18,6 @@ PROJECT_ROOT := $(realpath $(dir $(abspath $(lastword $(MAKEFILE_LIST)))))
 PROJECT_PKG := github.com/cellery-io/cellery-hub
 DOCKER_REPO ?= wso2cellery
 DOCKER_IMAGE_TAG ?= latest
-GO_FILES	= $(shell find . -type f -name '*.go' -not -path "./vendor/*")
 
 all: clean init build docker
 

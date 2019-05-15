@@ -1,3 +1,5 @@
+dist: xenial
+language: go
 node_js:
   - 9.11.2
 go:
@@ -9,6 +11,10 @@ cache:
     - .autoconf
 before_install:
   - npm i -g npm
+  - mkdir -p $HOME/gopath/src/github.com/cellery-io
+  - mv ${TRAVIS_BUILD_DIR} $GOPATH/src/github.com/cellery-io/cellery-hub
+  - export TRAVIS_BUILD_DIR=$HOME/gopath/src/github.com/cellery-io/cellery-hub
+  - cd $HOME/gopath/src/github.com/cellery-io/cellery-hub
 script:
   - make clean init check-style build test docker
 after_success:

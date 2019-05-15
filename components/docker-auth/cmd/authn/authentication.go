@@ -4,70 +4,41 @@ import (
 	"flag"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"os"
 	"strings"
-	"time"
+
+	"github.com/cellery-io/cellery-hub/components/docker-auth/pkg/extension"
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/golang/glog"
-
-	"github.com/cellery-io/cellery-hub/components/docker-auth/pkg"
-)
-
-var (
-	idpKey        []byte
-	dockerAuthKey []byte
-	err           error
 )
 
 const (
-	issuerClaim = "iss"
-	subjectClaim = "sub"
-	expirationClaim = "exp"
-	idpCertEnvVar = "IDP_CERT"
-	authTokenIssuer = "REGISTRY_AUTH_TOKEN_ISSUER"
-	dockerAuthCertEnvVar = "REGISTRY_AUTH_TOKEN_ROOTCERTBUNDLE"
+	issuerClaim           = "iss"
+	subjectClaim          = "sub"
+	authTokenIssuerEnvVar = "REGISTRY_AUTH_TOKEN_ISSUER"
+	idpCertEnvVar         = "IDP_CERT"
+	dockerAuthCertEnvVar  = "REGISTRY_AUTH_TOKEN_ROOTCERTBUNDLE"
 )
 
-func errLog(err error) {
-	if err != nil {
-		log.Fatal("Error:", err.Error())
-	}
-}
-
-func init() {
-	flag.Usage = usage
-	flag.Parse()
-	idpKey, err = ioutil.ReadFile(os.Getenv(idpCertEnvVar))
-	if err != nil {
-		glog.Info("unable to find the idp key")
-		glog.Flush()
-		os.Exit(pkg.ErrorExitCode)
-	}
-	dockerAuthKey, err = ioutil.ReadFile(os.Getenv(dockerAuthCertEnvVar))
-	if err != nil {
-		glog.Info("unable to find the docker auth key")
-		glog.Flush()
-		os.Exit(pkg.ErrorExitCode)
-	}
-}
-
-func usage() {
-	flag.PrintDefaults()
-	os.Exit(pkg.MisuseExitCode)
-}
-
-func getJWTClaim(token interface{}, claimKey string) string {
-	jwtToken, _ := jwt.Parse(token.(string), nil)
-	claims, _ := jwtToken.Claims.(jwt.MapClaims)
-	return claims[claimKey].(string)
-}
-
-func SignatureValidate(inToken interface{}, cert []byte) (interface{}, error) {
-	publicRSA, err := jwt.ParseRSAPublicKeyFromPEM(cert)
+func readCert(certPathEnv string) ([]byte, error) {
+	key, err := ioutil.ReadFile(os.Getenv(certPathEnv))
 	if err != nil {
 		return nil, err
+	}
+	return key, nil
+}
+
+func getJWTClaims(token interface{}) jwt.MapClaims {
+	jwtToken, _ := jwt.Parse(token.(string), nil)
+	claims := jwtToken.Claims.(jwt.MapClaims)
+	return claims
+}
+
+func validateToken(inToken interface{}, cert []byte) (bool, error) {
+	publicRSA, err := jwt.ParseRSAPublicKeyFromPEM(cert)
+	if err != nil {
+		return false, err
 	}
 	token, err := jwt.Parse(inToken.(string), func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodRSA); !ok {
@@ -75,79 +46,63 @@ func SignatureValidate(inToken interface{}, cert []byte) (interface{}, error) {
 		}
 		return publicRSA, err
 	})
-	if token != nil {
-		if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
-			return claims, nil
-		} else {
-			return nil, err
-		}
+	if token != nil && token.Valid {
+		return true, nil
 	}
-	return nil, err
-}
-
-func getTokenValidity(timestamp interface{}) bool {
-	if validity, ok := timestamp.(float64); ok {
-		tm := time.Unix(int64(validity), 0)
-		remainder := tm.Sub(time.Now())
-		if remainder > 0 {
-			return true
-		}
-	}
-	return false
+	return false, err
 }
 
 func main() {
-	text := pkg.ReadStdIn()
+	flag.Parse()
+	text := extension.ReadStdIn()
+	glog.Infof("text received from CLI : %s", text)
 	credentials := strings.Split(text, " ")
 
 	if len(credentials) != 2 {
-		os.Exit(pkg.ErrorExitCode)
+		glog.Error("received more than two parameters")
+		glog.Flush()
+		os.Exit(extension.ErrorExitCode)
 	}
 	uName := credentials[0]
 	token := credentials[1]
 
-	glog.Infof("id_token received %s:", token)
-
-	iss := getJWTClaim(token, issuerClaim)
-	sub := getJWTClaim(token, subjectClaim)
+	claim := getJWTClaims(token)
+	iss := claim[issuerClaim].(string)
+	sub := claim[subjectClaim].(string)
 
 	glog.Info("Token issuer :" + iss)
 	glog.Info("Subject :" + sub)
 
 	if sub != uName {
-		glog.Info("Username does not match with subject in JWT")
-		os.Exit(pkg.ErrorExitCode)
+		glog.Error("username does not match with subject in JWT")
+		glog.Flush()
+		os.Exit(extension.ErrorExitCode)
 	}
 
-	var certificateInUse = idpKey
+	certificateInUse, err := readCert(idpCertEnvVar)
 
-	if iss == authTokenIssuer {
-		certificateInUse = dockerAuthKey
+	if iss == authTokenIssuerEnvVar {
+		certificateInUse, err = readCert(dockerAuthCertEnvVar)
 	}
-
-	claims, err := SignatureValidate(token, certificateInUse)
-	glog.Info("JWT read successfully")
 	if err != nil {
-		errLog(err)
+		glog.Error("unable to load cert file")
 	}
 
-	claimValue := claims.(jwt.MapClaims)
-	glog.Info("Claims retrieved successfully")
-	tokenValidity := getTokenValidity(claimValue[expirationClaim])
+	tokenValidity, err := validateToken(token, certificateInUse)
+	if err != nil {
+		glog.Errorf("Token is not valid - %s", err)
+		glog.Flush()
+		os.Exit(extension.ErrorExitCode)
+	}
+	glog.Info("signature verified")
 
-	isUserAuthenticated := false
 	if tokenValidity {
-		isUserAuthenticated = true
-		glog.Info("Token is not expired")
-	}
-
-	if isUserAuthenticated {
-		glog.Info("User successfully authenticated")
+		glog.Info("user successfully authenticated")
 		glog.Flush()
-		os.Exit(pkg.SuccessExitCode)
+		os.Exit(extension.SuccessExitCode)
 	} else {
-		glog.Info("Authentication failed")
+		glog.Error("authentication failed")
 		glog.Flush()
-		os.Exit(pkg.ErrorExitCode)
+		os.Exit(extension.ErrorExitCode)
 	}
 }

@@ -46,7 +46,7 @@ const Portal = () => {
 };
 
 
-// Create the cmd theme of the App
+// Create the main theme of the App
 const theme = createMuiTheme({
     typography: {
         useNextVariants: true

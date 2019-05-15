@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package pkg
+package extension
 
 import (
 	"bufio"
