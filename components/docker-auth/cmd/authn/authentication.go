@@ -29,18 +29,29 @@ func readCert(certPathEnv string) ([]byte, error) {
 	return key, nil
 }
 
-func getJWTClaims(token interface{}) jwt.MapClaims {
-	jwtToken, _ := jwt.Parse(token.(string), nil)
-	claims := jwtToken.Claims.(jwt.MapClaims)
-	return claims
+func getJWTClaims(token string) jwt.MapClaims {
+	jwtToken, _ := jwt.Parse(token, nil)
+	claims, ok := jwtToken.Claims.(jwt.MapClaims)
+	if ok {
+		return claims
+	}
+	return nil
 }
 
-func validateToken(inToken interface{}, cert []byte) (bool, error) {
+func getClaimValue(claim jwt.MapClaims, claimKey string) string {
+	value, ok := claim[claimKey].(string)
+	if ok {
+		return value
+	}
+	return ""
+}
+
+func validateToken(inToken string, cert []byte) (bool, error) {
 	publicRSA, err := jwt.ParseRSAPublicKeyFromPEM(cert)
 	if err != nil {
 		return false, err
 	}
-	token, err := jwt.Parse(inToken.(string), func(token *jwt.Token) (interface{}, error) {
+	token, err := jwt.Parse(inToken, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodRSA); !ok {
 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 		}
@@ -52,6 +63,11 @@ func validateToken(inToken interface{}, cert []byte) (bool, error) {
 	return false, err
 }
 
+func glogFlushAndExit(exitCode int) {
+	glog.Flush()
+	os.Exit(exitCode)
+}
+
 func main() {
 	flag.Parse()
 	text := extension.ReadStdIn()
@@ -60,23 +76,21 @@ func main() {
 
 	if len(credentials) != 2 {
 		glog.Error("received more than two parameters")
-		glog.Flush()
-		os.Exit(extension.ErrorExitCode)
+		glogFlushAndExit(extension.ErrorExitCode)
 	}
 	uName := credentials[0]
 	token := credentials[1]
 
 	claim := getJWTClaims(token)
-	iss := claim[issuerClaim].(string)
-	sub := claim[subjectClaim].(string)
+	iss := getClaimValue(claim, issuerClaim)
+	sub := getClaimValue(claim, subjectClaim)
 
 	glog.Info("Token issuer :" + iss)
 	glog.Info("Subject :" + sub)
 
 	if sub != uName {
 		glog.Error("username does not match with subject in JWT")
-		glog.Flush()
-		os.Exit(extension.ErrorExitCode)
+		glogFlushAndExit(extension.ErrorExitCode)
 	}
 
 	certificateInUse, err := readCert(idpCertEnvVar)
@@ -91,18 +105,15 @@ func main() {
 	tokenValidity, err := validateToken(token, certificateInUse)
 	if err != nil {
 		glog.Errorf("Token is not valid - %s", err)
-		glog.Flush()
-		os.Exit(extension.ErrorExitCode)
+		glogFlushAndExit(extension.ErrorExitCode)
 	}
 	glog.Info("signature verified")
 
 	if tokenValidity {
 		glog.Info("user successfully authenticated")
-		glog.Flush()
-		os.Exit(extension.SuccessExitCode)
+		glogFlushAndExit(extension.SuccessExitCode)
 	} else {
 		glog.Error("authentication failed")
-		glog.Flush()
-		os.Exit(extension.ErrorExitCode)
+		glogFlushAndExit(extension.ErrorExitCode)
 	}
 }
