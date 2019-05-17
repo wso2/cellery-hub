@@ -16,8 +16,17 @@
  * under the License.
  */
 
+import AddCircleOutline from "@material-ui/icons/AddCircleOutline";
+import Button from "@material-ui/core/Button";
 import Divider from "@material-ui/core/Divider";
+import FormControl from "@material-ui/core/FormControl";
+import Grid from "@material-ui/core/Grid";
+import Input from "@material-ui/core/Input";
+import InputAdornment from "@material-ui/core/InputAdornment";
+import InputLabel from "@material-ui/core/InputLabel";
+import OrgList from "../common/OrgList";
 import React from "react";
+import SearchIcon from "@material-ui/icons/Search";
 import Typography from "@material-ui/core/Typography";
 import {withStyles} from "@material-ui/core/styles";
 import * as PropTypes from "prop-types";
@@ -25,22 +34,91 @@ import * as PropTypes from "prop-types";
 const styles = (theme) => ({
     content: {
         paddingTop: theme.spacing.unit * 4
+    },
+    container: {
+        paddingTop: theme.spacing.unit * 4,
+        paddingBottom: theme.spacing.unit * 4
+    },
+    formControl: {
+        minWidth: "100%"
+    },
+    rightIcon: {
+        right: 0
     }
 });
 
-const MyOrgs = (props) => {
-    const {classes} = props;
+const data = [
+    {
+        name: "Alpha",
+        value: "alpha",
+        members: 5,
+        images: 3,
+        description: "Sample description"
 
-    return (
-        <div className={classes.content}>
-            <Typography variant="h5" color="inherit">
-                Organizations
-            </Typography>
-            {/* TODO: Add organizations page content*/}
-            <Divider/>
-        </div>
-    );
-};
+    },
+    {
+        name: "Beta",
+        value: "beta",
+        members: 10,
+        images: 6,
+        description: "Sample description"
+    }
+];
+
+class MyOrgs extends React.Component {
+
+    constructor(props) {
+        super(props);
+        this.state = {
+            organization: "all",
+            sort: "most-popular"
+        };
+    }
+
+    render = () => {
+        const {classes} = this.props;
+
+        return (
+            <div className={classes.content}>
+                <Typography variant="h5" color="inherit">
+                    Organizations
+                </Typography>
+                <Divider/>
+                <div className={classes.container}>
+                    <Grid container>
+                        <Grid item xs={12} sm={4} md={4}>
+                            <FormControl className={classes.formControl}>
+                                <InputLabel htmlFor="search">Organization Name</InputLabel>
+                                <Input
+                                    id="search"
+                                    startAdornment={
+                                        <InputAdornment position="start">
+                                            <SearchIcon/>
+                                        </InputAdornment>
+                                    }
+                                    placeholder="Search Organization"
+                                />
+                            </FormControl>
+                        </Grid>
+                        <Grid item xs={0} sm={4} md={4}>
+                        </Grid>
+                        <Grid item xs={12} sm={4} md={4} >
+                            <Grid container alignItems="baseline" justify="flex-end" direction="row">
+                                <Button variant="contained" color="primary" className={classes.button}>
+                                    <AddCircleOutline className={classes.rightIcon} />
+                                    Create
+                                </Button>
+                            </Grid>
+                        </Grid>
+                    </Grid>
+                </div>
+                <OrgList data={data}/>
+            </div>
+        );
+    }
+
+}
+
 
 MyOrgs.propTypes = {
     classes: PropTypes.object.isRequired

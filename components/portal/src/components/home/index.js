@@ -17,6 +17,7 @@
 import AppBar from "@material-ui/core/AppBar";
 import BgImg from "../../img/celleryOverviewBg.png";
 import Button from "@material-ui/core/Button";
+import CellImage from "../../img/CellImage";
 import CelleryLogo from "../../img/celleryLogo.svg";
 import CelleryOverview from "../../img/celleryOverview.jpg";
 import Container from "@material-ui/core/Container";
@@ -24,7 +25,6 @@ import Footer from "../appLayout/Footer";
 import GithubLogo from "../../img/GithubLogo";
 import GoogleLogo from "../../img/GoogleLogo";
 import Grid from "@material-ui/core/Grid";
-import Image from "../../img/CellImage";
 import Link from "@material-ui/core/Link";
 import Menu from "@material-ui/core/Menu";
 import MenuItem from "@material-ui/core/MenuItem";
@@ -260,7 +260,7 @@ class Home extends React.Component {
                                 <div>
                                     <Typography variant="subtitle2">
                                         <Link href={"/explore"} color="inherit" className={classes.link}>
-                                            <Image className={classes.imageIcon}/>Popular Cell Images
+                                            <CellImage className={classes.imageIcon}/>Popular Cell Images
                                         </Link>
                                     </Typography>
                                 </div>
