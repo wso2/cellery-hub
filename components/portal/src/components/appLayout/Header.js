@@ -26,6 +26,7 @@ import MenuItem from "@material-ui/core/MenuItem";
 import React from "react";
 import Toolbar from "@material-ui/core/Toolbar";
 import classNames from "classnames";
+import {withRouter} from "react-router-dom";
 import {withStyles} from "@material-ui/core/styles";
 import * as PropTypes from "prop-types";
 
@@ -110,11 +111,21 @@ class Header extends React.Component {
         });
     };
 
+    handleNavItemClick = (path) => {
+        const {history} = this.props;
+        history.push(path);
+    };
+
     render = () => {
         const {classes} = this.props;
         const {accountPopoverElement, docsPopoverElement} = this.state;
         const isAccountPopoverOpen = Boolean(accountPopoverElement);
         const isDocsPopoverOpen = Boolean(docsPopoverElement);
+        const pages = [
+            "/my-images",
+            "/my-orgs",
+            "/explore"
+        ];
 
         return (
             <header>
@@ -128,12 +139,15 @@ class Header extends React.Component {
                                         hub
                                     </div>
                                 </div>
-                                <Button disableTouchRipple={true} color="inherit" href="/images"
-                                    className={classes.navButton}>Images</Button>
-                                <Button disableTouchRipple={true} color="inherit" href="/orgs"
-                                    className={classes.navButton}>Organisations</Button>
-                                <Button disableTouchRipple={true} color="inherit" href="/explore"
-                                    className={classes.navButton}>Explore</Button>
+                                <Button disableTouchRipple={true} color="inherit" onClick={(event) => {
+                                    this.handleNavItemClick(pages[0], event);
+                                }} className={classes.navButton}>Images</Button>
+                                <Button disableTouchRipple={true} color="inherit" onClick={(event) => {
+                                    this.handleNavItemClick(pages[1], event);
+                                }} className={classes.navButton}>Organisations</Button>
+                                <Button disableTouchRipple={true} color="inherit" onClick={(event) => {
+                                    this.handleNavItemClick(pages[2], event);
+                                }} className={classes.navButton}>Explore</Button>
                                 <div>
                                     <Button disableTouchRipple={true} color="inherit"
                                         className={classes.navButton} ria-haspopup="true"
@@ -193,7 +207,11 @@ class Header extends React.Component {
 }
 
 Header.propTypes = {
-    classes: PropTypes.object.isRequired
+    classes: PropTypes.object.isRequired,
+    history: PropTypes.shape({
+        push: PropTypes.func.isRequired
+    }).isRequired
 };
 
-export default withStyles(styles)(Header);
+export default withStyles(styles)(withRouter(Header));
+
