@@ -39,3 +39,8 @@ hs_err_pid*
 
 # OS
 .DS_Store
+
+# Cellery Hub
+deployment/docker-registry/mnt
+deployment/docker-registry/extension-logs
+
