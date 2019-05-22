@@ -17,20 +17,47 @@
  */
 
 const path = require("path");
+const fs = require("fs");
 const express = require("express");
 const fallback = require("express-history-api-fallback");
 
 const app = express();
 const webPortalPort = process.env.PORTAL_PORT || 3000;
 
-const appRoot = path.join(__dirname, "/public");
-console.log(`Using App from ${appRoot} directory`);
+const configRoot = path.join(__dirname, "/config");
+const portalConfigFile = `${configRoot}/portal.json`;
+console.log(`Using Portal Configuration from ${portalConfigFile} file`);
 
-// Serving the React App
-app.use(express.static(appRoot));
-app.use(fallback("index.html", {
-    root: appRoot
-}));
+let portalConfig;
+const loadPortalConfig = () => {
+    portalConfig = fs.readFileSync(`${portalConfigFile}`, "utf8");
+    console.log("Loaded new Portal Configuration");
+};
+loadPortalConfig();
+
+// Watching for config changes
+fs.watch(configRoot, null, () => {
+    loadPortalConfig();
+});
+
+// REST API for configurations
+app.get("/config", (req, res) => {
+    res.set("Content-Type", "application/json");
+    res.send(portalConfig);
+});
+
+if (process.env.APP_ENV !== "DEV") {
+    const appRoot = path.join(__dirname, "/public");
+    console.log(`Using App from ${appRoot} directory`);
+
+    // Serving the React App
+    app.use(express.static(appRoot));
+    app.use(fallback("index.html", {
+        root: appRoot
+    }));
+} else {
+    console.log("Serving Only the Hub Portal Configuration");
+}
 
 const server = app.listen(webPortalPort, () => {
     const host = server.address().address;
