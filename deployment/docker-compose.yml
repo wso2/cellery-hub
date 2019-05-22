@@ -46,3 +46,8 @@ services:
       - IDP_CERT=/security/idp.crt
       - REGISTRY_AUTH_TOKEN_ROOTCERTBUNDLE=/security/docker-auth-sign.crt
       - REGISTRY_AUTH_TOKEN_ISSUER="auth.registry.hub.cellery.io"
+      - IS_JWT=false
+      - IDP_HOST=localhost
+      - IDP_PORT=9443
+      - USERNAME=admin
+      - PASSWORD=admin
