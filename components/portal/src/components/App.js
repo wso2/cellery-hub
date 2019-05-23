@@ -24,6 +24,7 @@ import Home from "./home";
 import MyImages from "./myImages";
 import MyOrgs from "./myOrgs";
 import React from "react";
+import {StateProvider} from "./common/state";
 import {BrowserRouter, Route, Switch} from "react-router-dom";
 import {MuiThemeProvider, createMuiTheme} from "@material-ui/core/styles";
 
@@ -72,7 +73,9 @@ const App = () => (
     <MuiThemeProvider theme={theme}>
         <CssBaseline/>
         <BrowserRouter>
-            <Portal/>
+            <StateProvider>
+                <Portal/>
+            </StateProvider>
         </BrowserRouter>
     </MuiThemeProvider>
 );
