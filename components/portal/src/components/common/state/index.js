@@ -20,6 +20,7 @@
 
 import CircularProgress from "@material-ui/core/CircularProgress/CircularProgress";
 import Grid from "@material-ui/core/Grid/Grid";
+import NotFound from "../error/NotFound";
 import React from "react";
 import StateHolder from "./stateHolder";
 import {withRouter} from "react-router-dom";
@@ -82,7 +83,7 @@ class UnStyledStateProvider extends React.Component {
         const content = (
             isConfigAvailable
                 ? children
-                : "Failed to load Portal Configuration" // TODO : Implement Not Found Error Component
+                : <NotFound title={"Failed to load Cellery Hub Configuration"}/>
         );
         return (
             <StateContext.Provider value={this.stateHolder}>

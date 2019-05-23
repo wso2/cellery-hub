@@ -19,6 +19,7 @@
 import "typeface-roboto";
 import AppLayout from "./appLayout";
 import CssBaseline from "@material-ui/core/CssBaseline/CssBaseline";
+import ErrorBoundary from "./common/error/ErrorBoundary";
 import Explore from "./explore";
 import Home from "./home";
 import MyImages from "./myImages";
@@ -35,11 +36,13 @@ const Portal = () => {
         isLoggedIn
             ? (
                 <AppLayout>
-                    <Switch>
-                        <Route exact path={["/", "/my-images"]} component={MyImages}/>
-                        <Route exact path={"/my-orgs"} component={MyOrgs}/>
-                        <Route exact path={"/explore"} component={Explore}/>
-                    </Switch>
+                    <ErrorBoundary showNavigationButtons={true}>
+                        <Switch>
+                            <Route exact path={["/", "/my-images"]} component={MyImages}/>
+                            <Route exact path={"/my-orgs"} component={MyOrgs}/>
+                            <Route exact path={"/explore"} component={Explore}/>
+                        </Switch>
+                    </ErrorBoundary>
                 </AppLayout>
             )
             : <Home/>
@@ -73,9 +76,11 @@ const App = () => (
     <MuiThemeProvider theme={theme}>
         <CssBaseline/>
         <BrowserRouter>
-            <StateProvider>
-                <Portal/>
-            </StateProvider>
+            <ErrorBoundary showNavigationButtons={true}>
+                <StateProvider>
+                    <Portal/>
+                </StateProvider>
+            </ErrorBoundary>
         </BrowserRouter>
     </MuiThemeProvider>
 );
