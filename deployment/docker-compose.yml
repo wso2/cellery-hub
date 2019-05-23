@@ -16,22 +16,6 @@ services:
       - ./proxy/security:/security
     environment:
       - TARGET_DOCKER_REGISTRY_URL=https://docker-registry.hub.internal:5000
-  docker-registry.hub.internal:
-    image: registry:2
-    restart: always
-    volumes:
-      - ./docker-registry/security:/security
-      - ./docker-registry/mnt:/mnt
-    environment:
-      - REGISTRY_STORAGE_FILESYSTEM_ROOTDIRECTORY=/mnt
-      - REGISTRY_AUTH_TOKEN_REALM=https://auth.registry.hub.cellery.io:5001/auth
-      - REGISTRY_AUTH_TOKEN_SERVICE="Docker registry"
-      - REGISTRY_AUTH_TOKEN_ISSUER="auth.registry.hub.cellery.io"
-      - REGISTRY_AUTH_TOKEN_ROOTCERTBUNDLE=/security/docker-auth-sign.crt
-      - REGISTRY_HTTP_TLS_CERTIFICATE=/security/docker-registry-TLS.crt
-      - REGISTRY_HTTP_TLS_KEY=/security/docker-registry-TLS.key
-      - REGISTRY_COMPATIBILITY_SCHEMA1_ENABLED=true
-      - REGISTRY_HTTP_HOST=https://registry.hub.cellery.io:9090
   auth.registry.hub.cellery.io:
     image: wso2cellery/cellery-hub-auth:latest
     command: -logtostderr=true /conf/docker-auth.yml
@@ -51,3 +35,26 @@ services:
       - IDP_PORT=9443
       - USERNAME=admin
       - PASSWORD=admin
+  docker-registry.hub.internal:
+    image: registry:2
+    restart: always
+    volumes:
+      - ./docker-registry/security:/security
+      - ./docker-registry/mnt:/mnt
+    environment:
+      - REGISTRY_STORAGE_FILESYSTEM_ROOTDIRECTORY=/mnt
+      - REGISTRY_AUTH_TOKEN_REALM=https://auth.registry.hub.cellery.io:5001/auth
+      - REGISTRY_AUTH_TOKEN_SERVICE="Docker registry"
+      - REGISTRY_AUTH_TOKEN_ISSUER="auth.registry.hub.cellery.io"
+      - REGISTRY_AUTH_TOKEN_ROOTCERTBUNDLE=/security/docker-auth-sign.crt
+      - REGISTRY_HTTP_TLS_CERTIFICATE=/security/docker-registry-TLS.crt
+      - REGISTRY_HTTP_TLS_KEY=/security/docker-registry-TLS.key
+      - REGISTRY_COMPATIBILITY_SCHEMA1_ENABLED=true
+      - REGISTRY_HTTP_HOST=https://registry.hub.cellery.io:9090
+  mysql.hub.internal:
+    image: mysql:8.0.16
+    restart: always
+    volumes:
+      - ./mysql/dbscripts:/docker-entrypoint-initdb.d
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
