@@ -38,6 +38,8 @@ USER ballerina
 
 COPY --from=builder /workspace/** ./
 
+RUN wget https://repo1.maven.org/maven2/mysql/mysql-connector-java/8.0.16/mysql-connector-java-8.0.16.jar -P ${BALLERINA_HOME}/bre/lib
+
 EXPOSE 9090
 
 ENTRYPOINT ballerina run registry_proxy.balx 2>&1 | tee registry_proxy.log

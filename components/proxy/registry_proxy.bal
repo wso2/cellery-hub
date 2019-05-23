@@ -22,6 +22,7 @@ import ballerina/http;
 import ballerina/internal;
 import ballerina/io;
 import ballerina/log;
+import ballerina/mysql;
 import ballerina/time;
 
 http:ServiceEndpointConfiguration registryProxyEPConfig = {
@@ -43,6 +44,18 @@ http:ClientEndpointConfig registryEPConfig = {
 };
 
 http:Client dockerRegistryClientEP = new(config:getAsString("TARGET_DOCKER_REGISTRY_URL"), config = registryEPConfig);
+
+mysql:Client celleryHubDB = new({
+   host: config:getAsString("PROXY_DB_HOST_HOST"),
+   port: config:getAsInt("PROXY_DB_HOST_PORT"),
+   name: config:getAsString("PROXY_DB_NAME"),
+   username: config:getAsString("PROXY_DB_USERNAME"),
+   password: config:getAsString("PROXY_DB_PASSWORD"),
+   dbOptions: {
+       useSSL: false,
+       allowPublicKeyRetrieval: true
+   }
+});
 
 @http:ServiceConfig {
     basePath: "/"
