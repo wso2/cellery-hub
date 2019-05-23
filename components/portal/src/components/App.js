@@ -19,11 +19,13 @@
 import "typeface-roboto";
 import AppLayout from "./appLayout";
 import CssBaseline from "@material-ui/core/CssBaseline/CssBaseline";
+import ErrorBoundary from "./common/error/ErrorBoundary";
 import Explore from "./explore";
 import Home from "./home";
 import MyImages from "./myImages";
 import MyOrgs from "./myOrgs";
 import React from "react";
+import {StateProvider} from "./common/state";
 import {BrowserRouter, Route, Switch} from "react-router-dom";
 import {MuiThemeProvider, createMuiTheme} from "@material-ui/core/styles";
 
@@ -34,11 +36,13 @@ const Portal = () => {
         isLoggedIn
             ? (
                 <AppLayout>
-                    <Switch>
-                        <Route exact path={["/", "/my-images"]} component={MyImages}/>
-                        <Route exact path={"/my-orgs"} component={MyOrgs}/>
-                        <Route exact path={"/explore"} component={Explore}/>
-                    </Switch>
+                    <ErrorBoundary showNavigationButtons={true}>
+                        <Switch>
+                            <Route exact path={["/", "/my-images"]} component={MyImages}/>
+                            <Route exact path={"/my-orgs"} component={MyOrgs}/>
+                            <Route exact path={"/explore"} component={Explore}/>
+                        </Switch>
+                    </ErrorBoundary>
                 </AppLayout>
             )
             : <Home/>
@@ -72,7 +76,11 @@ const App = () => (
     <MuiThemeProvider theme={theme}>
         <CssBaseline/>
         <BrowserRouter>
-            <Portal/>
+            <ErrorBoundary showNavigationButtons={true}>
+                <StateProvider>
+                    <Portal/>
+                </StateProvider>
+            </ErrorBoundary>
         </BrowserRouter>
     </MuiThemeProvider>
 );

@@ -1,0 +1,4 @@
+{
+    "hubApiUrl": "http://api.hub.cellery.io",
+    "idpURL": "https://idp.hub.cellery.io"
+}
