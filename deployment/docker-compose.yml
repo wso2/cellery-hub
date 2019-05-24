@@ -30,7 +30,7 @@ services:
     volumes:
       - ./docker-auth/conf:/conf
       - ./docker-registry/security:/security
-      - ./docker-registry/extension-logs:/extension-logs
+      - ./docker-auth/extension-logs:/extension-logs
     environment:
       - IDP_CERT=/security/idp.crt
       - REGISTRY_AUTH_TOKEN_ROOTCERTBUNDLE=/security/docker-auth-sign.crt

@@ -70,7 +70,7 @@ docker: build
 
 .PHONY: deploy
 deploy:
-	mkdir -p deployment/docker-registry/extension-logs
+	mkdir -p deployment/docker-auth/extension-logs
 	mkdir -p deployment/docker-registry/mnt
 	cd deployment; \
 	docker-compose up
