@@ -28,7 +28,8 @@ COPY ./components/proxy/registry_proxy.bal .
 RUN chown -R ballerina ${PROJECT_DIR}
 USER ballerina
 
-RUN ballerina build registry_proxy.bal
+# Experimental features enabled to use transactions
+RUN ballerina build registry_proxy.bal --experimental
 
 FROM ballerina/ballerina:0.991.0
 

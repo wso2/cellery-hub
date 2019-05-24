@@ -15,12 +15,16 @@ services:
     volumes:
       - ./proxy/security:/security
     environment:
-      - TARGET_DOCKER_REGISTRY_URL=https://docker-registry.hub.internal:5000
-      - PROXY_DB_HOST_HOST=mysql.hub.internal
-      - PROXY_DB_HOST_PORT=3306
-      - PROXY_DB_NAME=CELLERY_HUB
-      - PROXY_DB_USERNAME=celleryhub
-      - PROXY_DB_PASSWORD=celleryhub
+      - PROXY_TRUST_STORE=/security/truststore.p12
+      - PROXY_TRUST_STORE_PASSWORD=ballerina
+      - PROXY_KEY_STORE=/security/keystore.p12
+      - PROXY_KEY_STORE_PASSWORD=ballerina
+      - PROXY_TARGET_DOCKER_REGISTRY_URL=https://docker-registry.hub.internal:5000
+      - PROXY_CELLERY_HUB_DB_HOST_HOST=mysql.hub.internal
+      - PROXY_CELLERY_HUB_DB_HOST_PORT=3306
+      - PROXY_CELLERY_HUB_DB_NAME=CELLERY_HUB
+      - PROXY_CELLERY_HUB_DB_USERNAME=celleryhub
+      - PROXY_CELLERY_HUB_DB_PASSWORD=celleryhub
   auth.registry.hub.cellery.io:
     image: wso2cellery/cellery-hub-auth:latest
     command: -logtostderr=true /conf/docker-auth.yml

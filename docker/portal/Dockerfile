@@ -17,7 +17,7 @@
 # ------------------------------------------------------------------------
 
 FROM node:11.2.0-slim
-MAINTAINER WSO2 Cellery Maintainers "dev@wso2.org"
+LABEL MAINTAINER="WSO2 Cellery Maintainers <dev@wso2.org>"
 
 ARG PORTAL_PORT=3000
 ARG APP_DIR=/portal

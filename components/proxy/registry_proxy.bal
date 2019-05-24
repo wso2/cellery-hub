@@ -24,88 +24,142 @@ import ballerina/io;
 import ballerina/log;
 import ballerina/mysql;
 import ballerina/time;
+import ballerina/transactions;
 
-http:ServiceEndpointConfiguration registryProxyEPConfig = {
-    secureSocket: {
-        keyStore: {
-            path: "/security/keystore.p12",
-            password: "ballerina"
-        }
-    }
-};
-
-http:ClientEndpointConfig registryEPConfig = {
+http:Client dockerRegistryClientEP = new(config:getAsString("PROXY_TARGET_DOCKER_REGISTRY_URL"), config = {
     secureSocket: {
         trustStore: {
-            path: "/security/truststore.p12",
-            password: "ballerina"
+            path: config:getAsString("PROXY_TRUST_STORE"),
+            password: config:getAsString("PROXY_TRUST_STORE_PASSWORD")
+        }
+    }
+});
+
+mysql:Client celleryHubDB = new({
+    host: config:getAsString("PROXY_CELLERY_HUB_DB_HOST_HOST"),
+    port: config:getAsInt("PROXY_CELLERY_HUB_DB_HOST_PORT"),
+    name: config:getAsString("PROXY_CELLERY_HUB_DB_NAME"),
+    username: config:getAsString("PROXY_CELLERY_HUB_DB_USERNAME"),
+    password: config:getAsString("PROXY_CELLERY_HUB_DB_PASSWORD"),
+    dbOptions: {
+        useSSL: false,
+        allowPublicKeyRetrieval: true
+    }
+});
+
+http:ServiceEndpointConfiguration registryProxyServiceEPConfig = {
+    secureSocket: {
+        keyStore: {
+            path: config:getAsString("PROXY_KEY_STORE"),
+            password: config:getAsString("PROXY_KEY_STORE_PASSWORD")
         }
     }
 };
-
-http:Client dockerRegistryClientEP = new(config:getAsString("TARGET_DOCKER_REGISTRY_URL"), config = registryEPConfig);
-
-mysql:Client celleryHubDB = new({
-   host: config:getAsString("PROXY_DB_HOST_HOST"),
-   port: config:getAsInt("PROXY_DB_HOST_PORT"),
-   name: config:getAsString("PROXY_DB_NAME"),
-   username: config:getAsString("PROXY_DB_USERNAME"),
-   password: config:getAsString("PROXY_DB_PASSWORD"),
-   dbOptions: {
-       useSSL: false,
-       allowPublicKeyRetrieval: true
-   }
-});
 
 @http:ServiceConfig {
     basePath: "/"
 }
-service registryProxy on new http:Listener(9090, config = registryProxyEPConfig) {
+service registryProxy on new http:Listener(9090, config = registryProxyServiceEPConfig) {
     @http:ResourceConfig {
         path: "/*"
     }
     resource function proxyToDockerRegistry(http:Caller caller, http:Request req) {
-        var reqPayload = req.getBinaryPayload();
-        var clientResponse = dockerRegistryClientEP->forward(untaint req.rawPath, req);
+        var isMatch = req.rawPath.matches("^/v2/[^\\/]+/[^\\/]+/manifests/[^\\/]+$");
+        if (isMatch is boolean && isMatch && req.method == "PUT") {
+            var rawPathSplt = req.rawPath.split("/");
+            var imageFQN = rawPathSplt[2] + "/" + rawPathSplt[3] + "/" + rawPathSplt[5];
 
-        if (clientResponse is http:Response) {
-            var isMatch = req.rawPath.matches("/v2/[^\\/]+/[^\\/]+/manifests/[^\\/]+");
-            if (isMatch is boolean && isMatch && req.method == "PUT"
-                    && clientResponse.statusCode >= 200 && clientResponse.statusCode < 300) {
-                if (reqPayload is byte[]) {
-                    // Converting the byte array to Json to read the Docker manifest
-                    var payloadRbc = io:createReadableChannel(reqPayload);
-                    io:ReadableCharacterChannel payloadRch = new(payloadRbc, "UTF8");
-                    var dockerManifest = payloadRch.readJson();
+            // Handling the Docker Manifest Flow. In this flow, the pushed Celler Image is identified and it's metadata is extracted and
+            // saved to the Cellery Hub database. The lock is released automatically upon commit or abort by MySQL.
+            transaction {
+                var transactionId = transactions:getCurrentTransactionId();
+                log:printDebug("Started transaction " + transactionId + " for pushing image " + imageFQN);
 
-                    if (dockerManifest is json) {
-                        var dockerFileLayer = <string>dockerManifest.fsLayers[0].blobSum;
-                        var dockerImageName = <string>dockerManifest.name;
-                        var fileLayerBytes = pullDockerFileLayer(untaint dockerImageName, untaint dockerFileLayer, req.getHeader("Authorization"));
+                // Lock this path by acquiring the MySQL write lock. Since this is in a transaction auto commit will be switched off.
+                // This allows the proxy to run in HA mode and lock the image pushing across replicas.
+                var lockResult = celleryHubDB->update("INSERT INTO REGISTRY_ARTIFACT_LOCK(ARTIFACT_NAME, LOCK_COUNT) values (?, ?) " +
+                    "ON DUPLICATE KEY UPDATE LOCK_COUNT=LOCK_COUNT+1", imageFQN, 1);
+                if (lockResult is error) {
+                    log:printError("Failed to lock transaction " + transactionId, err = lockResult);
+                } else {
+                    log:printDebug("Locked transaction " + transactionId + " using DB write lock");
+                }
 
-                        if (fileLayerBytes is byte[]) {
-                            var metadata = extractMetadata(fileLayerBytes);
-                            if (metadata is json) {
-                                saveCellImageMetadata(metadata);
+                var reqPayload = req.getBinaryPayload();
+                var clientResponse = dockerRegistryClientEP->forward(untaint req.rawPath, req);
+
+                if (clientResponse is http:Response) {
+                    if (clientResponse.statusCode >= 200 && clientResponse.statusCode < 300) {
+                        if (reqPayload is byte[]) {
+                            // Converting the byte array to Json to read the Docker manifest
+                            var payloadRbc = io:createReadableChannel(reqPayload);
+                            io:ReadableCharacterChannel payloadRch = new(payloadRbc, "UTF8");
+                            var dockerManifest = payloadRch.readJson();
+
+                            if (dockerManifest is json) {
+                                var dockerFileLayer = <string>dockerManifest.fsLayers[0].blobSum;
+                                var dockerImageName = <string>dockerManifest.name;
+                                var fileLayerBytes = pullDockerFileLayer(untaint dockerImageName, untaint dockerFileLayer, req.getHeader("Authorization"));
+
+                                if (fileLayerBytes is byte[]) {
+                                    var metadata = extractMetadataFromImage(fileLayerBytes);
+                                    if (metadata is json) {
+                                        saveCellImageMetadata(metadata);
+                                    } else {
+                                        handleApiError(caller, "Failed to persist additional metadata for transaction " +
+                                            transactionId, metadata);
+                                        abort;
+                                    }
+                                } else {
+                                    handleApiError(caller, "Failed to persist additional metadata for transaction " +
+                                        transactionId, fileLayerBytes);
+                                    abort;
+                                }
                             } else {
-                                handleApiError(caller, "Failed to persist additional metadata", metadata);
+                                handleApiError(caller, "Failed to persist additional metadata for transaction " +
+                                    transactionId, dockerManifest);
+                                abort;
                             }
                         } else {
-                            handleApiError(caller, "Failed to persist additional metadata", fileLayerBytes);
+                            handleApiError(caller, "Failed to persist additional metadata for transaction " +
+                                transactionId, reqPayload);
+                            abort;
                         }
-                    } else {
-                        handleApiError(caller, "Failed to persist additional metadata", dockerManifest);
+                    }
+                    var result = caller->respond(clientResponse);
+                    if (result is error) {
+                        log:printError("Error sending response", err = result);
                     }
                 } else {
-                    handleApiError(caller, "Failed to persist additional metadata", reqPayload);
+                    handleApiError(caller, <string>clientResponse.detail().message, clientResponse);
+                    abort;
                 }
+            } onretry {
+                log:printDebug("Retrying pushing image for transaction " + transactions:getCurrentTransactionId());
+            } committed {
+                log:printDebug("Pushing Image successful for transaction " + transactions:getCurrentTransactionId());
+            } aborted {
+                log:printError("Pushing Image aborted for transaction " + transactions:getCurrentTransactionId());
             }
-            var result = caller->respond(clientResponse);
-            if (result is error) {
-                log:printError("Error sending response", err = result);
+
+            // Cleaning up the rows used for locking
+            var lockCleanupResult = celleryHubDB->update("DELETE FROM REGISTRY_ARTIFACT_LOCK WHERE ARTIFACT_NAME = ?", imageFQN);
+            if (lockCleanupResult is error) {
+                log:printError("Failed to cleanup lock rows created for image " + imageFQN, err = lockCleanupResult);
+            } else {
+                log:printDebug("Removed DB row used for locking image " + imageFQN);
             }
         } else {
-            handleApiError(caller, <string>clientResponse.detail().message, clientResponse);
+            // Passthrough proxy to the Docker Registry
+            var clientResponse = dockerRegistryClientEP->forward(untaint req.rawPath, req);
+            if (clientResponse is http:Response) {
+                var result = caller->respond(clientResponse);
+                if (result is error) {
+                    log:printError("Error sending response", err = result);
+                }
+            } else {
+                handleApiError(caller, <string>clientResponse.detail().message, clientResponse);
+            }
         }
     }
 }
@@ -135,10 +189,10 @@ function pullDockerFileLayer(string repository, string fileLayer, string current
 #
 # + cellImageBytes - Cell Image Zip bytes
 # + return - metadata JSON or an error
-function extractMetadata(byte[] cellImageBytes) returns (json|error) {
+function extractMetadataFromImage(byte[] cellImageBytes) returns (json|error) {
     time:Time time = time:currentTime();
     int timestamp = time:getMilliSecond(time);
-    var extractedCellImageDir = filepath:build("/", "ballerina", "home", "cell-image-" + timestamp);
+    var extractedCellImageDir = filepath:build("/", "tmp", "cell-image-" + timestamp);
 
     if (extractedCellImageDir is error) {
         error err = error("Failed to resolve extract location due to " + extractedCellImageDir.reason());

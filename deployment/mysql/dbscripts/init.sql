@@ -5,8 +5,10 @@ USE CELLERY_HUB;
 CREATE USER IF NOT EXISTS 'celleryhub'@'%' IDENTIFIED BY 'celleryhub';
 GRANT ALL ON CELLERY_HUB.* TO 'celleryhub'@'%';
 
+# This table is used for acquiring the MySQL write lock for a specific registry artifact
 CREATE TABLE IF NOT EXISTS REGISTRY_ARTIFACT_LOCK (
-    ARTIFACT_NAME            VARCHAR(255) NOT NULL,
+    ARTIFACT_NAME VARCHAR(255) NOT NULL,
+    LOCK_COUNT    INT DEFAULT 0,
     UNIQUE (ARTIFACT_NAME),
     PRIMARY KEY (ARTIFACT_NAME)
 )
