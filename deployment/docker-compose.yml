@@ -15,7 +15,35 @@ services:
     volumes:
       - ./proxy/security:/security
     environment:
-      - TARGET_DOCKER_REGISTRY_URL=https://docker-registry.hub.internal:5000
+      - PROXY_TRUST_STORE=/security/truststore.p12
+      - PROXY_TRUST_STORE_PASSWORD=ballerina
+      - PROXY_KEY_STORE=/security/keystore.p12
+      - PROXY_KEY_STORE_PASSWORD=ballerina
+      - PROXY_TARGET_DOCKER_REGISTRY_URL=https://docker-registry.hub.internal:5000
+      - PROXY_CELLERY_HUB_DB_HOST_HOST=mysql.hub.internal
+      - PROXY_CELLERY_HUB_DB_HOST_PORT=3306
+      - PROXY_CELLERY_HUB_DB_NAME=CELLERY_HUB
+      - PROXY_CELLERY_HUB_DB_USERNAME=celleryhub
+      - PROXY_CELLERY_HUB_DB_PASSWORD=celleryhub
+  auth.registry.hub.cellery.io:
+    image: wso2cellery/cellery-hub-auth:latest
+    command: -logtostderr=true /conf/docker-auth.yml
+    restart: always
+    ports:
+      - "5001:5001"
+    volumes:
+      - ./docker-auth/conf:/conf
+      - ./docker-registry/security:/security
+      - ./docker-auth/extension-logs:/extension-logs
+    environment:
+      - IDP_CERT=/security/idp.crt
+      - REGISTRY_AUTH_TOKEN_ROOTCERTBUNDLE=/security/docker-auth-sign.crt
+      - REGISTRY_AUTH_TOKEN_ISSUER="auth.registry.hub.cellery.io"
+      - IS_JWT=false
+      - IDP_HOST=localhost
+      - IDP_PORT=9443
+      - USERNAME=admin
+      - PASSWORD=admin
   docker-registry.hub.internal:
     image: registry:2
     restart: always
@@ -32,22 +60,10 @@ services:
       - REGISTRY_HTTP_TLS_KEY=/security/docker-registry-TLS.key
       - REGISTRY_COMPATIBILITY_SCHEMA1_ENABLED=true
       - REGISTRY_HTTP_HOST=https://registry.hub.cellery.io:9090
-  auth.registry.hub.cellery.io:
-    image: wso2cellery/cellery-hub-auth:latest
-    command: -logtostderr=true /conf/docker-auth.yml
+  mysql.hub.internal:
+    image: mysql:8.0.16
     restart: always
-    ports:
-      - "5001:5001"
     volumes:
-      - ./docker-auth/conf:/conf
-      - ./docker-registry/security:/security
-      - ./docker-registry/extension-logs:/extension-logs
+      - ./mysql/dbscripts:/docker-entrypoint-initdb.d
     environment:
-      - IDP_CERT=/security/idp.crt
-      - REGISTRY_AUTH_TOKEN_ROOTCERTBUNDLE=/security/docker-auth-sign.crt
-      - REGISTRY_AUTH_TOKEN_ISSUER="auth.registry.hub.cellery.io"
-      - IS_JWT=false
-      - IDP_HOST=localhost
-      - IDP_PORT=9443
-      - USERNAME=admin
-      - PASSWORD=admin
+      - MYSQL_ROOT_PASSWORD=root

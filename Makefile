@@ -52,8 +52,8 @@ check-style:
 
 .PHONY: build
 build: clean init
-	GOOS=linux GOARCH=amd64 go build -o ./components/docker-auth/target/authentication ./components/docker-auth/cmd/authn/authentication.go
-	GOOS=linux GOARCH=amd64 go build -o ./components/docker-auth/target/authorization ./components/docker-auth/cmd/authz/authorization.go
+	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o ./components/docker-auth/target/authentication ./components/docker-auth/cmd/authn/authentication.go
+	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o ./components/docker-auth/target/authorization ./components/docker-auth/cmd/authz/authorization.go
 	cd ./components/portal; \
 	npm run build
 
@@ -70,7 +70,7 @@ docker: build
 
 .PHONY: deploy
 deploy:
-	mkdir -p deployment/docker-registry/extension-logs
+	mkdir -p deployment/docker-auth/extension-logs
 	mkdir -p deployment/docker-registry/mnt
 	cd deployment; \
 	docker-compose up
