@@ -22,11 +22,24 @@ import ballerina/io;
 import ballerina/log;
 import ballerina/time;
 
+public type CellImageMetadata record {
+	string org;
+	string name;
+	string ver;
+	map<string> labels;
+	string[] dockerImages;
+	int buildTimestamp;
+	string[] ingresses;
+	string[] components;
+	map<CellImageMetadata> dependencies;
+};
+
+
 # Extract the metadata for the cell iamge file layer.
 #
 # + cellImageBytes - Cell Image Zip bytes
-# + return - metadata JSON or an error
-public function extractMetadataFromImage(byte[] cellImageBytes) returns (json|error) {
+# + return - metadata or an error
+public function extractMetadataFromImage(byte[] cellImageBytes) returns (CellImageMetadata|error) {
     time:Time currentTime = time:currentTime();
     int currentTimestamp = time:getMilliSecond(currentTime);
     var extractedCellImageDir = filepath:build("/", "tmp", "cell-image-" + currentTimestamp);
@@ -61,7 +74,7 @@ public function extractMetadataFromImage(byte[] cellImageBytes) returns (json|er
                         log:printError("Failed to cleanup Cell Image extracted in directory " + extractedCellImageDir,
                             err = extracedCellImageDeleteResult);
                     }
-                    return parsedMetadata;
+                    return CellImageMetadata.convert(parsedMetadata);
                 } else {
                     error err = error("failed to parse metadata.json due to " + parsedMetadata.reason());
                     var extracedCellImageDeleteResult = zipDest.delete();

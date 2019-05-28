@@ -20,3 +20,6 @@ url="https://docker-registry.hub.internal:5000"
 issuer="auth.registry.hub.cellery.io"
 audience="Docker registry"
 certalias="docker.auth"
+
+[b7a.log]
+level="DEBUG"

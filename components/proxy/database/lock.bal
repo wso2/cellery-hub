@@ -26,8 +26,8 @@ import ballerina/log;
 # + imageFQN - imageFQN Fully qualified Cell Image name
 # + return - error if an error occurred
 public function acquireWriteLockForImage(string imageFQN) returns error? {
-    var lockResult = celleryHubDB->update("INSERT INTO REGISTRY_ARTIFACT_LOCK(ARTIFACT_NAME, LOCK_COUNT) values (?, ?) " +
-        "ON DUPLICATE KEY UPDATE LOCK_COUNT=LOCK_COUNT+1", imageFQN, 1);
+    var lockResult = celleryHubDB->update("INSERT INTO REGISTRY_ARTIFACT_LOCK(ARTIFACT_NAME, LOCK_COUNT) VALUES (?, 1) " +
+        "ON DUPLICATE KEY UPDATE LOCK_COUNT = LOCK_COUNT + 1", imageFQN);
     if (lockResult is error) {
         return lockResult;
     }

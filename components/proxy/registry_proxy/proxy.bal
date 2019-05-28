@@ -16,6 +16,7 @@
 //
 // ------------------------------------------------------------------------
 
+import ballerina/auth;
 import ballerina/config;
 import ballerina/http;
 import ballerina/io;
@@ -32,6 +33,17 @@ http:ServiceEndpointConfiguration registryProxyServiceEPConfig = {
             password: config:getAsString("security.keystore.password")
         }
     }
+};
+
+auth:JWTValidatorConfig idpJwtValidatorConfig = {
+    issuer: config:getAsString("docker.auth.issuer"),
+    audience: [config:getAsString("docker.auth.audience")],
+    trustStore: {
+        path: config:getAsString("security.truststore.file"),
+        password: config:getAsString("security.truststore.password")
+    },
+    certificateAlias: config:getAsString("docker.auth.certalias"),
+    validateCertificate: false
 };
 
 @http:ServiceConfig {
@@ -63,36 +75,52 @@ service registryProxy on new http:Listener(9090, config = registryProxyServiceEP
 
                 var reqPayload = req.getBinaryPayload();
                 if (reqPayload is byte[]) {
+                    log:printDebug("Forwarding request to Docker Registry for transaction " + transactionId);
                     var clientResponse = docker_registry:forwardRequest(req);
 
                     if (clientResponse is http:Response) {
                         if (clientResponse.statusCode >= 200 && clientResponse.statusCode < 300) {
-                            // Converting the byte array to Json to read the Docker manifest
-                            var payloadRbc = io:createReadableChannel(reqPayload);
-                            io:ReadableCharacterChannel payloadRch = new(payloadRbc, "UTF8");
-                            var dockerManifest = payloadRch.readJson();
+                            var userId = getUserId(req);
+                            if (userId is string) {
+                                log:printDebug("Saving image metadata for transaction " + transactionId + " by user " + userId);
 
-                            if (dockerManifest is json) {
-                                var dockerFileLayer = <string>dockerManifest.fsLayers[0].blobSum;
-                                var dockerImageName = <string>dockerManifest.name;
-                                var fileLayerBytes = docker_registry:pullDockerFileLayer(untaint dockerImageName, untaint dockerFileLayer, req.getHeader("Authorization"));
+                                // Converting the byte array to Json to read the Docker manifest
+                                var payloadRbc = io:createReadableChannel(reqPayload);
+                                io:ReadableCharacterChannel payloadRch = new(payloadRbc, "UTF8");
+                                var dockerManifest = payloadRch.readJson();
 
-                                if (fileLayerBytes is byte[]) {
-                                    var metadata = image:extractMetadataFromImage(fileLayerBytes);
-                                    if (metadata is json) {
-                                        hub_database:saveCellImageMetadata(metadata);
+                                if (dockerManifest is json) {
+                                    var dockerFileLayer = <string>dockerManifest.fsLayers[0].blobSum;
+                                    var dockerImageName = <string>dockerManifest.name;
+                                    var fileLayerBytes = docker_registry:pullDockerFileLayer(untaint dockerImageName, untaint dockerFileLayer, req.getHeader("Authorization"));
+
+                                    if (fileLayerBytes is byte[]) {
+                                        var metadata = image:extractMetadataFromImage(fileLayerBytes);
+                                        if (metadata is image:CellImageMetadata) {
+                                            var err = hub_database:saveCellImageMetadata(metadata, userId);
+                                            if (err is error) {
+                                                log:printError("Failed to save metadata for transaction " + transactionId, err = err);
+                                                handleApiError(caller, untaint apiErrorMessage);
+                                                abort;
+                                            }
+                                            log:printDebug("Successfull saved image metadata for transaction " + transactionId);
+                                        } else {
+                                            log:printError("Failed to extract metadata from Cell Image for transaction " + transactionId, err = metadata);
+                                            handleApiError(caller, untaint apiErrorMessage);
+                                            abort;
+                                        }
                                     } else {
-                                        log:printError("Failed to extract metadata from Cell Image for transaction " + transactionId, err = metadata);
+                                        log:printError("Failed to fetch file layer from Docker Registry for transaction " + transactionId, err = fileLayerBytes);
                                         handleApiError(caller, untaint apiErrorMessage);
                                         abort;
                                     }
                                 } else {
-                                    log:printError("Failed to fetch file layer from Docker Registry for transaction " + transactionId, err = fileLayerBytes);
+                                    log:printError("Failed to parse Docker Manifest for transaction " + transactionId, err = dockerManifest);
                                     handleApiError(caller, untaint apiErrorMessage);
                                     abort;
                                 }
                             } else {
-                                log:printError("Failed to parse Docker Manifest for transaction " + transactionId, err = dockerManifest);
+                                log:printError("Failed to identify user for transaction " + transactionId, err = userId);
                                 handleApiError(caller, untaint apiErrorMessage);
                                 abort;
                             }
@@ -133,6 +161,16 @@ service registryProxy on new http:Listener(9090, config = registryProxyServiceEP
             }
         }
     }
+}
+
+# Get the user from the request
+#
+# + return - The user who performed the action
+function getUserId(http:Request req) returns (string|error) {
+    var authorizationHeader = req.getHeader("Authorization");
+    var jwtToken = authorizationHeader.split(" ")[1];
+    var jwtPayload = check auth:validateJwt(jwtToken, idpJwtValidatorConfig);
+    return jwtPayload.sub;
 }
 
 # Handle Proxy API errors.
