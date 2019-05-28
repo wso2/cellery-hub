@@ -58,7 +58,7 @@ const Footer = (props) => {
         <footer>
             <div className={classes.footerContent}>
                 <Container maxWidth="md" className={classes.copyRightInfo}>
-                    <Typography variant="subheading2" color="inherit" className={classes.title}>
+                    <Typography variant="subtitle2" color="inherit" className={classes.title}>
                         &copy; 2019
                         <Link href="https://wso2.com" target="_blank"
                             className={classes.footerLink}> WSO2</Link>
