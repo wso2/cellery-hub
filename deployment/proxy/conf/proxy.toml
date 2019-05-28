@@ -1,0 +1,22 @@
+[security.truststore]
+file="/security/truststore.p12"
+password="ballerina"
+
+[security.keystore]
+file="/security/keystore.p12"
+password="ballerina"
+
+[database]
+host="mysql.hub.internal"
+port=3306
+default="CELLERY_HUB"
+user="celleryhub"
+password="celleryhub"
+
+[docker.registry]
+url="https://docker-registry.hub.internal:5000"
+
+[docker.auth]
+issuer="auth.registry.hub.cellery.io"
+audience="Docker registry"
+certalias="docker.auth"

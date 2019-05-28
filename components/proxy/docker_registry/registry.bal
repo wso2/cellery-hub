@@ -19,11 +19,11 @@
 import ballerina/config;
 import ballerina/http;
 
-http:Client dockerRegistryClientEP = new(config:getAsString("PROXY_TARGET_DOCKER_REGISTRY_URL"), config = {
+http:Client dockerRegistryClientEP = new(config:getAsString("docker.registry.url"), config = {
     secureSocket: {
         trustStore: {
-            path: config:getAsString("PROXY_TRUST_STORE"),
-            password: config:getAsString("PROXY_TRUST_STORE_PASSWORD")
+            path: config:getAsString("security.truststore.file"),
+            password: config:getAsString("security.truststore.password")
         }
     }
 });

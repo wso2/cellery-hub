@@ -28,8 +28,8 @@ import cellery_hub/image;
 http:ServiceEndpointConfiguration registryProxyServiceEPConfig = {
     secureSocket: {
         keyStore: {
-            path: config:getAsString("PROXY_KEY_STORE"),
-            password: config:getAsString("PROXY_KEY_STORE_PASSWORD")
+            path: config:getAsString("security.keystore.file"),
+            password: config:getAsString("security.keystore.password")
         }
     }
 };

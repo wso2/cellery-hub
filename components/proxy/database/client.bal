@@ -20,11 +20,11 @@ import ballerina/config;
 import ballerina/mysql;
 
 mysql:Client celleryHubDB = new({
-    host: config:getAsString("PROXY_CELLERY_HUB_DB_HOST_HOST"),
-    port: config:getAsInt("PROXY_CELLERY_HUB_DB_HOST_PORT"),
-    name: config:getAsString("PROXY_CELLERY_HUB_DB_NAME"),
-    username: config:getAsString("PROXY_CELLERY_HUB_DB_USERNAME"),
-    password: config:getAsString("PROXY_CELLERY_HUB_DB_PASSWORD"),
+    host: config:getAsString("database.host"),
+    port: config:getAsInt("database.port"),
+    name: config:getAsString("database.default"),
+    username: config:getAsString("database.user"),
+    password: config:getAsString("database.password"),
     dbOptions: {
         useSSL: false,
         allowPublicKeyRetrieval: true
