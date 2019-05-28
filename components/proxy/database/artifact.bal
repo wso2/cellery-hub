@@ -36,12 +36,38 @@ type RegistryArtifact record {
 };
 
 # Save Cell Image Metadata to the Cellery Hub Database.
+# This also incremenets the push count of the artifact by one.
 #
+# + userId - The UUID of the user trying to push the Cell Image
 # + metadata - Metadata of the Cell Image
 # + return - Error if any error occurred
-public function saveCellImageMetadata(image:CellImageMetadata metadata, string userId) returns error? {
+public function saveCellImageMetadata(string userId, image:CellImageMetadata metadata) returns error? {
     var imageUuid = check persistImageMetadata(userId, metadata.org, metadata.name);
     var result = check persistImageArtifactMetadata(userId, imageUuid, metadata);
+}
+
+# Increment the pull count for a specific image.
+#
+# + orgName - Name of the organization of the image
+# + imageName - Name of the image
+# + imageVersion - Version of the image
+# + return - Error if any occurred
+public function incrementPullCount(string orgName, string imageName, string imageVersion) returns error? {
+    var registryArtifactImageTable = check celleryHubDB->select("SELECT ARTIFACT_IMAGE_ID FROM REGISTRY_ARTIFACT_IMAGE " +
+        "WHERE ORG_NAME = ? AND IMAGE_NAME = ? FOR UPDATE", RegistryArtifactImage, orgName, imageName, loadToMemory = true);
+
+    if (registryArtifactImageTable.count() == 1) {
+        var registryArtifactImage = check RegistryArtifactImage.convert(registryArtifactImageTable.getNext());
+        var imageUuid = registryArtifactImage.ARTIFACT_IMAGE_ID;
+
+        var updateResult = check celleryHubDB->update("UPDATE REGISTRY_ARTIFACT SET PULL_COUNT = PULL_COUNT + 1 " +
+            "WHERE ARTIFACT_IMAGE_ID = ? AND VERSION = ?", imageUuid, imageVersion);
+        log:printDebug("Incremented pull count of image " + imageUuid + " for transaction " + transactions:getCurrentTransactionId());
+    } else {
+        var err = error("unexpected error due to artifact image " + orgName + "/" + imageName +
+            " not being available in the database");
+        return err;
+    }
 }
 
 # Persist Image metadata in the Cellery Hub database.
@@ -68,8 +94,8 @@ function persistImageMetadata(string userId, string orgName, string imageName) r
         if (updateResult is error) {
             return updateResult;
         }
-        log:printDebug("Created new image " + orgName + "/" + imageName + " with id " + uuid + " and visibility " + defaultVisibility +
-            " for transaction " + transactions:getCurrentTransactionId());
+        log:printDebug("Created new image " + orgName + "/" + imageName + " with id " + uuid +
+            " and visibility " + defaultVisibility + " for transaction " + transactions:getCurrentTransactionId());
     }
     return uuid;
 }
@@ -85,7 +111,7 @@ function getOrganizationDefaultVisibility(string orgName) returns (error|string)
         var organization = check RegistryOrganization.convert(organizationTable.getNext());
         return organization.DEFAULT_IMAGE_VISIBILITY;
     } else {
-        var err = error("unexpected error due to organization not being available in the database");
+        var err = error("unexpected error due to organization " + orgName + " not being available in the database");
         return err;
     }
 }
@@ -136,7 +162,7 @@ function persistImageArtifactMetadata(string userId, string artifactImageId, ima
 # + artifactId - ID of the Cell Image without considering the versions
 # + return - Error if any occurred
 function cleanUpLabels(string artifactId) returns error? {
-    var updateResult = check celleryHubDB->update("DELETE FROM REGISTRY_ARTIFACT_LABELS WHERE ARTIFACT_ID = ?", artifactId);
+    var updateResult = check celleryHubDB->update("DELETE FROM REGISTRY_ARTIFACT_LABEL WHERE ARTIFACT_ID = ?", artifactId);
     log:printDebug("Removed all labels for image version with artifact id " + artifactId +
         " for transaction " + transactions:getCurrentTransactionId());
 }
@@ -154,7 +180,7 @@ function persistImageArtifactLabels(string artifactId, map<string> labels) retur
             dataBatch[i] = [artifactId, labelKey, labelValue];
             i = i + 1;
         }
-        var updateResult = check celleryHubDB->batchUpdate("INSERT INTO REGISTRY_ARTIFACT_LABELS(ARTIFACT_ID, LABEL_KEY, LABEL_VALUE) " +
+        var updateResult = check celleryHubDB->batchUpdate("INSERT INTO REGISTRY_ARTIFACT_LABEL(ARTIFACT_ID, LABEL_KEY, LABEL_VALUE) " +
             "VALUES (?, ?, ?)", ...dataBatch);
         log:printDebug("Added labels for image version with artifact id " + artifactId +
             " for transaction " + transactions:getCurrentTransactionId());
