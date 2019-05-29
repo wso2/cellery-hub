@@ -20,16 +20,28 @@ import ballerina/filepath;
 import ballerina/internal;
 import ballerina/io;
 import ballerina/log;
-import ballerina/time;
+import ballerina/transactions;
+
+public type CellImageMetadata record {|
+	string org;
+	string name;
+	string ver;
+	map<string> labels;
+	string[] dockerImages;
+	int buildTimestamp;
+	string[] ingresses;
+	string[] components;
+	map<CellImageMetadata> dependencies;
+|};
+
 
 # Extract the metadata for the cell iamge file layer.
 #
 # + cellImageBytes - Cell Image Zip bytes
-# + return - metadata JSON or an error
-public function extractMetadataFromImage(byte[] cellImageBytes) returns (json|error) {
-    time:Time currentTime = time:currentTime();
-    int currentTimestamp = time:getMilliSecond(currentTime);
-    var extractedCellImageDir = filepath:build("/", "tmp", "cell-image-" + currentTimestamp);
+# + return - metadata or an error
+public function extractMetadataFromImage(byte[] cellImageBytes) returns (CellImageMetadata|error) {
+    var transactionId = transactions:getCurrentTransactionId();
+    var extractedCellImageDir = filepath:build("/", "tmp", "cell-image-" + transactionId);
 
     if (extractedCellImageDir is error) {
         error err = error("failed to resolve extract location due to " + extractedCellImageDir.reason());
@@ -43,6 +55,7 @@ public function extractMetadataFromImage(byte[] cellImageBytes) returns (json|er
             return err;
         }
         var decompressResult = internal:decompressFromByteArray(cellImageBytes, zipDest);
+        log:printDebug("Extracted Cell image at " + extractedCellImageDir + " for transaction " + transactionId);
 
         if (decompressResult is error) {
             error err = error("failed to extract Cell Image due to " + decompressResult.reason());
@@ -54,20 +67,25 @@ public function extractMetadataFromImage(byte[] cellImageBytes) returns (json|er
                 io:ReadableByteChannel metadataRbc = io:openReadableFile(untaint cellImageMetadataFile);
                 io:ReadableCharacterChannel metadataRch = new(metadataRbc, "UTF8");
                 var parsedMetadata = metadataRch.readJson();
+                log:printDebug("Read Cell image metadata for transaction " + transactionId);
 
                 if (parsedMetadata is json) {
                     var extracedCellImageDeleteResult = zipDest.delete();
                     if (extracedCellImageDeleteResult is error) {
-                        log:printError("Failed to cleanup Cell Image extracted in directory " + extractedCellImageDir,
-                            err = extracedCellImageDeleteResult);
+                        log:printError("Failed to cleanup Cell Image extracted in directory " + extractedCellImageDir +
+                            " for transaction " + transactionId, err = extracedCellImageDeleteResult);
+                    } else {
+                        log:printDebug("Cleaned up extracted Cell Image for transaction " + transactionId);
                     }
-                    return parsedMetadata;
+                    return CellImageMetadata.convert(parsedMetadata);
                 } else {
                     error err = error("failed to parse metadata.json due to " + parsedMetadata.reason());
                     var extracedCellImageDeleteResult = zipDest.delete();
                     if (extracedCellImageDeleteResult is error) {
-                        log:printError("Failed to cleanup Cell Image extracted in directory " + extractedCellImageDir,
-                            err = extracedCellImageDeleteResult);
+                        log:printError("Failed to cleanup Cell Image extracted in directory " + extractedCellImageDir +
+                            " for transaction " + transactionId, err = extracedCellImageDeleteResult);
+                    } else {
+                        log:printDebug("Cleaned up extracted Cell Image for transaction " + transactionId);
                     }
                     return err;
                 }
@@ -75,8 +93,10 @@ public function extractMetadataFromImage(byte[] cellImageBytes) returns (json|er
                 error err = error("failed to resolve metadata.json file due to " + cellImageMetadataFile.reason());
                 var extracedCellImageDeleteResult = zipDest.delete();
                 if (extracedCellImageDeleteResult is error) {
-                    log:printError("Failed to cleanup Cell Image extracted in directory " + extractedCellImageDir,
-                        err = extracedCellImageDeleteResult);
+                    log:printError("Failed to cleanup Cell Image extracted in directory " + extractedCellImageDir +
+                        " for transaction " + transactionId, err = extracedCellImageDeleteResult);
+                } else {
+                    log:printDebug("Cleaned up extracted Cell Image for transaction " + transactionId);
                 }
                 return err;
             }

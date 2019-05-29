@@ -43,4 +43,4 @@ RUN wget https://repo1.maven.org/maven2/mysql/mysql-connector-java/8.0.16/mysql-
 
 EXPOSE 9090
 
-ENTRYPOINT ballerina run registry_proxy.balx 2>&1 | tee registry_proxy.log
+ENTRYPOINT cp ${PROXY_CONF} ./ballerina.conf && ballerina run registry_proxy.balx 2>&1 | tee registry_proxy.log
