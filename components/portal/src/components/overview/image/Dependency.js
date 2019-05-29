@@ -16,9 +16,7 @@
  * under the License.
  */
 
-import Divider from "@material-ui/core/Divider";
 import React from "react";
-import Typography from "@material-ui/core/Typography";
 import {withStyles} from "@material-ui/core/styles";
 import * as PropTypes from "prop-types";
 
@@ -28,22 +26,18 @@ const styles = (theme) => ({
     }
 });
 
-const Explore = (props) => {
+const Dependency = (props) => {
     const {classes} = props;
 
     return (
         <div className={classes.content}>
-            <Typography variant="h5" color="inherit">
-                Explore
-            </Typography>
-            <Divider/>
-            {/* TODO: Add explore page content*/}
+            {/* TODO: Add dependency diagram */}
         </div>
     );
 };
 
-Explore.propTypes = {
+Dependency.propTypes = {
     classes: PropTypes.object.isRequired
 };
 
-export default withStyles(styles)(Explore);
+export default withStyles(styles)(Dependency);

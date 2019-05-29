@@ -62,7 +62,7 @@ const styles = (theme) => ({
         height: 64
     },
     logo: {
-        paddingTop: theme.spacing.unit * 4,
+        paddingTop: theme.spacing(4),
         fontSize: 48,
         fontWeight: 400,
         color: "#43AB00"
@@ -91,7 +91,7 @@ const styles = (theme) => ({
     },
     summary: {
         fontSize: 32,
-        paddingTop: theme.spacing.unit * 4,
+        paddingTop: theme.spacing(4),
         fontWeight: 200
     },
     headerSubTitleContent: {
@@ -102,7 +102,7 @@ const styles = (theme) => ({
         fontWeight: 300
     },
     desContainer: {
-        marginTop: theme.spacing.unit * 4
+        marginTop: theme.spacing(4)
     },
     bgImg: {
         backgroundImage: `url(${BgImg})`,
@@ -119,11 +119,11 @@ const styles = (theme) => ({
         backgroundPosition: "bottom right"
     },
     loginText: {
-        paddingTop: theme.spacing.unit * 4,
+        paddingTop: theme.spacing(4),
         fontSize: 16
     },
     leftIcon: {
-        marginRight: theme.spacing.unit
+        marginRight: theme.spacing(1)
     },
     button: {
         borderColor: theme.palette.primary.main,
@@ -135,16 +135,16 @@ const styles = (theme) => ({
     signInContent: {
         display: "flex",
         alignItems: "center",
-        marginTop: theme.spacing.unit * 3,
-        marginBottom: theme.spacing.unit * 5
+        marginTop: theme.spacing(3),
+        marginBottom: theme.spacing(5)
     },
     connector: {
-        marginLeft: theme.spacing.unit * 2,
-        marginRight: theme.spacing.unit * 2
+        marginLeft: theme.spacing(2),
+        marginRight: theme.spacing(2)
     },
     imageIcon: {
         color: theme.palette.primary.main,
-        marginRight: theme.spacing.unit / 2,
+        marginRight: theme.spacing(1 / 2),
         fontSize: 16,
         verticalAlign: "text-bottom"
     }
@@ -249,7 +249,7 @@ class Home extends React.Component {
                                         <GithubLogo className={classes.leftIcon}/>
                                         Github
                                     </Button>
-                                    <Typography variant="subheading2" color="inherit" className={classes.connector}>
+                                    <Typography variant="subtitle2" color="inherit" className={classes.connector}>
                                         or
                                     </Typography>
                                     <Button variant="outlined" color="inherit" className={classes.button}>
