@@ -192,6 +192,7 @@
                             org.wso2.carbon.registry.core.*,
                             org.wso2.carbon.core.*,
                             org.wso2.carbon.utils.multitenancy,
+                            org.wso2.carbon.identity.base.*,
                         </Import-Package>
                     </instructions>
                 </configuration>

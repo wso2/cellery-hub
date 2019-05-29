@@ -18,6 +18,7 @@
 
 package io.cellery.hub.identity.extension.post.authn.handler.internal;
 
+import io.cellery.hub.identity.extension.post.authn.handler.CliOrganizationValidationPostAuthnHandler;
 import io.cellery.hub.identity.extension.post.authn.handler.JITProvisioningPostAuthenticationHandler;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -49,6 +50,8 @@ public class ProvisioningPostAuthnHandlerServiceComponent {
         try {
             context.getBundleContext().registerService(PostAuthenticationHandler.class.getName(),
                     JITProvisioningPostAuthenticationHandler.getInstance(), null);
+            context.getBundleContext().registerService(PostAuthenticationHandler.class.getName(),
+                    new CliOrganizationValidationPostAuthnHandler(), null);
 
         } catch (Throwable e) {
             log.error("Error while activating disclaimer extension authentication handler.", e);

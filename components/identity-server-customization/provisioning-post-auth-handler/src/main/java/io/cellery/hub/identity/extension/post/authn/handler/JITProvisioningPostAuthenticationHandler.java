@@ -361,6 +361,9 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
                 uniqueIDPClaim);
 
         if (StringUtils.isNotEmpty(existingUser)) {
+            if (log.isDebugEnabled()) {
+                log.debug("Already existing user found. Hence replacing username with existing username");
+            }
             username = existingUser;
         } else {
             String existingUserWithCommonAttr = getExistingUser(stepConfig.getAuthenticatedIdP(),
@@ -861,11 +864,23 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
                     ProvisioningPostAuthnHandlerServiceComponent.getRegistryService(),
                     ProvisioningPostAuthnHandlerServiceComponent.getRealmService(),
                     MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
+            if (log.isDebugEnabled()) {
+                log.debug("Checking whether the user exists with claim uri: " + uniqueClaim + ", value: " + claims
+                        .get(uniqueClaim));
+            }
             String[] users = realm.getUserStoreManager().getUserList(uniqueClaim, claims.get(uniqueClaim),
                     "default");
             if (users != null && users.length == 1) {
+                log.debug("One user found with given search criteria : " + users[0]);
                 return users[0];
             }
+
+            if (log.isDebugEnabled() && users != null && users.length > 1) {
+                log.debug("More than one user found with given search criteria");
+            }
+
+            log.debug("No users found with given search criteria. " +
+                    "Hence returning empty");
         } catch (CarbonException | org.wso2.carbon.user.core.UserStoreException e) {
             throw new PostAuthenticationFailedException("Provisioning Error", "Error while adding user", e);
         }
