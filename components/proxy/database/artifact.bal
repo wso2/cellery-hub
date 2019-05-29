@@ -23,17 +23,17 @@ import ballerina/system;
 import ballerina/transactions;
 import cellery_hub/image;
 
-type RegistryOrganization record {
+type RegistryOrganization record {|
     string DEFAULT_IMAGE_VISIBILITY;
-};
+|};
 
-type RegistryArtifactImage record {
+type RegistryArtifactImage record {|
     string ARTIFACT_IMAGE_ID;
-};
+|};
 
-type RegistryArtifact record {
+type RegistryArtifact record {|
     string ARTIFACT_ID;
-};
+|};
 
 # Save Cell Image Metadata to the Cellery Hub Database.
 # This also incremenets the push count of the artifact by one.
@@ -43,7 +43,7 @@ type RegistryArtifact record {
 # + return - Error if any error occurred
 public function saveCellImageMetadata(string userId, image:CellImageMetadata metadata) returns error? {
     var imageUuid = check persistImageMetadata(userId, metadata.org, metadata.name);
-    var result = check persistImageArtifactMetadata(userId, imageUuid, metadata);
+    _ = check persistImageArtifactMetadata(userId, imageUuid, metadata);
 }
 
 # Increment the pull count for a specific image.
@@ -60,7 +60,7 @@ public function incrementPullCount(string orgName, string imageName, string imag
         var registryArtifactImage = check RegistryArtifactImage.convert(registryArtifactImageTable.getNext());
         var imageUuid = registryArtifactImage.ARTIFACT_IMAGE_ID;
 
-        var updateResult = check celleryHubDB->update("UPDATE REGISTRY_ARTIFACT SET PULL_COUNT = PULL_COUNT + 1 " +
+        _ = check celleryHubDB->update("UPDATE REGISTRY_ARTIFACT SET PULL_COUNT = PULL_COUNT + 1 " +
             "WHERE ARTIFACT_IMAGE_ID = ? AND VERSION = ?", imageUuid, imageVersion);
         log:printDebug("Incremented pull count of image " + imageUuid + " for transaction " + transactions:getCurrentTransactionId());
     } else {
@@ -89,11 +89,8 @@ function persistImageMetadata(string userId, string orgName, string imageName) r
     } else {
         var defaultVisibility = check getOrganizationDefaultVisibility(orgName);
         uuid = system:uuid();
-        var updateResult = celleryHubDB->update("INSERT INTO REGISTRY_ARTIFACT_IMAGE(ARTIFACT_IMAGE_ID, ORG_NAME, " +
+        _ = check celleryHubDB->update("INSERT INTO REGISTRY_ARTIFACT_IMAGE(ARTIFACT_IMAGE_ID, ORG_NAME, " +
             "IMAGE_NAME, FIRST_AUTHOR, VISIBILITY) VALUES (?, ?, ?, ?, ?)", uuid, orgName, imageName, userId, defaultVisibility);
-        if (updateResult is error) {
-            return updateResult;
-        }
         log:printDebug("Created new image " + orgName + "/" + imageName + " with id " + uuid +
             " and visibility " + defaultVisibility + " for transaction " + transactions:getCurrentTransactionId());
     }
@@ -133,15 +130,15 @@ function persistImageArtifactMetadata(string userId, string artifactImageId, ima
     if (registryArtifactTable.count() == 1) {
         var registryArtifact = check RegistryArtifact.convert(registryArtifactTable.getNext());
         artifactUuid = registryArtifact.ARTIFACT_ID;
-        var updateResult = check celleryHubDB->update("UPDATE REGISTRY_ARTIFACT " +
+        _ = check celleryHubDB->update("UPDATE REGISTRY_ARTIFACT " +
             "SET PUSH_COUNT = PUSH_COUNT + 1, LAST_AUTHOR = ?, METADATA = ?, STATEFUL = ? " +
             "WHERE ARTIFACT_ID = ? AND VERSION = ?", userId, metadataString, false, artifactUuid, metadata.ver);
         log:printDebug("Updated image with image id " + artifactImageId + " and version " + metadata.ver +
             " for transaction " + transactions:getCurrentTransactionId());
 
         // Cleanup all existing metadata related info tables
-        var labelCleanupResult = check cleanUpLabels(artifactUuid);
-        var ingressCleanupResult = check cleanUpIngresses(artifactUuid);
+        _ = check cleanUpLabels(artifactUuid);
+        _ = check cleanUpIngresses(artifactUuid);
     } else {
         artifactUuid = system:uuid();
         var updateResult = celleryHubDB->update("INSERT INTO REGISTRY_ARTIFACT(ARTIFACT_ID, ARTIFACT_IMAGE_ID, VERSION, " +
@@ -153,8 +150,8 @@ function persistImageArtifactMetadata(string userId, string artifactImageId, ima
         log:printDebug("Created new image with image id " + artifactImageId + " and version " + metadata.ver +
             " for transaction " + transactions:getCurrentTransactionId());
     }
-    var labelsInsertResult = check persistImageArtifactLabels(artifactUuid, metadata.labels);
-    var ingressesInsertResult = check persistImageArtifactIngresses(artifactUuid, metadata.ingresses);
+    _ = check persistImageArtifactLabels(artifactUuid, metadata.labels);
+    _ = check persistImageArtifactIngresses(artifactUuid, metadata.ingresses);
 }
 
 # Cleanup labels for an artifact.
@@ -162,7 +159,7 @@ function persistImageArtifactMetadata(string userId, string artifactImageId, ima
 # + artifactId - ID of the Cell Image without considering the versions
 # + return - Error if any occurred
 function cleanUpLabels(string artifactId) returns error? {
-    var updateResult = check celleryHubDB->update("DELETE FROM REGISTRY_ARTIFACT_LABEL WHERE ARTIFACT_ID = ?", artifactId);
+    _ = check celleryHubDB->update("DELETE FROM REGISTRY_ARTIFACT_LABEL WHERE ARTIFACT_ID = ?", artifactId);
     log:printDebug("Removed all labels for image version with artifact id " + artifactId +
         " for transaction " + transactions:getCurrentTransactionId());
 }
@@ -180,7 +177,7 @@ function persistImageArtifactLabels(string artifactId, map<string> labels) retur
             dataBatch[i] = [artifactId, labelKey, labelValue];
             i = i + 1;
         }
-        var updateResult = check celleryHubDB->batchUpdate("INSERT INTO REGISTRY_ARTIFACT_LABEL(ARTIFACT_ID, LABEL_KEY, LABEL_VALUE) " +
+        _ = check celleryHubDB->batchUpdate("INSERT INTO REGISTRY_ARTIFACT_LABEL(ARTIFACT_ID, LABEL_KEY, LABEL_VALUE) " +
             "VALUES (?, ?, ?)", ...dataBatch);
         log:printDebug("Added labels for image version with artifact id " + artifactId +
             " for transaction " + transactions:getCurrentTransactionId());
@@ -192,7 +189,7 @@ function persistImageArtifactLabels(string artifactId, map<string> labels) retur
 # + artifactId - ID of the Cell Image
 # + return - Error if any occurred
 function cleanUpIngresses(string artifactId) returns error? {
-    var updateResult = check celleryHubDB->update("DELETE FROM REGISTRY_ARTIFACT_INGRESS WHERE ARTIFACT_ID = ?", artifactId);
+    _ = check celleryHubDB->update("DELETE FROM REGISTRY_ARTIFACT_INGRESS WHERE ARTIFACT_ID = ?", artifactId);
     log:printDebug("Removed all ingresses for image version with artifact id " + artifactId +
         " for transaction " + transactions:getCurrentTransactionId());
 }
@@ -210,7 +207,7 @@ function persistImageArtifactIngresses(string artifactId, string[] ingresses) re
             dataBatch[i] = [artifactId, ingress];
             i = i + 1;
         }
-        var updateResult = check celleryHubDB->batchUpdate("INSERT INTO REGISTRY_ARTIFACT_INGRESS(ARTIFACT_ID, INGRESS_TYPE) " +
+        _ = check celleryHubDB->batchUpdate("INSERT INTO REGISTRY_ARTIFACT_INGRESS(ARTIFACT_ID, INGRESS_TYPE) " +
             "VALUES (?, ?)", ...dataBatch);
         log:printDebug("Added ingresses for image version with artifact id " + artifactId + " for transaction " +
             " for transaction " + transactions:getCurrentTransactionId());

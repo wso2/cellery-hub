@@ -22,7 +22,7 @@ import ballerina/io;
 import ballerina/log;
 import ballerina/transactions;
 
-public type CellImageMetadata record {
+public type CellImageMetadata record {|
 	string org;
 	string name;
 	string ver;
@@ -32,7 +32,7 @@ public type CellImageMetadata record {
 	string[] ingresses;
 	string[] components;
 	map<CellImageMetadata> dependencies;
-};
+|};
 
 
 # Extract the metadata for the cell iamge file layer.
