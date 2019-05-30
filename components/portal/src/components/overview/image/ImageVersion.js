@@ -338,7 +338,6 @@ pet-fe -l petStoreBackend:pet-be -d`}
 
 ImageVersion.propTypes = {
     classes: PropTypes.object.isRequired,
-    // Data: PropTypes.object.isRequired,
     history: PropTypes.shape({
         goBack: PropTypes.func.isRequired
     }),

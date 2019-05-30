@@ -24,6 +24,7 @@ import Grid from "@material-ui/core/Grid";
 import Input from "@material-ui/core/Input";
 import InputAdornment from "@material-ui/core/InputAdornment";
 import InputLabel from "@material-ui/core/InputLabel";
+import OrgDialog from "../overview/org/OrgDialog";
 import OrgList from "../common/OrgList";
 import React from "react";
 import SearchIcon from "@material-ui/icons/Search";
@@ -43,7 +44,19 @@ const styles = (theme) => ({
         minWidth: "100%"
     },
     rightIcon: {
-        right: 0
+        right: 0,
+        marginRight: theme.spacing(1)
+    },
+    secondaryTitle: {
+        marginTop: theme.spacing(2),
+        fontWeight: 400
+    },
+    secondaryText: {
+        marginBottom: theme.spacing(2),
+        marginTop: theme.spacing(2)
+    },
+    placeholderIcon: {
+        color: "#999999"
     }
 });
 
@@ -53,49 +66,88 @@ class MyOrgs extends React.Component {
         super(props);
         this.state = {
             organization: "all",
-            sort: "most-popular"
+            sort: "most-popular",
+            isOrgsAvailable: true,
+            isDialogOpen: false
         };
     }
 
+    handleClickOpen = () => {
+        this.setState({
+            isDialogOpen: true
+        });
+    };
+
+    handleClose = () => {
+        this.setState({
+            isDialogOpen: false
+        });
+    };
+
     render = () => {
         const {classes} = this.props;
+        const {isOrgsAvailable, isDialogOpen} = this.state;
 
         return (
-            <div className={classes.content}>
-                <Typography variant="h5" color="inherit">
-                    Organizations
-                </Typography>
-                <Divider/>
-                <div className={classes.container}>
-                    <Grid container>
-                        <Grid item xs={12} sm={4} md={4}>
-                            <FormControl className={classes.formControl}>
-                                <InputLabel htmlFor="search">Organization Name</InputLabel>
-                                <Input
-                                    id="search"
-                                    startAdornment={
-                                        <InputAdornment position="start">
-                                            <SearchIcon/>
-                                        </InputAdornment>
-                                    }
-                                    placeholder="Search Organization"
-                                />
-                            </FormControl>
-                        </Grid>
-                        <Grid item sm={4} md={4}>
-                        </Grid>
-                        <Grid item xs={12} sm={4} md={4} >
-                            <Grid container alignItems="baseline" justify="flex-end" direction="row">
-                                <Button variant="contained" color="primary" className={classes.button}>
-                                    <AddCircleOutline className={classes.rightIcon} />
-                                    Create
-                                </Button>
+            isOrgsAvailable
+                ? <div className={classes.content}>
+                    <Typography variant="h5" color="inherit">
+                        Organizations
+                    </Typography>
+                    <Divider/>
+                    <div className={classes.container}>
+                        <Grid container>
+                            <Grid item xs={12} sm={4} md={4}>
+                                <FormControl className={classes.formControl}>
+                                    <InputLabel htmlFor="search">Organization Name</InputLabel>
+                                    <Input
+                                        id="search"
+                                        startAdornment={
+                                            <InputAdornment position="start">
+                                                <SearchIcon className={classes.placeholderIcon}/>
+                                            </InputAdornment>
+                                        }
+                                        placeholder="Search Organization"
+                                    />
+                                </FormControl>
+                            </Grid>
+                            <Grid item sm={4} md={4}>
+                            </Grid>
+                            <Grid item xs={12} sm={4} md={4}>
+                                <Grid container alignItems="baseline" justify="flex-end" direction="row">
+                                    <Button variant="contained" color="primary" className={classes.button}
+                                        onClick={this.handleClickOpen}>
+                                        <AddCircleOutline className={classes.rightIcon}/>
+                                        Create
+                                    </Button>
+                                    <OrgDialog open={isDialogOpen} handleClose={this.handleClose}/>
+                                </Grid>
                             </Grid>
                         </Grid>
-                    </Grid>
+                    </div>
+                    <OrgList/>
                 </div>
-                <OrgList />
-            </div>
+                : <div className={classes.content}>
+                    <div className={classes.container}>
+                        <Grid container alignContent="center" direction="column" justify="center" alignItems="center">
+                            <Typography variant="h5" color="inherit">
+                                Welcome to Cellery Hub!
+                            </Typography>
+                            <Typography variant="h6" color="textSecondary" className={classes.secondaryTitle}>
+                                Get started by creating an organization
+                            </Typography>
+                            <Typography variant="subtitle1" color="inherit" className={classes.secondaryText}>
+                                Create your organisation to share your images with others
+                            </Typography>
+                            <Button variant="contained" color="primary" className={classes.button}
+                                onClick={this.handleClickOpen}>
+                                <AddCircleOutline className={classes.rightIcon}/>
+                                Create
+                            </Button>
+                            <OrgDialog open={isDialogOpen} handleClose={this.handleClose}/>
+                        </Grid>
+                    </div>
+                </div>
         );
     }
 
