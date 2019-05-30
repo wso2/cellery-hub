@@ -70,9 +70,14 @@ service registryProxy on new http:Listener(9090, config = registryProxyServiceEP
                     var transactionId = transactions:getCurrentTransactionId();
                     log:printDebug("Started transaction " + transactionId + " for pushing image " + imageFQN);
 
+                    var authorizationHeader = req.getHeader("Authorization");
+                    var jwtToken = authorizationHeader.split(" ")[1];
+
                     var lockResult = hub_database:acquireWriteLockForImage(imageFQN);
                     if (lockResult is error) {
                         log:printError("Failed to lock transaction " + transactionId, err = lockResult);
+                        handleApiError(caller, untaint apiErrorMessage);
+                        abort;
                     } else {
                         log:printDebug("Locked transaction " + transactionId + " using DB write lock");
                     }
@@ -84,7 +89,7 @@ service registryProxy on new http:Listener(9090, config = registryProxyServiceEP
 
                         if (clientResponse is http:Response) {
                             if (clientResponse.statusCode >= 200 && clientResponse.statusCode < 300) {
-                                var userId = getUserId(req);
+                                var userId = getUserId(jwtToken);
                                 if (userId is string) {
                                     log:printDebug("Saving image metadata for transaction " + transactionId + " by user " + userId);
 
@@ -96,7 +101,7 @@ service registryProxy on new http:Listener(9090, config = registryProxyServiceEP
                                     if (dockerManifest is json) {
                                         var dockerFileLayer = <string>dockerManifest.fsLayers[0].blobSum;
                                         var dockerImageName = <string>dockerManifest.name;
-                                        var fileLayerBytes = docker_registry:pullDockerFileLayer(untaint dockerImageName, untaint dockerFileLayer, req.getHeader("Authorization"));
+                                        var fileLayerBytes = docker_registry:pullDockerFileLayer(untaint dockerImageName, untaint dockerFileLayer, jwtToken);
 
                                         if (fileLayerBytes is byte[]) {
                                             log:printDebug("Pulled Docker file layer " + dockerFileLayer + " for transaction " + transactionId);
@@ -219,10 +224,9 @@ function handlePassThroughProxying(http:Caller caller, http:Request req) {
 
 # Get the user from the request
 #
+# + jwtToken - The JWT token to be used
 # + return - The user who performed the action
-function getUserId(http:Request req) returns (string|error) {
-    var authorizationHeader = req.getHeader("Authorization");
-    var jwtToken = authorizationHeader.split(" ")[1];
+function getUserId(string jwtToken) returns (string|error) {
     var jwtPayload = check auth:validateJwt(jwtToken, idpJwtValidatorConfig);
     return jwtPayload.sub;
 }

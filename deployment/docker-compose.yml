@@ -18,7 +18,7 @@ services:
     environment:
       - PROXY_CONF=/conf/proxy.toml
   auth.registry.hub.cellery.io:
-    image: wso2cellery/cellery-hub-auth:latest
+    image: wso2cellery/cellery-hub-docker-auth:latest
     command: -logtostderr=true /conf/docker-auth.yml
     restart: always
     ports:

@@ -40,11 +40,11 @@ public function forwardRequest(http:Request req) returns (http:Response|error) {
 #
 # + repository - The Docker Image Repository name
 # + fileLayer - Docker File Layer to be pulled
-# + currentToken - The current token used in the intercepted request
+# + jwtToken - The JWT token that should be used
 # + return - Docker file layer bytes
-public function pullDockerFileLayer(string repository, string fileLayer, string currentToken) returns (byte[]|error) {
+public function pullDockerFileLayer(string repository, string fileLayer, string jwtToken) returns (byte[]|error) {
     http:Request dockerRegistryRequest = new;
-    dockerRegistryRequest.addHeader("Authorization", currentToken);
+    dockerRegistryRequest.addHeader("Authorization", "Bearer " + jwtToken);
     var response = check dockerRegistryClientEP->get("/v2/" + repository + "/blobs/" + fileLayer, message = dockerRegistryRequest);
     if (response.statusCode >= 200 && response.statusCode < 400) {
         return response.getBinaryPayload();
