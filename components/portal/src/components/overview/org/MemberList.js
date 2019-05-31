@@ -31,9 +31,11 @@ import * as PropTypes from "prop-types";
 const styles = (theme) => ({
     content: {
         paddingTop: theme.spacing(4)
-    }, formControl: {
+    },
+    formControl: {
         minWidth: "100%"
-    }, placeholderIcon: {
+    },
+    placeholderIcon: {
         color: "#999999"
     },
     table: {
@@ -63,11 +65,6 @@ class MemberList extends React.Component {
             isAdmin: false
         };
     }
-
-    handleItemClick = (path) => {
-        const {history} = this.props;
-        history.push(path);
-    };
 
     handleRoleChange = (event) => {
         this.setState({

@@ -27,32 +27,45 @@ import ImageVersion from "./overview/image/ImageVersion";
 import MyImages from "./myImages";
 import MyOrgs from "./myOrgs";
 import Org from "./overview/org";
+import OrgCreateSuccess from "./sdk/OrgCreateSuccess";
 import React from "react";
+import SDK from "./sdk";
+import SDKAppLayout from "./sdk/SDKAppLayout";
 import {StateProvider} from "./common/state";
 import {BrowserRouter, Route, Switch} from "react-router-dom";
 import {MuiThemeProvider, createMuiTheme} from "@material-ui/core/styles";
 
 const Portal = () => {
     // TODO: Integrate user authentication.
-    const isLoggedIn = true;
-    return (
-        isLoggedIn
-            ? (
-                <AppLayout>
-                    <ErrorBoundary showNavigationButtons={true}>
-                        <Switch>
-                            <Route exact path={["/", "/my-images"]} component={MyImages}/>
-                            <Route exact path={"/my-orgs"} component={MyOrgs}/>
-                            <Route exact path={"/explore"} component={Explore}/>
-                            <Route exact path={"/images/:orgName/:imageName"} component={Image}/>
-                            <Route exact path={"/images/:orgName/:imageName/:versionNo"} component={ImageVersion}/>
-                            <Route exact path={"/orgs/:orgName"} component={Org}/>
-                        </Switch>
-                    </ErrorBoundary>
-                </AppLayout>
-            )
-            : <Home/>
-    );
+    const isLoggedIn = false;
+    const isSDK = true;
+
+    if (isLoggedIn) {
+        return (
+            <AppLayout>
+                <ErrorBoundary showNavigationButtons={true}>
+                    <Switch>
+                        <Route exact path={["/", "/my-images"]} component={MyImages}/>
+                        <Route exact path={"/my-orgs"} component={MyOrgs}/>
+                        <Route exact path={"/explore"} component={Explore}/>
+                        <Route exact path={"/images/:orgName/:imageName"} component={Image}/>
+                        <Route exact path={"/images/:orgName/:imageName/:versionNo"} component={ImageVersion}/>
+                        <Route exact path={"/orgs/:orgName"} component={Org}/>
+                    </Switch>
+                </ErrorBoundary>
+            </AppLayout>
+        );
+    } else if (isSDK) {
+        return (
+            <SDKAppLayout>
+                <Switch>
+                    <Route exact path={"/sdk"} component={SDK}/>
+                    <Route exact path={"/sdk/success"} component={OrgCreateSuccess}/>
+                </Switch>
+            </SDKAppLayout>
+        );
+    }
+    return <Home/>;
 };
 
 
