@@ -109,7 +109,7 @@
                         <xsd1:attributeStep>true</xsd1:attributeStep>
                         <xsd1:federatedIdentityProviders>
                             <xsd1:defaultAuthenticatorConfig>
-                                <xsd1:displayName>Google</xsd1:displayName>
+                                <xsd1:displayName>google</xsd1:displayName>
                                 <xsd1:enabled>false</xsd1:enabled>
                                 <xsd1:name>GoogleOIDCAuthenticator</xsd1:name>
                                 <xsd1:valid>true</xsd1:valid>
@@ -117,7 +117,7 @@
                             <xsd1:displayName/>
                             <xsd1:enable>false</xsd1:enable>
                             <xsd1:federatedAuthenticatorConfigs>
-                                <xsd1:displayName>Google</xsd1:displayName>
+                                <xsd1:displayName>google</xsd1:displayName>
                                 <xsd1:enabled>false</xsd1:enabled>
                                 <xsd1:name>GoogleOIDCAuthenticator</xsd1:name>
                                 <xsd1:valid>true</xsd1:valid>
@@ -125,25 +125,25 @@
                             <xsd1:federationHub>true</xsd1:federationHub>
                             <xsd1:homeRealmId/>
                             <xsd1:id/>
-                            <xsd1:identityProviderName>Google</xsd1:identityProviderName>
+                            <xsd1:identityProviderName>google</xsd1:identityProviderName>
                             <xsd1:primary>false</xsd1:primary>
                         </xsd1:federatedIdentityProviders>
                         <xsd1:federatedIdentityProviders>
                             <xsd1:defaultAuthenticatorConfig>
-                                <xsd1:displayName>Github</xsd1:displayName>
+                                <xsd1:displayName>github</xsd1:displayName>
                                 <xsd1:enabled>false</xsd1:enabled>
                                 <xsd1:name>GithubAuthenticator</xsd1:name>
                                 <xsd1:valid>true</xsd1:valid>
                             </xsd1:defaultAuthenticatorConfig>
                             <xsd1:enable>false</xsd1:enable>
                             <xsd1:federatedAuthenticatorConfigs>
-                                <xsd1:displayName>Github</xsd1:displayName>
+                                <xsd1:displayName>github</xsd1:displayName>
                                 <xsd1:enabled>false</xsd1:enabled>
                                 <xsd1:name>GithubAuthenticator</xsd1:name>
                                 <xsd1:valid>true</xsd1:valid>
                             </xsd1:federatedAuthenticatorConfigs>
                             <xsd1:federationHub>true</xsd1:federationHub>
-                            <xsd1:identityProviderName>Github</xsd1:identityProviderName>
+                            <xsd1:identityProviderName>github</xsd1:identityProviderName>
                             <xsd1:primary>false</xsd1:primary>
                         </xsd1:federatedIdentityProviders>
                         <xsd1:stepOrder>1</xsd1:stepOrder>

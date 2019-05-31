@@ -42,7 +42,7 @@ services:
       ports:
         - "9443:9443"
       volumes:
-        - ./idp/conf:/home/wso2carbon/wso2-config-volume
+        - ./idp/conf:/home/wso2carbon/wso2-config-volume/repository/conf
       environment:
         - CREATE_ORG_ENDPOINT=https://localhost:9000/
   docker-registry.hub.internal:

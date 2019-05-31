@@ -5,11 +5,11 @@
          <!--Optional:-->
          <mgt:identityProvider>
             <xsd:alias>https://localhost:9443/oauth2/token/</xsd:alias>
-            <xsd:displayName>Github</xsd:displayName>
+            <xsd:displayName>github</xsd:displayName>
             <xsd:enable>true</xsd:enable>
             <xsd:federationHub>false</xsd:federationHub>
             <xsd:identityProviderDescription>Github Federated IDP for cellery</xsd:identityProviderDescription>
-            <xsd:identityProviderName>Github</xsd:identityProviderName>
+            <xsd:identityProviderName>github</xsd:identityProviderName>
             <xsd:primary>false</xsd:primary>
             <xsd:homeRealmId>github</xsd:homeRealmId>
             <xsd:claimConfig>
@@ -148,7 +148,7 @@
             <xsd:defaultAuthenticatorConfig/>
             <xsd:defaultProvisioningConnectorConfig/>
             <xsd:federatedAuthenticatorConfigs>
-               <xsd:displayName>Github</xsd:displayName>
+               <xsd:displayName>github</xsd:displayName>
                <xsd:enabled>true</xsd:enabled>
                <xsd:name>GithubAuthenticator</xsd:name>
                <xsd:properties>

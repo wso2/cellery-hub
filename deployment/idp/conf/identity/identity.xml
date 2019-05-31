@@ -90,7 +90,7 @@
         <OpenIDUserPattern>${carbon.protocol}://${carbon.host}:${carbon.management.port}/openid</OpenIDUserPattern>
         <OpenIDLoginUrl>${carbon.protocol}://${carbon.host}:${carbon.management.port}/authenticationendpoint/openid_login.do</OpenIDLoginUrl>
         <!-- If the users must be prompted for approval -->
-        <OpenIDSkipUserConsent>false</OpenIDSkipUserConsent>
+        <OpenIDSkipUserConsent>true</OpenIDSkipUserConsent>
         <!-- Expiry time of the OpenID RememberMe token in minutes -->
         <OpenIDRememberMeExpiry>7200</OpenIDRememberMeExpiry>
         <!-- To enable or disable openid dumb mode -->
@@ -395,7 +395,7 @@
             <UserInfoEndpointRequestValidator>org.wso2.carbon.identity.oauth.endpoint.user.impl.UserInforRequestDefaultValidator</UserInfoEndpointRequestValidator>
             <UserInfoEndpointAccessTokenValidator>org.wso2.carbon.identity.oauth.endpoint.user.impl.UserInfoISAccessTokenValidator</UserInfoEndpointAccessTokenValidator>
             <UserInfoEndpointResponseBuilder>org.wso2.carbon.identity.oauth.endpoint.user.impl.UserInfoJSONResponseBuilder</UserInfoEndpointResponseBuilder>
-            <SkipUserConsent>false</SkipUserConsent>
+            <SkipUserConsent>true</SkipUserConsent>
             <!-- Sign the ID Token with Service Provider Tenant Private Key-->
             <SignJWTWithSPKey>false</SignJWTWithSPKey>
             <!--
@@ -480,7 +480,7 @@
 
     <Consent>
         <!--Specify whether consent management should be enable during SSO.-->
-        <EnableSSOConsentManagement>true</EnableSSOConsentManagement>
+        <EnableSSOConsentManagement>false</EnableSSOConsentManagement>
     </Consent>
 
     <SecurityTokenService>
@@ -702,7 +702,6 @@
                 <EventListener type="org.wso2.carbon.identity.core.handler.AbstractIdentityHandler"
                                name="org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.PostAuthAssociationHandler"
                                orderId="120" enable="true">
-         <Property name="CREATE_ORG_ENDPOINT">https://localhost:9443/carbon</Property>
 </EventListener>
         <EventListener type="org.wso2.carbon.identity.core.handler.AbstractIdentityHandler"
                        name="org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.PostAuthenticatedSubjectIdentifierHandler"

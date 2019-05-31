@@ -5,11 +5,11 @@
          <!--Optional:-->
          <mgt:identityProvider>
             <xsd:alias>https://localhost:9443/oauth2/token/</xsd:alias>
-            <xsd:displayName>Google</xsd:displayName>
+            <xsd:displayName>google</xsd:displayName>
             <xsd:enable>true</xsd:enable>
             <xsd:federationHub>false</xsd:federationHub>
             <xsd:identityProviderDescription>Google Federated IDP for cellery</xsd:identityProviderDescription>
-            <xsd:identityProviderName>Google</xsd:identityProviderName>
+            <xsd:identityProviderName>google</xsd:identityProviderName>
             <xsd:primary>false</xsd:primary>
             <xsd:homeRealmId>google</xsd:homeRealmId>
             <xsd:claimConfig>
@@ -21,7 +21,7 @@
             <xsd:defaultAuthenticatorConfig/>
             <xsd:defaultProvisioningConnectorConfig/>
             <xsd:federatedAuthenticatorConfigs>
-               <xsd:displayName>Google</xsd:displayName>
+               <xsd:displayName>google</xsd:displayName>
                <xsd:enabled>true</xsd:enabled>
                <xsd:name>GoogleOIDCAuthenticator</xsd:name>
                 <xsd:properties>
