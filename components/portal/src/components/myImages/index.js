@@ -34,47 +34,22 @@ import * as PropTypes from "prop-types";
 
 const styles = (theme) => ({
     content: {
-        paddingTop: theme.spacing.unit * 4
+        paddingTop: theme.spacing(4)
     },
     container: {
-        paddingTop: theme.spacing.unit * 4,
-        paddingBottom: theme.spacing.unit * 4
+        paddingTop: theme.spacing(4),
+        paddingBottom: theme.spacing(4)
     },
     formControl: {
         minWidth: "100%"
     },
     orgSelect: {
-        marginRight: 10
+        marginRight: theme.spacing(1)
+    },
+    placeholderIcon: {
+        color: "#999999"
     }
 });
-
-const data = [
-    {
-        name: "pet-fe",
-        description: "This contains the four components which involves with working with the Pet Store data and"
-        + " business logic.",
-        organization: "alpha",
-        public: true,
-        pulls: 10,
-        stars: 3
-    },
-    {
-        name: "pet-be",
-        description: "This contains of a single component which serves the portal.",
-        organization: "alpha",
-        public: true,
-        pulls: 15,
-        stars: 11
-    },
-    {
-        name: "hello-world",
-        description: "Sample hello world cell.",
-        organization: "beta",
-        public: false,
-        pulls: 7,
-        stars: 4
-    }
-];
 
 const orgData = [
     {
@@ -150,14 +125,14 @@ class MyImages extends React.Component {
                                     id="search"
                                     startAdornment={
                                         <InputAdornment position="start">
-                                            <SearchIcon/>
+                                            <SearchIcon className={classes.placeholderIcon}/>
                                         </InputAdornment>
                                     }
                                     placeholder="Search Image"
                                 />
                             </FormControl>
                         </Grid>
-                        <Grid item xs={0} sm={2} md={2}>
+                        <Grid item sm={2} md={2}>
                         </Grid>
                         <Grid item xs={12} sm={3} md={3}>
                             <form autoComplete="off">
@@ -181,7 +156,7 @@ class MyImages extends React.Component {
                         </Grid>
                     </Grid>
                 </div>
-                <ImageList data={data}/>
+                <ImageList />
             </div>
         );
     }

@@ -52,8 +52,8 @@ check-style:
 
 .PHONY: build
 build: clean init
-	GOOS=linux GOARCH=amd64 go build -o ./components/docker-auth/target/authentication ./components/docker-auth/cmd/authn/authentication.go
-	GOOS=linux GOARCH=amd64 go build -o ./components/docker-auth/target/authorization ./components/docker-auth/cmd/authz/authorization.go
+	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o ./components/docker-auth/target/authentication ./components/docker-auth/cmd/authn/authentication.go
+	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o ./components/docker-auth/target/authorization ./components/docker-auth/cmd/authz/authorization.go
 	cd ./components/portal; \
 	npm run build
 
@@ -63,14 +63,20 @@ test: build
 	npm run test
 
 .PHONY: docker
-docker: build
-	docker build -t $(DOCKER_REPO)/cellery-hub-auth:$(DOCKER_IMAGE_TAG) -f ./docker/docker-auth/Dockerfile .
+docker:
+	docker build -t $(DOCKER_REPO)/cellery-hub-docker-auth:$(DOCKER_IMAGE_TAG) -f ./docker/docker-auth/Dockerfile .
 	docker build -t $(DOCKER_REPO)/cellery-hub-proxy:$(DOCKER_IMAGE_TAG) -f ./docker/proxy/Dockerfile .
 	docker build -t $(DOCKER_REPO)/cellery-hub-portal:$(DOCKER_IMAGE_TAG) -f ./docker/portal/Dockerfile .
 
+.PHONY: docker-push
+docker-push: docker
+	docker push $(DOCKER_REPO)/cellery-hub-docker-auth:$(DOCKER_IMAGE_TAG)
+	docker push $(DOCKER_REPO)/cellery-hub-proxy:$(DOCKER_IMAGE_TAG)
+	docker push $(DOCKER_REPO)/cellery-hub-portal:$(DOCKER_IMAGE_TAG)
+
 .PHONY: deploy
 deploy:
-	mkdir -p deployment/docker-registry/extension-logs
+	mkdir -p deployment/docker-auth/extension-logs
 	mkdir -p deployment/docker-registry/mnt
 	cd deployment; \
 	docker-compose up

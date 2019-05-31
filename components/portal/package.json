@@ -4,10 +4,12 @@
   "private": true,
   "homepage": ".",
   "dependencies": {
-    "@material-ui/core": "^4.0.0-beta.0",
+    "@material-ui/core": "^4.0.0",
     "@material-ui/icons": "^3.0.2",
     "axios": "^0.18.0",
     "classnames": "^2.2.6",
+    "material-ui-chip-input": "^1.0.0-beta.17",
+    "mui-datatables": "^2.2.0",
     "prop-types": "^15.7.2",
     "react": "^16.8.6",
     "react-dom": "^16.8.6",

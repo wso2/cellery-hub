@@ -19,7 +19,6 @@
 import Avatar from "@material-ui/core/Avatar";
 import CellImage from "../../img/CellImage";
 import Divider from "@material-ui/core/Divider";
-import ImageIcon from "@material-ui/icons/Image";
 import List from "@material-ui/core/List";
 import ListItem from "@material-ui/core/ListItem";
 import ListItemAvatar from "@material-ui/core/ListItemAvatar";
@@ -28,6 +27,7 @@ import People from "@material-ui/icons/People";
 import React from "react";
 import TablePagination from "@material-ui/core/TablePagination";
 import Typography from "@material-ui/core/Typography";
+import {withRouter} from "react-router-dom";
 import {withStyles} from "@material-ui/core/styles";
 import * as PropTypes from "prop-types";
 
@@ -37,64 +37,123 @@ const styles = (theme) => ({
     },
     elementText: {
         flex: "none",
-        paddingLeft: theme.spacing.unit / 2,
+        paddingLeft: theme.spacing(1 / 2),
         color: "#666666"
     },
     elementIcon: {
         fontSize: 20,
-        marginLeft: theme.spacing.unit * 2,
+        marginLeft: theme.spacing(2),
         color: "#666666"
     },
     svgElementIcon: {
         fontSize: 16,
-        marginLeft: theme.spacing.unit * 2,
+        marginLeft: theme.spacing(2),
         color: "#666666"
+    },
+    avatar: {
+        color: "#ffffff",
+        background: "#91c56f"
     }
 });
 
-const OrgList = (props) => {
-    const {classes, data} = props;
+const data = [
+    {
+        name: "Alpha",
+        value: "alpha",
+        members: 5,
+        images: 3,
+        description: "Sample description"
 
-    return (
-        <React.Fragment>
-            <List component="nav">
-                {data.map((image) => (
-                    <div key={image.name}>
-                        <ListItem button>
-                            <ListItemAvatar>
-                                <Avatar className={classes.avatar}>
-                                    <ImageIcon/>
-                                </Avatar>
-                            </ListItemAvatar>
-                            <ListItemText primary={image.name}
-                                secondary={image.description}/>
-                            <People className={classes.elementIcon}/>
-                            <Typography variant="subheading2" color="inherit" className={classes.elementText}>
-                                {image.members}
-                            </Typography>
-                            <CellImage size="small" className={classes.svgElementIcon}/>
-                            <Typography variant="subheading2" color="inherit" className={classes.elementText}>
-                                {image.images}
-                            </Typography>
-                        </ListItem>
-                        <Divider/>
-                    </div>
-                ))}
-            </List>
-            <TablePagination
-                component="nav"
-                page={0}
-                rowsPerPage={10}
-                count={data.length}
-            />
-        </React.Fragment>
-    );
-};
+    },
+    {
+        name: "Beta",
+        value: "beta",
+        members: 10,
+        images: 6,
+        description: "Sample description"
+    }
+];
+
+class OrgList extends React.Component {
+
+    constructor(props) {
+        super(props);
+        this.state = {
+            pageNo: 0,
+            rowsPerPage: 10
+        };
+    }
+
+    handleItemClick = (path) => {
+        const {history} = this.props;
+        history.push(path);
+    };
+
+    handleChangePage = (event, newValue) => {
+        // TODO: Load and set new data
+        this.setState({
+            pageNo: newValue
+        });
+    };
+
+    handleChangeRowsPerPage = (event) => {
+        // TODO: Load and set new data
+        this.setState({
+            rowsPerPage: event.target.value
+        });
+    };
+
+    render = () => {
+        const {classes} = this.props;
+        const {pageNo, rowsPerPage} = this.state;
+
+        return (
+            <React.Fragment>
+                <List component="nav">
+                    {data.map((org) => (
+                        <div key={org.name}>
+                            <ListItem button onClick={(event) => {
+                                this.handleItemClick(`/orgs/${org.name}`, event);
+                            }}>
+                                <ListItemAvatar>
+                                    <Avatar className={classes.avatar}>
+                                        {org.name.charAt(0)}
+                                    </Avatar>
+                                </ListItemAvatar>
+                                <ListItemText primary={org.name}
+                                    secondary={org.description}/>
+                                <People className={classes.elementIcon}/>
+                                <Typography variant="subtitle2" color="inherit" className={classes.elementText}>
+                                    {org.members}
+                                </Typography>
+                                <CellImage size="small" className={classes.svgElementIcon}/>
+                                <Typography variant="subtitle2" color="inherit" className={classes.elementText}>
+                                    {org.images}
+                                </Typography>
+                            </ListItem>
+                            <Divider/>
+                        </div>
+                    ))}
+                </List>
+                <TablePagination
+                    component="nav"
+                    page={pageNo}
+                    rowsPerPage={rowsPerPage}
+                    count={data.length}
+                    onChangePage={this.handleChangePage}
+                    onChangeRowsPerPage={this.handleChangeRowsPerPage}
+                />
+            </React.Fragment>
+        );
+    }
+
+}
 
 OrgList.propTypes = {
     classes: PropTypes.object.isRequired,
-    data: PropTypes.object.isRequired
+    history: PropTypes.shape({
+        goBack: PropTypes.func.isRequired
+    })
 };
 
-export default withStyles(styles)(OrgList);
-
+export default withStyles(styles)(withRouter(OrgList));

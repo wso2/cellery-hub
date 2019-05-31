@@ -22,8 +22,11 @@ import CssBaseline from "@material-ui/core/CssBaseline/CssBaseline";
 import ErrorBoundary from "./common/error/ErrorBoundary";
 import Explore from "./explore";
 import Home from "./home";
+import Image from "./overview/image";
+import ImageVersion from "./overview/image/ImageVersion";
 import MyImages from "./myImages";
 import MyOrgs from "./myOrgs";
+import Org from "./overview/org";
 import React from "react";
 import {StateProvider} from "./common/state";
 import {BrowserRouter, Route, Switch} from "react-router-dom";
@@ -41,6 +44,9 @@ const Portal = () => {
                             <Route exact path={["/", "/my-images"]} component={MyImages}/>
                             <Route exact path={"/my-orgs"} component={MyOrgs}/>
                             <Route exact path={"/explore"} component={Explore}/>
+                            <Route exact path={"/images/:orgName/:imageName"} component={Image}/>
+                            <Route exact path={"/images/:orgName/:imageName/:versionNo"} component={ImageVersion}/>
+                            <Route exact path={"/orgs/:orgName"} component={Org}/>
                         </Switch>
                     </ErrorBoundary>
                 </AppLayout>

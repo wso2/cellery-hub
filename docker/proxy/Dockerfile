@@ -23,12 +23,13 @@ ARG PROJECT_DIR="/workspace"
 WORKDIR ${PROJECT_DIR}
 USER root
 
-COPY ./components/proxy/registry_proxy.bal .
+COPY ./components/proxy/ ./
 
 RUN chown -R ballerina ${PROJECT_DIR}
 USER ballerina
 
-RUN ballerina build registry_proxy.bal
+# Experimental features enabled to use transactions
+RUN ballerina build --experimental
 
 FROM ballerina/ballerina:0.991.0
 
@@ -36,8 +37,10 @@ ARG WORK_DIR="/home/ballerina"
 WORKDIR ${WORK_DIR}
 USER ballerina
 
-COPY --from=builder /workspace/** ./
+COPY --from=builder /workspace/target/registry_proxy.balx ./
+
+RUN wget https://repo1.maven.org/maven2/mysql/mysql-connector-java/8.0.16/mysql-connector-java-8.0.16.jar -P ${BALLERINA_HOME}/bre/lib
 
 EXPOSE 9090
 
-ENTRYPOINT ballerina run registry_proxy.balx 2>&1 | tee registry_proxy.log
+ENTRYPOINT cp ${PROXY_CONF} ./ballerina.conf && ballerina run registry_proxy.balx 2>&1 | tee registry_proxy.log

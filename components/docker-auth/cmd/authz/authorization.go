@@ -20,17 +20,26 @@ package main
 
 import (
 	"encoding/json"
+	"net"
 	"os"
 
 	"github.com/cellery-io/cellery-hub/components/docker-auth/pkg/extension"
-
-	"github.com/cesanta/docker_auth/auth_server/authz"
 )
+
+type authRequestInfo struct {
+	Account string
+	Type    string
+	Name    string
+	Service string
+	IP      net.IP
+	Actions []string
+	Labels  map[string][]string
+}
 
 func main() {
 	text := extension.ReadStdIn()
 	// Create the authReqInfo object from the input
-	var authReqInfo authz.AuthRequestInfo
+	var authReqInfo authRequestInfo
 	err := json.Unmarshal([]byte(text), &authReqInfo)
 	if err != nil {
 		os.Exit(extension.ErrorExitCode)
