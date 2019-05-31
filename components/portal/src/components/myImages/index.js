@@ -45,6 +45,9 @@ const styles = (theme) => ({
     },
     orgSelect: {
         marginRight: theme.spacing(1)
+    },
+    placeholderIcon: {
+        color: "#999999"
     }
 });
 
@@ -122,7 +125,7 @@ class MyImages extends React.Component {
                                     id="search"
                                     startAdornment={
                                         <InputAdornment position="start">
-                                            <SearchIcon/>
+                                            <SearchIcon className={classes.placeholderIcon}/>
                                         </InputAdornment>
                                     }
                                     placeholder="Search Image"
