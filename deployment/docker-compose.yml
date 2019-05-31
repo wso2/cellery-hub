@@ -53,7 +53,7 @@ services:
       - REGISTRY_COMPATIBILITY_SCHEMA1_ENABLED=true
       - REGISTRY_HTTP_HOST=https://registry.hub.cellery.io:9090
   mysql.hub.internal:
-    image: mysql:8.0.16
+    image: mysql:5.7.26
     restart: always
     volumes:
       - ./mysql/dbscripts:/docker-entrypoint-initdb.d
