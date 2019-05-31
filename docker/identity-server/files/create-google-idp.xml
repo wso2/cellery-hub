@@ -1,0 +1,78 @@
+<soap:Envelope xmlns:soap="http://www.w3.org/2003/05/soap-envelope" xmlns:mgt="http://mgt.idp.carbon.wso2.org" xmlns:xsd="http://model.common.application.identity.carbon.wso2.org/xsd">
+   <soap:Header/>
+   <soap:Body>
+      <mgt:addIdP>
+         <!--Optional:-->
+         <mgt:identityProvider>
+            <xsd:alias>https://localhost:9443/oauth2/token/</xsd:alias>
+            <xsd:displayName>Google</xsd:displayName>
+            <xsd:enable>true</xsd:enable>
+            <xsd:federationHub>false</xsd:federationHub>
+            <xsd:identityProviderDescription>Google Federated IDP for cellery</xsd:identityProviderDescription>
+            <xsd:identityProviderName>Google</xsd:identityProviderName>
+            <xsd:primary>false</xsd:primary>
+            <xsd:homeRealmId>google</xsd:homeRealmId>
+            <xsd:claimConfig>
+               <xsd:alwaysSendMappedLocalSubjectId>false</xsd:alwaysSendMappedLocalSubjectId>
+               <xsd:localClaimDialect>true</xsd:localClaimDialect>
+               <xsd:roleClaimURI>http://wso2.org/claims/role</xsd:roleClaimURI>
+               <xsd:userClaimURI/>
+            </xsd:claimConfig>
+            <xsd:defaultAuthenticatorConfig/>
+            <xsd:defaultProvisioningConnectorConfig/>
+            <xsd:federatedAuthenticatorConfigs>
+               <xsd:displayName>Google</xsd:displayName>
+               <xsd:enabled>true</xsd:enabled>
+               <xsd:name>GoogleOIDCAuthenticator</xsd:name>
+                <xsd:properties>
+                  <xsd:advanced>false</xsd:advanced>
+                  <xsd:confidential>false</xsd:confidential>
+                  <xsd:displayOrder>0</xsd:displayOrder>
+                  <xsd:name>ClientSecret</xsd:name>
+                  <xsd:required>false</xsd:required>
+                  <xsd:value>vjzv6-t60N5UXthjc9fO0RRx</xsd:value>
+               </xsd:properties>
+               <xsd:properties>
+                  <xsd:advanced>false</xsd:advanced>
+                  <xsd:confidential>false</xsd:confidential>
+                  <xsd:displayOrder>0</xsd:displayOrder>
+                  <xsd:name>AdditionalQueryParameters</xsd:name>
+                  <xsd:required>false</xsd:required>
+                  <xsd:value>scope=openid email profile</xsd:value>
+               </xsd:properties>
+               <xsd:properties>
+                  <xsd:advanced>false</xsd:advanced>
+                  <xsd:confidential>false</xsd:confidential>
+                  <xsd:displayOrder>0</xsd:displayOrder>
+                  <xsd:name>ClientId</xsd:name>
+                  <xsd:required>false</xsd:required>
+                  <xsd:value>1028740252372-vd7gf8rr6sb9avi3nd099mb5o3pmhmu5.apps.googleusercontent.com</xsd:value>
+               </xsd:properties>
+               <xsd:properties>
+                  <xsd:advanced>false</xsd:advanced>
+                  <xsd:confidential>false</xsd:confidential>
+                  <xsd:displayOrder>0</xsd:displayOrder>
+                  <xsd:name>callbackUrl</xsd:name>
+                  <xsd:required>false</xsd:required>
+                  <xsd:value>https://localhost:9443/commonauth</xsd:value>
+               </xsd:properties>
+            </xsd:federatedAuthenticatorConfigs>
+            <xsd:justInTimeProvisioningConfig>
+               <xsd:dumbMode>false</xsd:dumbMode>
+               <xsd:provisioningEnabled>true</xsd:provisioningEnabled>
+               <xsd:provisioningUserStore>PRIMARY</xsd:provisioningUserStore>
+               <xsd:modifyUserNameAllowed>false</xsd:modifyUserNameAllowed>
+               <xsd:passwordProvisioningEnabled>false</xsd:passwordProvisioningEnabled>
+               <xsd:promptConsent>false</xsd:promptConsent>
+               <xsd:userStoreClaimUri/>
+            </xsd:justInTimeProvisioningConfig>
+            <permissionAndRoleConfig xmlns="http://model.common.application.identity.carbon.wso2.org/xsd"/>
+         </mgt:identityProvider>
+      </mgt:addIdP>
+   </soap:Body>
+</soap:Envelope>
+
+
+
+
+
