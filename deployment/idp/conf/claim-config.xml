@@ -603,7 +603,7 @@
             <Claim>
                 <ClaimURI>http://wso2.org/claims/identity/social/unique/github</ClaimURI>
                 <DisplayName>Github ID</DisplayName>
-                <AttributeID>giithub-id</AttributeID>
+                <AttributeID>github-id</AttributeID>
                 <Description>Github ID</Description>
                 <SupportedByDefault/>
             </Claim>
@@ -1387,6 +1387,15 @@
                 <MappedLocalClaim>http://wso2.org/claims/username</MappedLocalClaim>
             </Claim>
             <Claim>
+                <ClaimURI>id</ClaimURI>
+                <DisplayName>github ID</DisplayName>
+                <AttributeID>github-id</AttributeID>
+                <Description>Github ID</Description>
+                <DisplayOrder>1</DisplayOrder>
+                <SupportedByDefault/>
+                <MappedLocalClaim>http://wso2.org/claims/identity/social/unique/github</MappedLocalClaim>
+            </Claim>
+            <Claim>
                 <ClaimURI>avatar_url</ClaimURI>
                 <DisplayName>Github Image</DisplayName>
                 <AttributeID>github-pic-url</AttributeID>
@@ -1523,7 +1532,7 @@
                 <DisplayName>Email</DisplayName>
                 <AttributeID>mail</AttributeID>
                 <Description>End-User's preferred e-mail address.</Description>
-                <MappedLocalClaim>http://wso2.org/claims/emailaddress</MappedLocalClaim>
+                <MappedLocalClaim>http://wso2.org/claims/social/idp-common-attribute</MappedLocalClaim>
             </Claim>
             <Claim>
                 <ClaimURI>email_verified</ClaimURI>
@@ -2402,6 +2411,14 @@
                 <ClaimURI>http://wso2.org/google/picture</ClaimURI>
                 <DisplayName>Picture URL from google</DisplayName>
                 <Description>Picture URL from <google></google></Description>
+                <AttributeID>google-pic-url</AttributeID>
+                <SupportedByDefault/>
+                <MappedLocalClaim>http://wso2.org/claims/google-pic-url</MappedLocalClaim>
+            </Claim>
+            <Claim>
+                <ClaimURI>http://wso2.org/google/email</ClaimURI>
+                <DisplayName>Email address from google</DisplayName>
+                <Description>Email address from google</Description>
                 <AttributeID>IDP-Common-Att</AttributeID>
                 <SupportedByDefault/>
                 <MappedLocalClaim>http://wso2.org/claims/social/idp-common-attribute</MappedLocalClaim>
