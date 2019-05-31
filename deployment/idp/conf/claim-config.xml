@@ -177,6 +177,7 @@
                 <DisplayName>Full Name</DisplayName>
                 <AttributeID>cn</AttributeID>
                 <Description>Full Name</Description>
+                <SupportedByDefault/>
             </Claim>
             <Claim>
                 <ClaimURI>http://wso2.org/claims/username</ClaimURI>
@@ -585,7 +586,41 @@
                 <AttributeID>active</AttributeID>
                 <Description>Status of the account</Description>
             </Claim>
-
+            <Claim>
+                <ClaimURI>http://wso2.org/claims/github-pic-url</ClaimURI>
+                <DisplayName>Github pic URL</DisplayName>
+                <AttributeID>github-pic-url</AttributeID>
+                <Description>Github pic URL</Description>
+                <SupportedByDefault/>
+            </Claim>
+            <Claim>
+                <ClaimURI>http://wso2.org/claims/google-pic-url</ClaimURI>
+                <DisplayName>Google pic URL</DisplayName>
+                <AttributeID>google-pic-url</AttributeID>
+                <Description>Google pic URL</Description>
+                <SupportedByDefault/>
+            </Claim>
+            <Claim>
+                <ClaimURI>http://wso2.org/claims/identity/social/unique/github</ClaimURI>
+                <DisplayName>Github ID</DisplayName>
+                <AttributeID>giithub-id</AttributeID>
+                <Description>Github ID</Description>
+                <SupportedByDefault/>
+            </Claim>
+            <Claim>
+                <ClaimURI>http://wso2.org/claims/identity/social/unique/google</ClaimURI>
+                <DisplayName>Google ID</DisplayName>
+                <AttributeID>google-id</AttributeID>
+                <Description>Google ID</Description>
+                <SupportedByDefault/>
+            </Claim>
+            <Claim>
+                <ClaimURI>http://wso2.org/claims/social/idp-common-attribute</ClaimURI>
+                <DisplayName>IDP-Common-Att</DisplayName>
+                <AttributeID>IDP-Common-Att</AttributeID>
+                <Description>IDP-Common-Att</Description>
+                <SupportedByDefault/>
+            </Claim>
         </Dialect>
 
         <Dialect dialectURI="http://schemas.xmlsoap.org/ws/2005/05/identity">
@@ -1350,6 +1385,15 @@
                 <DisplayOrder>1</DisplayOrder>
                 <SupportedByDefault/>
                 <MappedLocalClaim>http://wso2.org/claims/username</MappedLocalClaim>
+            </Claim>
+            <Claim>
+                <ClaimURI>avatar_url</ClaimURI>
+                <DisplayName>Github Image</DisplayName>
+                <AttributeID>github-pic-url</AttributeID>
+                <Description>Github mage</Description>
+                <DisplayOrder>1</DisplayOrder>
+                <SupportedByDefault/>
+                <MappedLocalClaim>http://wso2.org/claims/github-pic-url</MappedLocalClaim>
             </Claim>
             <Claim>
                 <ClaimURI>name</ClaimURI>
@@ -2319,6 +2363,48 @@
                 <DisplayOrder>1</DisplayOrder>
                 <SupportedByDefault/>
                 <MappedLocalClaim>http://wso2.org/claims/nickname</MappedLocalClaim>
+            </Claim>
+        </Dialect>
+        <Dialect dialectURI="http://wso2.org/google">
+            <Claim>
+                <ClaimURI>http://wso2.org/google/name</ClaimURI>
+                <DisplayName>Google Github full name</DisplayName>
+                <Description>Google Github full name</Description>
+                <AttributeID>cn</AttributeID>
+                <SupportedByDefault/>
+                <MappedLocalClaim>http://wso2.org/claims/fullname</MappedLocalClaim>
+            </Claim>
+            <Claim>
+                <ClaimURI>http://wso2.org/google/sub</ClaimURI>
+                <DisplayName>Google unique user id</DisplayName>
+                <Description>Google unique user id</Description>
+                <AttributeID>google-id</AttributeID>
+                <SupportedByDefault/>
+                <MappedLocalClaim>http://wso2.org/claims/identity/social/unique/google</MappedLocalClaim>
+            </Claim>
+            <Claim>
+                <ClaimURI>http://wso2.org/google/family_name</ClaimURI>
+                <DisplayName>Last name from Google</DisplayName>
+                <Description>Last name from Google</Description>
+                <AttributeID>sn</AttributeID>
+                <SupportedByDefault/>
+                <MappedLocalClaim>http://wso2.org/claims/lastname</MappedLocalClaim>
+            </Claim>
+            <Claim>
+                <ClaimURI>http://wso2.org/google/given_name</ClaimURI>
+                <DisplayName>First name from Google</DisplayName>
+                <Description>First name from Google</Description>
+                <AttributeID>givenName</AttributeID>
+                <SupportedByDefault/>
+                <MappedLocalClaim>http://wso2.org/claims/givenname</MappedLocalClaim>
+            </Claim>
+            <Claim>
+                <ClaimURI>http://wso2.org/google/picture</ClaimURI>
+                <DisplayName>Picture URL from google</DisplayName>
+                <Description>Picture URL from <google></google></Description>
+                <AttributeID>IDP-Common-Att</AttributeID>
+                <SupportedByDefault/>
+                <MappedLocalClaim>http://wso2.org/claims/social/idp-common-attribute</MappedLocalClaim>
             </Claim>
         </Dialect>
     </Dialects>
