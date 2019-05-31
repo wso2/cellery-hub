@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import AuthUtils from "../../../utils/api/authUtils";
 import * as axios from "axios";
 
 /**
@@ -22,6 +23,9 @@ import * as axios from "axios";
 class StateHolder {
 
     static CONFIG = "config";
+    static USER = "user";
+    static NOTIFICATION_STATE = "notificationState";
+    static LOADING_STATE = "loadingState";
 
     /**
      * @type {Object}
@@ -34,7 +38,17 @@ class StateHolder {
      */
     constructor() {
         const rawState = {
-            [StateHolder.CONFIG]: {}
+            [StateHolder.USER]: AuthUtils.getAuthenticatedUser(),
+            [StateHolder.CONFIG]: {},
+            [StateHolder.LOADING_STATE]: {
+                loadingOverlayCount: 0,
+                message: null
+            },
+            [StateHolder.NOTIFICATION_STATE]: {
+                isOpen: false,
+                message: null,
+                notificationLevel: null
+            }
         };
 
         const initialProcessedState = {};
