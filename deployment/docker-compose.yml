@@ -32,10 +32,19 @@ services:
       - REGISTRY_AUTH_TOKEN_ROOTCERTBUNDLE=/security/docker-auth-sign.crt
       - REGISTRY_AUTH_TOKEN_ISSUER="auth.registry.hub.cellery.io"
       - IS_JWT=false
-      - IDP_HOST=localhost
+      - IDP_HOST=idp.registry.hub.cellery.io
       - IDP_PORT=9443
       - USERNAME=admin
       - PASSWORD=admin
+  idp.registry.hub.cellery.io:
+      image: wso2cellery/cellery-hub-idp:5.7.0
+      restart: always
+      ports:
+        - "9443:9443"
+      volumes:
+        - ./idp/conf:/home/wso2carbon/wso2-config-volume
+      environment:
+        - CREATE_ORG_ENDPOINT=https://localhost:9000/
   docker-registry.hub.internal:
     image: registry:2
     restart: always

@@ -23,7 +23,3 @@ ARG FILES=./target/files
 
 # Copy the jar files
 COPY --chown=wso2carbon:wso2 ${FILES}/dropins/** ${USER_HOME}/wso2is-5.7.0/repository/components/dropins/
-COPY --chown=wso2carbon:wso2 files/conf/ ${USER_HOME}/wso2is-5.7.0/repository/conf/
-
-
-
