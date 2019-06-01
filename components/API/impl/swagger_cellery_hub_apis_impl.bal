@@ -26,30 +26,49 @@ import cellery/gen;
 import cellery/db;
 import cellery/utils;
 
-public function getOrg (http:Request _getOrgReq) returns http:Response {
+public function getOrg (http:Request _getOrgReq) returns http:Response|error {
     var params = _getOrgReq.getQueryParams();
+    string orgName = "";
     http:Response _getOrgRes = new;
-    var orgName = <string>params.name;
+    if (params.hasKey("name")){
+        orgName = params.name;
+    }
+    else{
+        gen:Error err = {
+            code: utils:methodNotAllowdStatusCode,
+            message: "Organization name is not found",
+            description: ""
+        };
+        _getOrgRes.setJsonPayload(check json.convert(err));
+        _getOrgRes.statusCode = err.code; 
+        return _getOrgRes;
+    }
     var res = db:selectOrg(orgName);
 
     if (res is table<record {}>) {
-        log:printInfo("Convert the REGISTRY_ORGANIZATION table into json");
-        var jsonConversionRet = json.convert(res);
-        if (jsonConversionRet is json) {
-            log:printInfo("JSON: "+io:sprintf("%s", jsonConversionRet));
-            _getOrgRes.statusCode = utils:successStatusCode;
-            _getOrgRes.setJsonPayload(untaint jsonConversionRet);
-        } else {
-            error er = error(<string>jsonConversionRet.detail().message);
-            log:printError("Error in table to json conversion", err = er);
-            _getOrgRes.setPayload({ code: utils:methodNotAllowdStatusCode, message: "Unable to complete request", description : untaint <string>jsonConversionRet.detail().message });
-            _getOrgRes.statusCode = utils:methodNotAllowdStatusCode;
+        gen:organizationListResponse o = {organizationresponseList : []};
+        foreach int i in 0...res.count()-1{            
+            var t = gen:organizationResponse.convert(res.getNext());
+            if (t is gen:organizationResponse){
+                io:println(t);
+                o.organizationresponseList[i] = t;
+            }
         }
-    } else {
+    _getOrgRes.statusCode = utils:successStatusCode;
+    json resPayload = check json.convert(o);
+    _getOrgRes.setJsonPayload(untaint resPayload.organizationresponseList);
+    }
+
+    else {
         log:printError("Select data from REGISTRY_ORGANIZATION table failed: "
                 + <string>res.detail().message);
-        _getOrgRes.setPayload({ code: utils:internalErrorStatusCode, message: "Unable to complete request", description : untaint <string>res.detail().message });
-        _getOrgRes.statusCode = utils:internalErrorStatusCode;        
+        gen:Error err = {
+            code: utils:internalErrorStatusCode,
+            message: "Unable to complete request",
+            description: untaint <string>res.detail().message
+        };
+        _getOrgRes.setJsonPayload(check json.convert(err));
+        _getOrgRes.statusCode = err.code;        
     } 
 	return _getOrgRes;
 }
@@ -63,12 +82,12 @@ public function addOrg (http:Request _addOrgReq, gen:organizationRequest _addOrg
     else{
         log:printError(" Unauthenticated request : Username is not found");
         gen:Error err = {
-            code: utils:unauthorizedStatusCode1,
+            code: utils:unauthorizedStatusCode,
             message: "Unable to create organization",
             description: "User name is not found"
         };
         _addOrgRes.setPayload(check json.convert(err));
-        _addOrgRes.statusCode = utils:unauthorizedStatusCode;
+        _addOrgRes.statusCode = err.code;
         return _addOrgRes;
     }
     string orgName = _addOrgBody.name;
@@ -85,12 +104,12 @@ public function addOrg (http:Request _addOrgReq, gen:organizationRequest _addOrg
     } else {
             log:printError(" failed: " + <string>ret.detail().message);
             gen:Error err = {
-                code: utils:methodNotAllowdStatusCode1, 
+                code: utils:methodNotAllowdStatusCode, 
                 message: "Unable to create organization", 
                 description : <string>ret.detail().message
             };
             _addOrgRes.setJsonPayload(check json.convert(err));
-            _addOrgRes.statusCode = utils:methodNotAllowdStatusCode;
+            _addOrgRes.statusCode = err.code;
         }
 	return _addOrgRes;
 }

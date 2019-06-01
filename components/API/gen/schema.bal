@@ -17,7 +17,7 @@
 // ------------------------------------------------------------------------
 
 public type Error record { 
-    string code;
+    int code;
     string message;
     string description;
 };
@@ -28,7 +28,7 @@ public type organizationRequest record {
     string defaultImageVisibility;
 };
 
-public type organizationListResponse record { 
+public type organizationListResponse record {
     organizationResponse[] organizationresponseList;
 };
 

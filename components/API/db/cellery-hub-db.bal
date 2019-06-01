@@ -20,6 +20,7 @@ import ballerina/io;
 import ballerina/log;
 import ballerina/mysql;
 import ballerina/sql;
+import cellery/gen;
 
 public function insertOrganization(string org, string des, string dv) returns sql:UpdateResult|error{
     log:printInfo("Performing Organization insertion");
@@ -28,7 +29,7 @@ public function insertOrganization(string org, string des, string dv) returns sq
 
 public function selectOrg(string name) returns table<record {}>|error{
     log:printInfo("Performing organization search");
-    return connection->select("SELECT * FROM REGISTRY_ORGANIZATION WHERE ORG_NAME = ?",(),name);
+    return connection->select("SELECT ORG_NAME, CREATED_DATE FROM REGISTRY_ORGANIZATION WHERE REGEXP_LIKE(ORG_NAME, ?)",gen:organizationResponse,name, loadToMemory = true);
 }
 
 public function selectArtifact(string qry, string[] params)

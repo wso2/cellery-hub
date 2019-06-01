@@ -97,8 +97,13 @@ service SwaggerCelleryHubAPIs on echoListener {
         path:"/orgs"
     }
     resource function getOrg (http:Caller outboundEp, http:Request _getOrgReq) returns error? {
-        http:Response _getOrgRes = impl:getOrg(_getOrgReq);
-        error? x = outboundEp->respond(_getOrgRes);
+        http:Response|error _getOrgRes = impl:getOrg(_getOrgReq);
+        if(_getOrgRes is http:Response){
+            error? x = outboundEp->respond(_getOrgRes);
+        }
+        else{
+            io:println("Error occured");
+        }
     }
 
     @openapi:ResourceInfo {
@@ -113,7 +118,6 @@ service SwaggerCelleryHubAPIs on echoListener {
     }
     resource function addOrg (http:Caller outboundEp, http:Request _addOrgReq, gen:organizationRequest _addOrgBody) returns error? {
         http:Response|error _addOrgRes = impl:addOrg(_addOrgReq, _addOrgBody);
-        // http:Response _addOrgRes = impl:addOrg(_addOrgReq, _addOrgBody);
         if _addOrgRes is http:Response{
             error? x = outboundEp->respond(_addOrgRes);
         }
