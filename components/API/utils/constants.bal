@@ -19,3 +19,4 @@
 public const int successStatusCode = 200;
 public const int methodNotAllowdStatusCode = 405;
 public const int internalErrorStatusCode = 500;
+public const int unauthorizedStatusCode = 401;

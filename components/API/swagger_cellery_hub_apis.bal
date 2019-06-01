@@ -26,6 +26,7 @@ import ballerina/time;
 import cellery/reader;
 import cellery/model;
 import cellery/validator;
+import ballerina/io;
 
 final string filter_name_header = "isValidToken";
 
@@ -111,8 +112,14 @@ service SwaggerCelleryHubAPIs on echoListener {
         body:"_addOrgBody"
     }
     resource function addOrg (http:Caller outboundEp, http:Request _addOrgReq, gen:organizationRequest _addOrgBody) returns error? {
-        http:Response _addOrgRes = impl:addOrg(_addOrgReq, _addOrgBody);
-        error? x = outboundEp->respond(_addOrgRes);
+        http:Response|error _addOrgRes = impl:addOrg(_addOrgReq, _addOrgBody);
+        // http:Response _addOrgRes = impl:addOrg(_addOrgReq, _addOrgBody);
+        if _addOrgRes is http:Response{
+            error? x = outboundEp->respond(_addOrgRes);
+        }
+        else{
+            io:println(_addOrgRes.detail().messege);
+        }
     }
 
     @openapi:ResourceInfo {
