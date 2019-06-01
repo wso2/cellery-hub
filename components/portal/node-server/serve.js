@@ -18,10 +18,11 @@
 
 const path = require("path");
 const fs = require("fs");
+const https = require("https");
 const express = require("express");
 const fallback = require("express-history-api-fallback");
 
-const app = express();
+let app = express();
 const webPortalPort = process.env.PORTAL_PORT || 3000;
 
 const configRoot = path.join(__dirname, "/config");
@@ -55,6 +56,12 @@ if (process.env.APP_ENV !== "DEV") {
     app.use(fallback("index.html", {
         root: appRoot
     }));
+
+    // Creating an HTTPS server for production
+    app = https.createServer({
+        key: fs.readFileSync(process.env.PORTAL_PRIVATE_KEY),
+        cert: fs.readFileSync(process.env.PORTAL_CERT)
+    }, app);
 } else {
     console.log("Serving Only the Hub Portal Configuration");
 }

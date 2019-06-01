@@ -5,8 +5,13 @@ services:
     restart: always
     ports:
       - "9000:9000"
+    volumes:
+      - ../components/portal/node-server/config:/portal/config
+      - ./portal/security:/portal/security
     environment:
       - PORTAL_PORT=9000
+      - PORTAL_PRIVATE_KEY=/portal/security/portal.key
+      - PORTAL_CERT=/portal/security/portal.cert
   registry.hub.cellery.io:
     image: wso2cellery/cellery-hub-proxy:latest
     restart: always
@@ -44,7 +49,7 @@ services:
       volumes:
         - ./idp/conf:/home/wso2carbon/wso2-config-volume/repository/conf
       environment:
-        - CREATE_ORG_ENDPOINT=https://localhost:9000/
+        - CREATE_ORG_ENDPOINT=https://hub.cellery.io:9000/sdk/org/create
   docker-registry.hub.internal:
     image: registry:2
     restart: always
