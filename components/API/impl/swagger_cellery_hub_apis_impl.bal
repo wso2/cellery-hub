@@ -56,30 +56,29 @@ public function getOrg (http:Request _getOrgReq) returns http:Response {
 
 public function addOrg (http:Request _addOrgReq, gen:organizationRequest _addOrgBody) returns http:Response {
     http:Response _addOrgRes = new;
-    var jsonValue = _addOrgReq.getJsonPayload();
-    string _addOrgPayload = "";
-    if (jsonValue is json) {
-        json result = jsonValue;
-        string orgName = result.name.toString();
-        string des = result.description.toString();
-        string dv = result.defaultImageVisibility.toString();
-        var ret = db:insertOrganization(orgName, des, dv);
-        if (ret is sql:UpdateResult) {
-            log:printInfo(" New organization added: " + ret.updatedRowCount);
+    if (_addOrgReq.hasHeader("username")){
+        string userName = _addOrgReq.getHeader("username");
+        log:printInfo(userName + " is attempting to create a new organization");
+    }
+    else{
+        log:printError(" Unauthenticated request : Username is not found");
+        _addOrgRes.setPayload({ code: utils:unauthorizedStatusCode, message: "Unable to create organization", description : "User name is not found" });
+        _addOrgRes.statusCode = utils:unauthorizedStatusCode;
+        return _addOrgRes;
+    }
+    string orgName = _addOrgBody.name;
+    var ret = db:insertOrganization(orgName, _addOrgBody.description, _addOrgBody.defaultImageVisibility);
+
+    if (ret is sql:UpdateResult) {
+            log:printInfo(" New organization created with name " + orgName);
             json payload = { name: orgName, createdDate: time:toString(time:currentTime())};
             _addOrgRes.setJsonPayload(untaint payload, contentType = "application/json");
             _addOrgRes.statusCode = utils:successStatusCode;
-        } else {
+    } else {
             log:printError(" failed: " + <string>ret.detail().message);
-            _addOrgRes.setPayload({ code: utils:methodNotAllowdStatusCode, message: "Invalid Input", description : <string>ret.detail().message });
+            _addOrgRes.setPayload({ code: utils:methodNotAllowdStatusCode, message: "Unable to create organization", description : <string>ret.detail().message });
             _addOrgRes.statusCode = utils:methodNotAllowdStatusCode;
         }
-    } else {
-        error er = error(<string>jsonValue.detail().message);
-        log:printError("Not found a proper JSON payload",err = er);
-        _addOrgRes.setPayload({ code: utils:methodNotAllowdStatusCode, message: "Unable to create organization", description : untaint <string>jsonValue.detail().message });
-        _addOrgRes.statusCode = utils:methodNotAllowdStatusCode;
-    }       
 	return _addOrgRes;
 }
 
