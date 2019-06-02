@@ -249,8 +249,13 @@ service SwaggerCelleryHubAPIs on echoListener {
         body:"_updateArtifactBody"
     }
     resource function updateArtifact (http:Caller outboundEp, http:Request _updateArtifactReq, string artifactId, gen:updateArtifactRequest _updateArtifactBody) returns error? {
-        http:Response _updateArtifactRes = impl:updateArtifact(_updateArtifactReq, artifactId, _updateArtifactBody);
-        error? x = outboundEp->respond(_updateArtifactRes);
+        http:Response|error _updateArtifactRes = untaint impl:updateArtifact(_updateArtifactReq, artifactId, _updateArtifactBody);
+        if(_updateArtifactRes is http:Response){
+            error? x = outboundEp->respond(_updateArtifactRes);
+        }
+        else{
+            io:println("Error occured");
+        }
     }
 
     @openapi:ResourceInfo {

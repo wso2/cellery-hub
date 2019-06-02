@@ -234,12 +234,51 @@ public function getArtifact (http:Request _getArtifactReq, string artifactId) re
 	return _getArtifactRes;
 }
 
-public function updateArtifact (http:Request _updateArtifactReq, string artifactId, gen:updateArtifactRequest _updateArtifactBody) returns http:Response {
-    // stub code - fill as necessary
+public function updateArtifact (http:Request _updateArtifactReq, string artifactId, gen:updateArtifactRequest _updateArtifactBody) returns http:Response|error {
     http:Response _updateArtifactRes = new;
-    string _updateArtifactPayload = "Sample updateArtifact Response";
-    _updateArtifactRes.setTextPayload(_updateArtifactPayload);
 
+    if (_updateArtifactReq.hasHeader(utils:USERNAME)){
+        string userName = _updateArtifactReq.getHeader(utils:USERNAME);
+        log:printInfo(userName + " is attempting to update artifact data");
+        if (! artifactId.equalsIgnoreCase(_updateArtifactBody.id)){
+            gen:Error err = {
+                code: utils:METHOD_NOT_ALLOWD_STATUSCODE,
+                message: "Operation update artifact is not allowed",
+                description: "Found inconsistant IDs"
+            };
+            _updateArtifactRes.setJsonPayload(check json.convert(err));
+            _updateArtifactRes.statusCode = err.code;
+            return _updateArtifactRes;
+        }
+    }
+    else{
+        log:printError(" Unauthenticated request : Username is not found");
+        gen:Error err = {
+            code: utils:UNAUTHORIZED_STATUSCODE,
+            message: "Unable to update artifact",
+            description: "User name is not found"
+        };
+        _updateArtifactRes.setJsonPayload(check json.convert(err));
+        _updateArtifactRes.statusCode = err.code;
+        return _updateArtifactRes;
+    }
+
+    var ret = db:updateArtifact(_updateArtifactBody.description, _updateArtifactBody.id);
+
+    if (ret is sql:UpdateResult && ret.updatedRowCount == 1) {
+            log:printInfo(" Updated the description of artifact " + _updateArtifactBody.id);
+            _updateArtifactRes.setTextPayload("Artifact description is successfully updated");
+            _updateArtifactRes.statusCode = utils:SUCCESS_STATUSCODE;
+    } else {
+            gen:Error err = {
+                code: utils:METHOD_NOT_ALLOWD_STATUSCODE, 
+                message: "unexpected error due to requested artifact not being available in the database", 
+                description : "Artifact " + _updateArtifactBody.id + "is not found in the db"
+            };
+            log:printError(err.message + err.message);
+            _updateArtifactRes.setJsonPayload(check json.convert(err));
+            _updateArtifactRes.statusCode = err.code;
+    }
 	return _updateArtifactRes;
 }
 

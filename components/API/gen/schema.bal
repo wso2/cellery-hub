@@ -99,3 +99,8 @@ public type imageResponse record {
     string org;
     string imageName;
 };
+
+
+type RegistryArtifact record {|
+    string ARTIFACT_ID;
+|};
