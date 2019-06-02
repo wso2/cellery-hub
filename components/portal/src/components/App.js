@@ -27,47 +27,74 @@ import ImageVersion from "./overview/image/ImageVersion";
 import MyImages from "./myImages";
 import MyOrgs from "./myOrgs";
 import Org from "./overview/org";
-import OrgCreateSuccess from "./sdk/OrgCreateSuccess";
 import React from "react";
-import SDK from "./sdk";
-import SDKAppLayout from "./sdk/SDKAppLayout";
-import {StateProvider} from "./common/state";
+import SDKAppLayout from "./sdk/sdkAppLayout";
+import SDKOrgCreate from "./sdk/SDKOrgCreate";
+import SDKSignInSuccess from "./sdk/SDKSignInSuccess";
+import SignIn from "./SignIn";
 import {BrowserRouter, Route, Switch} from "react-router-dom";
 import {MuiThemeProvider, createMuiTheme} from "@material-ui/core/styles";
+import withGlobalState, {StateHolder, StateProvider} from "./common/state";
 
-const Portal = () => {
-    // TODO: Integrate user authentication.
-    const isLoggedIn = false;
-    const isSDK = true;
-
+const SDKPortal = withGlobalState(({globalState, match}) => {
+    const isLoggedIn = Boolean(globalState.get(StateHolder.USER));
+    let view;
     if (isLoggedIn) {
-        return (
-            <AppLayout>
-                <ErrorBoundary showNavigationButtons={true}>
+        view = (
+            <SDKAppLayout>
+                <ErrorBoundary>
                     <Switch>
-                        <Route exact path={["/", "/my-images"]} component={MyImages}/>
-                        <Route exact path={"/my-orgs"} component={MyOrgs}/>
-                        <Route exact path={"/explore"} component={Explore}/>
-                        <Route exact path={"/images/:orgName/:imageName"} component={Image}/>
-                        <Route exact path={"/images/:orgName/:imageName/:versionNo"} component={ImageVersion}/>
-                        <Route exact path={"/orgs/:orgName"} component={Org}/>
+                        <Route exact path={`${match.url}/create-org`} component={SDKOrgCreate}/>
+                        <Route exact path={`${match.url}/auth-success`} component={SDKSignInSuccess}/>
                     </Switch>
                 </ErrorBoundary>
-            </AppLayout>
-        );
-    } else if (isSDK) {
-        return (
-            <SDKAppLayout>
-                <Switch>
-                    <Route exact path={"/sdk"} component={SDK}/>
-                    <Route exact path={"/sdk/success"} component={OrgCreateSuccess}/>
-                </Switch>
             </SDKAppLayout>
         );
+    } else {
+        view = <SignIn/>;
     }
-    return <Home/>;
-};
+    return view;
+});
 
+const HubPortal = withGlobalState(({globalState}) => {
+    const isLoggedIn = Boolean(globalState.get(StateHolder.USER));
+    return (
+        <Switch>
+            {
+                isLoggedIn
+                    ? null
+                    : (
+                        <React.Fragment>
+                            <Route exact path={"/"} component={Home}/>
+                            <Route exact path={"/sign-in"} render={() => <SignIn callbackRoute={"/"}/>}/>
+                        </React.Fragment>
+                    )
+            }
+            <Route path={"*"} render={() => (
+                <AppLayout>
+                    <ErrorBoundary showNavigationButtons={true}>
+                        <Switch>
+                            {
+                                isLoggedIn
+                                    ? (
+                                        <React.Fragment>
+                                            <Route exact path={["/", "/my-images"]} component={MyImages}/>
+                                            <Route exact path={"/my-orgs"} component={MyOrgs}/>
+                                        </React.Fragment>
+                                    )
+                                    : null
+                            }
+                            <Route exact path={"/explore"} component={Explore}/>
+                            <Route exact path={"/orgs/:orgName"} component={Org}/>
+                            <Route exact path={"/images/:orgName/:imageName"} component={Image}/>
+                            <Route exact path={"/images/:orgName/:imageName/:versionNo"} component={ImageVersion}/>
+                        </Switch>
+                    </ErrorBoundary>
+                </AppLayout>
+            )}/>
+        </Switch>
+    );
+});
 
 // Create the main theme of the App
 const theme = createMuiTheme({
@@ -97,7 +124,10 @@ const App = () => (
         <BrowserRouter>
             <ErrorBoundary showNavigationButtons={true}>
                 <StateProvider>
-                    <Portal/>
+                    <Switch>
+                        <Route path={"/sdk"} component={SDKPortal}/>
+                        <Route path={"/"} component={HubPortal}/>
+                    </Switch>
                 </StateProvider>
             </ErrorBoundary>
         </BrowserRouter>

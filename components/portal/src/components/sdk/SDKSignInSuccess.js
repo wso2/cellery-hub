@@ -38,7 +38,7 @@ const styles = (theme) => ({
 
 });
 
-const OrgCreateSuccess = (props) => {
+const SDKSignInSuccess = (props) => {
     const {classes} = props;
 
     return (
@@ -54,8 +54,8 @@ const OrgCreateSuccess = (props) => {
     );
 };
 
-OrgCreateSuccess.propTypes = {
+SDKSignInSuccess.propTypes = {
     classes: PropTypes.object.isRequired
 };
 
-export default withStyles(styles)(OrgCreateSuccess);
+export default withStyles(styles)(SDKSignInSuccess);

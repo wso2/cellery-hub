@@ -137,7 +137,7 @@ const withGlobalState = (Component) => {
     }
 
     StateConsumer.propTypes = {
-        forwardedRef: PropTypes.any.isRequired
+        forwardedRef: PropTypes.any
     };
 
     return React.forwardRef((props, ref) => <StateConsumer {...props} forwardedRef={ref} />);

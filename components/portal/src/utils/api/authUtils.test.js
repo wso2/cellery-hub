@@ -65,12 +65,15 @@ describe("AuthUtils", () => {
             stateHolder.state[StateHolder.CONFIG] = {
                 value: {
                     hubApiUrl: "http://api.hub.cellery.io",
-                    idpURL: "https://idp.hub.cellery.io"
+                    idp: {
+                        url: "https://idp.hub.cellery.io",
+                        clientId: "testclientid"
+                    }
                 },
                 listener: []
             };
             jest.spyOn(window.location, "assign").mockImplementation((location) => {
-                expect(location).toEqual(`${stateHolder.get(StateHolder.CONFIG).idpURL}/oidc/logout`
+                expect(location).toEqual(`${stateHolder.get(StateHolder.CONFIG).idp.url}/oidc/logout`
                     + `?id_token_hint=54321&post_logout_redirect_uri=${window.location.origin}`);
             });
             AuthUtils.signOut(stateHolder);

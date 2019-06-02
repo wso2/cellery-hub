@@ -16,6 +16,7 @@
  * under the License.
  */
 
+import AuthUtils from "../../utils/api/authUtils";
 import Button from "@material-ui/core/Button";
 import Dialog from "@material-ui/core/Dialog";
 import DialogActions from "@material-ui/core/DialogActions";
@@ -25,6 +26,7 @@ import DialogTitle from "@material-ui/core/DialogTitle";
 import DoneAllRounded from "@material-ui/icons/DoneAll";
 import FormControl from "@material-ui/core/FormControl";
 import Grid from "@material-ui/core/Grid";
+import HttpUtils from "../../utils/api/httpUtils";
 import IconButton from "@material-ui/core/IconButton";
 import Input from "@material-ui/core/Input";
 import InputAdornment from "@material-ui/core/InputAdornment";
@@ -32,6 +34,7 @@ import InputLabel from "@material-ui/core/InputLabel";
 import React from "react";
 import Typography from "@material-ui/core/Typography";
 import {withStyles} from "@material-ui/core/styles";
+import withGlobalState, {StateHolder} from "../common/state";
 import * as PropTypes from "prop-types";
 
 const styles = (theme) => ({
@@ -53,7 +56,7 @@ const styles = (theme) => ({
     }
 });
 
-class SDK extends React.Component {
+class SDKOrgCreate extends React.Component {
 
     constructor(props) {
         super(props);
@@ -62,21 +65,31 @@ class SDK extends React.Component {
         };
     }
 
-    handleClickOpen = () => {
+    handleSkipConfirmDialogOpen = () => {
         this.setState({
             isDialogOpen: true
         });
     };
 
-    handleClose = () => {
+    handleSkipConfirmDialogClose = () => {
         this.setState({
             isDialogOpen: false
         });
     };
 
-    handleItemClick = (path) => {
-        const {history} = this.props;
-        history.push(path);
+    handleCreateOrg = () => {
+        // TODO: Create organization and call this.handleContinue() if successful
+    };
+
+    /**
+     * Handle continuing the authentication flow.
+     *
+     * @param {boolean} skipOrgCheck Whether to skip checking for organizations
+     */
+    handleContinue = (skipOrgCheck) => {
+        const {globalState, match} = this.props;
+        const params = HttpUtils.parseQueryParams(match.search);
+        AuthUtils.continueLoginFlow(globalState, params.sessionDataKey, skipOrgCheck);
     };
 
     handleCheckAvailability = (value) => {
@@ -111,15 +124,15 @@ class SDK extends React.Component {
                                 />
                             </FormControl>
                             <Button variant="contained" color="primary" onClick={(event) => {
-                                this.handleItemClick("/sdk/success", event);
+                                this.handleCreateOrg();
                             }}>Create Organization
                             </Button>
                             <Button variant="outlined" color="default" className={classes.skipBtn}
-                                onClick={this.handleClickOpen}>Skip this step
+                                onClick={this.handleSkipConfirmDialogOpen}>Skip this step
                             </Button>
                             <Dialog
                                 open={isDialogOpen}
-                                onClose={this.handleClose}
+                                onClose={this.handleSkipConfirmDialogClose}
                                 aria-labelledby="alert-dialog-title"
                                 aria-describedby="alert-dialog-description"
                             >
@@ -132,12 +145,14 @@ class SDK extends React.Component {
                                     </DialogContentText>
                                 </DialogContent>
                                 <DialogActions>
-                                    <Button onClick={this.handleClose} color="primary">
+                                    <Button color="primary" onClick={this.handleSkipConfirmDialogClose}>
                                         Cancel
                                     </Button>
-                                    <Button color="primary" autoFocus onClick={(event) => {
-                                        this.handleItemClick("/sdk/success", event);
-                                    }}>Continue
+                                    <Button color="primary" autoFocus onClick={() => {
+                                        this.handleSkipConfirmDialogClose();
+                                        this.handleContinue();
+                                    }}>
+                                        Continue
                                     </Button>
                                 </DialogActions>
                             </Dialog>
@@ -150,11 +165,12 @@ class SDK extends React.Component {
 
 }
 
-SDK.propTypes = {
+SDKOrgCreate.propTypes = {
     classes: PropTypes.object.isRequired,
-    history: PropTypes.shape({
-        goBack: PropTypes.func.isRequired
-    })
+    match: PropTypes.shape({
+        search: PropTypes.string.isRequired
+    }).isRequired,
+    globalState: PropTypes.instanceOf(StateHolder).isRequired
 };
 
-export default withStyles(styles)(SDK);
+export default withStyles(styles)(withGlobalState(SDKOrgCreate));

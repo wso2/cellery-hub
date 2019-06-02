@@ -17,7 +17,7 @@
 PROJECT_ROOT := $(realpath $(dir $(abspath $(lastword $(MAKEFILE_LIST)))))
 PROJECT_PKG := github.com/cellery-io/cellery-hub
 DOCKER_REPO ?= wso2cellery
-DOCKER_IMAGE_TAG ?= latest
+VERSION ?= latest
 
 all: clean init build docker
 
@@ -64,15 +64,15 @@ test: build
 
 .PHONY: docker
 docker:
-	docker build -t $(DOCKER_REPO)/cellery-hub-docker-auth:$(DOCKER_IMAGE_TAG) -f ./docker/docker-auth/Dockerfile .
-	docker build -t $(DOCKER_REPO)/cellery-hub-proxy:$(DOCKER_IMAGE_TAG) -f ./docker/proxy/Dockerfile .
-	docker build -t $(DOCKER_REPO)/cellery-hub-portal:$(DOCKER_IMAGE_TAG) -f ./docker/portal/Dockerfile .
+	docker build -t $(DOCKER_REPO)/cellery-hub-docker-auth:$(VERSION) -f ./docker/docker-auth/Dockerfile .
+	docker build -t $(DOCKER_REPO)/cellery-hub-proxy:$(VERSION) -f ./docker/proxy/Dockerfile .
+	docker build -t $(DOCKER_REPO)/cellery-hub-portal:$(VERSION) -f ./docker/portal/Dockerfile .
 
 .PHONY: docker-push
 docker-push: docker
-	docker push $(DOCKER_REPO)/cellery-hub-docker-auth:$(DOCKER_IMAGE_TAG)
-	docker push $(DOCKER_REPO)/cellery-hub-proxy:$(DOCKER_IMAGE_TAG)
-	docker push $(DOCKER_REPO)/cellery-hub-portal:$(DOCKER_IMAGE_TAG)
+	docker push $(DOCKER_REPO)/cellery-hub-docker-auth:$(VERSION)
+	docker push $(DOCKER_REPO)/cellery-hub-proxy:$(VERSION)
+	docker push $(DOCKER_REPO)/cellery-hub-portal:$(VERSION)
 
 .PHONY: deploy
 deploy:

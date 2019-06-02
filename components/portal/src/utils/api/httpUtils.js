@@ -158,7 +158,9 @@ class HttpUtils {
                 if (error.response) {
                     const errorResponse = error.response;
                     if (errorResponse.status === 401) {
-                        AuthUtils.signOut(globalState);
+                        const fidp = AuthUtils.getDefaultFIdP();
+                        AuthUtils.removeUser(globalState);
+                        AuthUtils.initiateLoginFlow(globalState, fidp);
                     }
                     reject(new Error(errorResponse.data));
                 } else {

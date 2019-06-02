@@ -18,6 +18,7 @@
 
 import AccountCircle from "@material-ui/icons/AccountCircle";
 import AppBar from "@material-ui/core/AppBar";
+import AuthUtils from "../../../utils/api/authUtils";
 import Button from "@material-ui/core/Button";
 import CelleryLogo from "../../../img/celleryLogo.svg";
 import Container from "@material-ui/core/Container";
@@ -29,6 +30,7 @@ import Typography from "@material-ui/core/Typography";
 import classNames from "classnames";
 import {withRouter} from "react-router-dom";
 import {withStyles} from "@material-ui/core/styles";
+import withGlobalState, {StateHolder} from "../../common/state";
 import * as PropTypes from "prop-types";
 
 const styles = (theme) => ({
@@ -99,10 +101,11 @@ class Header extends React.Component {
     };
 
     render = () => {
-        const {classes} = this.props;
+        const {classes, globalState} = this.props;
         const {accountPopoverElement} = this.state;
-        const isAccountPopoverOpen = Boolean(accountPopoverElement);
 
+        const isAccountPopoverOpen = Boolean(accountPopoverElement);
+        const loggedInUser = globalState.get(StateHolder.USER);
         return (
             <header>
                 <div className={classes.headerContent}>
@@ -123,7 +126,8 @@ class Header extends React.Component {
                                         className={classNames(classes.usernameBtn, classes.navButton)}
                                         aria-haspopup="true"
                                         onClick={this.handleAccountPopoverOpen}>
-                                        <AccountCircle className={classes.leftIcon}/> john</Button>
+                                        <AccountCircle className={classes.leftIcon}/> {loggedInUser.username}
+                                    </Button>
                                     <Menu id="user-info" anchorEl={accountPopoverElement}
                                         anchorOrigin={{
                                             vertical: "top",
@@ -135,9 +139,15 @@ class Header extends React.Component {
                                         }}
                                         open={isAccountPopoverOpen}
                                         onClose={this.handleAccountPopoverClose}>
-                                        <MenuItem>
-                                            Logout
-                                        </MenuItem>
+                                        {
+                                            loggedInUser
+                                                ? (
+                                                    <MenuItem onClick={() => AuthUtils.signOut(globalState)}>
+                                                        Logout
+                                                    </MenuItem>
+                                                )
+                                                : null
+                                        }
                                     </Menu>
                                 </div>
                             </Toolbar>
@@ -154,8 +164,9 @@ Header.propTypes = {
     classes: PropTypes.object.isRequired,
     history: PropTypes.shape({
         push: PropTypes.func.isRequired
-    }).isRequired
+    }).isRequired,
+    globalState: PropTypes.instanceOf(StateHolder).isRequired
 };
 
-export default withStyles(styles)(withRouter(Header));
+export default withStyles(styles)(withRouter(withGlobalState(Header)));
 
