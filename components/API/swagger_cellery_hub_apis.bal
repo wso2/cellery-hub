@@ -180,8 +180,13 @@ service SwaggerCelleryHubAPIs on echoListener {
         path:"/artifact"
     }
     resource function searchArtifact (http:Caller outboundEp, http:Request _searchArtifactReq) returns error? {
-        http:Response _searchArtifactRes = impl:searchArtifact(_searchArtifactReq);
-        error? x = outboundEp->respond(_searchArtifactRes);
+        http:Response|error _searchArtifactRes = impl:searchArtifact(_searchArtifactReq);
+        if(_searchArtifactRes is http:Response){
+            error? x = outboundEp->respond(_searchArtifactRes);
+        }
+        else{
+            io:println("Error occured");
+        }
     }
 
     @openapi:ResourceInfo {

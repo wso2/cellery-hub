@@ -30,12 +30,12 @@ public function getOrg (http:Request _getOrgReq) returns http:Response|error {
     var params = _getOrgReq.getQueryParams();
     string orgName = "";
     http:Response _getOrgRes = new;
-    if (params.hasKey("name")){
-        orgName = params.name;
+    if (params.hasKey(utils:ORG_NAME)){
+        orgName = <string>params[utils:ORG_NAME];
     }
     else{
         gen:Error err = {
-            code: utils:methodNotAllowdStatusCode,
+            code: utils:METHOD_NOT_ALLOWD_STATUSCODE,
             message: "Organization name is not found",
             description: ""
         };
@@ -46,24 +46,20 @@ public function getOrg (http:Request _getOrgReq) returns http:Response|error {
     var res = db:selectOrg(orgName);
 
     if (res is table<record {}>) {
-        gen:organizationListResponse o = {organizationresponseList : []};
-        foreach int i in 0...res.count()-1{            
-            var t = gen:organizationResponse.convert(res.getNext());
-            if (t is gen:organizationResponse){
-                io:println(t);
-                o.organizationresponseList[i] = t;
-            }
+        gen:organizationListResponse orgListRes = {organizationresponseList : []};
+        foreach int i in 0...res.count()-1{
+            orgListRes.organizationresponseList[i] = check gen:organizationResponse.convert(res.getNext());
         }
-    _getOrgRes.statusCode = utils:successStatusCode;
-    json resPayload = check json.convert(o);
-    _getOrgRes.setJsonPayload(untaint resPayload.organizationresponseList);
+        _getOrgRes.statusCode = utils:SUCCESS_STATUSCODE;
+        json resPayload = check json.convert(orgListRes);
+        _getOrgRes.setJsonPayload(untaint resPayload.organizationresponseList);
     }
 
     else {
         log:printError("Select data from REGISTRY_ORGANIZATION table failed: "
                 + <string>res.detail().message);
         gen:Error err = {
-            code: utils:internalErrorStatusCode,
+            code: utils:INTERNAL_ERROR_STATUSCODE,
             message: "Unable to complete request",
             description: untaint <string>res.detail().message
         };
@@ -75,14 +71,14 @@ public function getOrg (http:Request _getOrgReq) returns http:Response|error {
 
 public function addOrg (http:Request _addOrgReq, gen:organizationRequest _addOrgBody) returns http:Response|error {
     http:Response _addOrgRes = new;
-    if (_addOrgReq.hasHeader("username")){
-        string userName = _addOrgReq.getHeader("username");
+    if (_addOrgReq.hasHeader(utils:USERNAME)){
+        string userName = _addOrgReq.getHeader(utils:USERNAME);
         log:printInfo(userName + " is attempting to create a new organization");
     }
     else{
         log:printError(" Unauthenticated request : Username is not found");
         gen:Error err = {
-            code: utils:unauthorizedStatusCode,
+            code: utils:UNAUTHORIZED_STATUSCODE,
             message: "Unable to create organization",
             description: "User name is not found"
         };
@@ -100,11 +96,11 @@ public function addOrg (http:Request _addOrgReq, gen:organizationRequest _addOrg
                 createdDate: time:toString(time:currentTime())
             };
             _addOrgRes.setJsonPayload(check untaint json.convert(orgResPayload), contentType = "application/json");
-            _addOrgRes.statusCode = utils:successStatusCode;
+            _addOrgRes.statusCode = utils:SUCCESS_STATUSCODE;
     } else {
             log:printError(" failed: " + <string>ret.detail().message);
             gen:Error err = {
-                code: utils:methodNotAllowdStatusCode, 
+                code: utils:METHOD_NOT_ALLOWD_STATUSCODE, 
                 message: "Unable to create organization", 
                 description : <string>ret.detail().message
             };
@@ -114,13 +110,21 @@ public function addOrg (http:Request _addOrgReq, gen:organizationRequest _addOrg
 	return _addOrgRes;
 }
 
-public function searchArtifact (http:Request _searchArtifactReq) returns http:Response {
+public function searchArtifact (http:Request _searchArtifactReq) returns http:Response|error {
     var params = _searchArtifactReq.getQueryParams();
     http:Response _searchArtifactRes = new;
 
-    string qry = "SELECT REGISTRY_ARTIFACT.ARTIFACT_ID, REGISTRY_ARTIFACT_IMAGE.IMAGE_NAME, REGISTRY_ARTIFACT_IMAGE.ORG_NAME,
-                        REGISTRY_ARTIFACT.VERSION, REGISTRY_ARTIFACT_INGRESS.INGRESS_TYPE, REGISTRY_ARTIFACT_LABEL.LABEL_KEY, 
-                        REGISTRY_ARTIFACT_LABEL.LABEL_VALUE, REGISTRY_ARTIFACT.VERIFIED, REGISTRY_ARTIFACT.STATEFUL
+    // string qry = "SELECT REGISTRY_ARTIFACT.ARTIFACT_ID, REGISTRY_ARTIFACT_IMAGE.IMAGE_NAME, REGISTRY_ARTIFACT.VERSION, 
+    //                     REGISTRY_ARTIFACT_IMAGE.ORG_NAME, REGISTRY_ARTIFACT_INGRESS.INGRESS_TYPE, REGISTRY_ARTIFACT.VERIFIED, 
+    //                     REGISTRY_ARTIFACT.STATEFUL, REGISTRY_ARTIFACT_LABEL.LABEL_KEY, REGISTRY_ARTIFACT_LABEL.LABEL_VALUE
+    //                     FROM REGISTRY_ARTIFACT INNER JOIN
+    //                     REGISTRY_ARTIFACT_IMAGE ON REGISTRY_ARTIFACT.ARTIFACT_IMAGE_ID=REGISTRY_ARTIFACT_IMAGE.ARTIFACT_IMAGE_ID
+    //                     LEFT JOIN
+    //                     REGISTRY_ARTIFACT_LABEL ON REGISTRY_ARTIFACT.ARTIFACT_ID=REGISTRY_ARTIFACT_LABEL.ARTIFACT_ID
+    //                     LEFT JOIN
+    //                     REGISTRY_ARTIFACT_INGRESS ON REGISTRY_ARTIFACT.ARTIFACT_ID=REGISTRY_ARTIFACT_INGRESS.ARTIFACT_ID
+    //                     WHERE REGISTRY_ARTIFACT.FIRST_AUTHOR=?";
+    string qry = "SELECT REGISTRY_ARTIFACT.ARTIFACT_ID, REGISTRY_ARTIFACT_IMAGE.IMAGE_NAME, REGISTRY_ARTIFACT.VERSION
                         FROM REGISTRY_ARTIFACT INNER JOIN
                         REGISTRY_ARTIFACT_IMAGE ON REGISTRY_ARTIFACT.ARTIFACT_IMAGE_ID=REGISTRY_ARTIFACT_IMAGE.ARTIFACT_IMAGE_ID
                         LEFT JOIN
@@ -130,35 +134,35 @@ public function searchArtifact (http:Request _searchArtifactReq) returns http:Re
                         WHERE REGISTRY_ARTIFACT.FIRST_AUTHOR=?";
 
     string[] values = [];
-    values[0] = <string>params.username;
-    int paramIndex = 0;    
+    int paramIndex = 0;
+    values[paramIndex] = <string>params.username;        
     
-    if (params.hasKey("orgName")){
+    if (params.hasKey(utils:ORG_NAME)){
         paramIndex += 1;
-        values[paramIndex] = <string>params.orgName;
+        values[paramIndex] = <string>params[utils:ORG_NAME];
         qry += " AND REGISTRY_ARTIFACT_IMAGE.ORG_NAME=?";
     }
 
-    if(params.hasKey("imgName")){
+    if(params.hasKey(utils:IMAGE_NAME)){
         paramIndex += 1;
-        values[paramIndex] = <string>params.imgName;
+        values[paramIndex] = <string>params[utils:IMAGE_NAME];
         qry += " AND REGISTRY_ARTIFACT_IMAGE.IMAGE_NAME=?";
     }
 
-    if (params.hasKey("verified")){
+    if (params.hasKey(utils:VERIFIED)){
         paramIndex += 1;
-        values[paramIndex] = <string>params.verified;
+        values[paramIndex] = <string>params[utils:VERIFIED];
         qry += " AND REGISTRY_ARTIFACT.VERIFIED=?";
     }
 
-    if(params.hasKey("stateful")){
+    if(params.hasKey(utils:STATEFUL)){
         paramIndex += 1;
-        values[paramIndex] = <string>params.stateful;
+        values[paramIndex] = <string>params[utils:STATEFUL];
         qry += " AND REGISTRY_ARTIFACT.STATEFUL=?";
     } 
 
-    if(params.hasKey("ingresses")){
-        string ingresses = <string>params.ingresses;
+    if(params.hasKey(utils:INGRESSES)){
+        string ingresses = <string>params[utils:INGRESSES];
         string[] ingressesArr = ingresses.split(",");
         string joinWith = " AND (";
         foreach string ing in ingressesArr {
@@ -170,8 +174,8 @@ public function searchArtifact (http:Request _searchArtifactReq) returns http:Re
         qry += ")";
     } 
 
-    if(params.hasKey("labels")){
-        string labelParams = <string>params.labels;
+    if(params.hasKey(utils:LABELS)){
+        string labelParams = <string>params[utils:LABELS];
         io:StringReader sr = new(labelParams, encoding = "UTF-8");
         json|error labels = sr.readJson();
         if (labels is json) {
@@ -195,23 +199,19 @@ public function searchArtifact (http:Request _searchArtifactReq) returns http:Re
     var res = db:selectArtifact(qry, values) ;  
 
     if (res is table<record {}>) {
-        log:printInfo("Convert the REGISTRY_ARTIFACT_IMAGE table into json");
-        var jsonConversionRet = json.convert(res);
-        if (jsonConversionRet is json) {
-            log:printInfo("JSON: "+io:sprintf("%s", jsonConversionRet));
-            _searchArtifactRes.statusCode = utils:successStatusCode;
-            _searchArtifactRes.setJsonPayload(untaint jsonConversionRet, contentType = "application/json");
-        } else {
-            error er = error(<string>jsonConversionRet.detail().message);
-            log:printError("Error in table to json conversion",err = er);
-            _searchArtifactRes.setPayload({ code: utils:methodNotAllowdStatusCode, message: "Unable to complete search", description : untaint <string>jsonConversionRet.detail().message});
-            _searchArtifactRes.statusCode = utils:methodNotAllowdStatusCode;
+        gen:listArtifactResponse listArtifactRes = {artifactlistresponseList : []};
+        foreach int i in 0...res.count()-1{
+            listArtifactRes.artifactlistresponseList[i] = check gen:artifactListResponse.convert(res.getNext());
         }
-    } else {
+        _searchArtifactRes.statusCode = utils:SUCCESS_STATUSCODE;
+        json resPayload = check json.convert(listArtifactRes);
+        _searchArtifactRes.setJsonPayload(untaint resPayload.artifactlistresponseList, contentType = "application/json");        
+    }
+    else {
         log:printError("Select data from REGISTRY_ARTIFACT_IMAGE table failed: "
                 + <string>res.detail().message);
-        _searchArtifactRes.setPayload({ code: utils:internalErrorStatusCode, message: "Unable to complete search", description : untaint <string>res.detail().message});
-        _searchArtifactRes.statusCode = utils:internalErrorStatusCode;
+        _searchArtifactRes.setPayload({ code: utils:INTERNAL_ERROR_STATUSCODE, message: "Unable to complete search", description : untaint <string>res.detail().message});
+        _searchArtifactRes.statusCode = utils:INTERNAL_ERROR_STATUSCODE;
     }
 	return _searchArtifactRes;
 }

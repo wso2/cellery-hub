@@ -16,7 +16,22 @@
 //
 // ------------------------------------------------------------------------
 
-public const int successStatusCode = 200;
-public const int methodNotAllowdStatusCode = 405;
-public const int internalErrorStatusCode = 500;
-public const int unauthorizedStatusCode = 401;
+public const int SUCCESS_STATUSCODE = 200;
+public const int METHOD_NOT_ALLOWD_STATUSCODE = 405;
+public const int INTERNAL_ERROR_STATUSCODE = 500;
+public const int UNAUTHORIZED_STATUSCODE = 401;
+
+public const string USERNAME = "username";
+public const string TOKEN = "token";
+public const string ORG_NAME = "orgName";
+public const string IMAGE_NAME = "imgName";
+public const string VERIFIED = "verified";
+public const string STATEFUL = "stateful";
+public const string INGRESSES = "ingresses";
+public const string LABELS = "labels";
+
+
+
+
+
+

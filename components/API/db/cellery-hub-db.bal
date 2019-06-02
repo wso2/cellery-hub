@@ -21,6 +21,7 @@ import ballerina/log;
 import ballerina/mysql;
 import ballerina/sql;
 import cellery/gen;
+import ballerina/utils;
 
 public function insertOrganization(string org, string des, string dv) returns sql:UpdateResult|error{
     log:printInfo("Performing Organization insertion");
@@ -35,5 +36,5 @@ public function selectOrg(string name) returns table<record {}>|error{
 public function selectArtifact(string qry, string[] params)
  returns table<record {}>|error{
     log:printInfo("Performing artifact search");
-    return connection->select(qry,(), ...params);
+    return connection->select(qry,gen:artifactListResponse, ...params, loadToMemory = true);
 }

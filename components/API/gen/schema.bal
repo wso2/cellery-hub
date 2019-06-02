@@ -62,6 +62,12 @@ public type artifactListResponse record {
     string id;
     string imageName;
     string _version;
+    // string orgName;
+    // string ingressType?;
+    // boolean varified?;
+    // boolean stateful?;
+    // string labelKey;
+    // string labelValue;
 };
 
 public type artifactResponse record { 
