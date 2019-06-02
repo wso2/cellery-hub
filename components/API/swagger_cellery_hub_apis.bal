@@ -224,8 +224,13 @@ service SwaggerCelleryHubAPIs on echoListener {
         path:"/artifact/{artifactId}"
     }
     resource function getArtifact (http:Caller outboundEp, http:Request _getArtifactReq, string artifactId) returns error? {
-        http:Response _getArtifactRes = impl:getArtifact(_getArtifactReq, artifactId);
-        error? x = outboundEp->respond(_getArtifactRes);
+        http:Response|error _getArtifactRes = impl:getArtifact(_getArtifactReq, untaint artifactId);
+        if(_getArtifactRes is http:Response){
+            error? x = outboundEp->respond(_getArtifactRes);
+        }
+        else{
+            io:println("Error occured "+_getArtifactRes.reason());
+        }
     }
 
     @openapi:ResourceInfo {

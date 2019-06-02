@@ -225,12 +225,72 @@ public function addArtifact (http:Request _addArtifactReq, gen:createArtifactReq
 	return _addArtifactRes;
 }
 
-public function getArtifact (http:Request _getArtifactReq, string artifactId) returns http:Response {
-    // stub code - fill as necessary
+public function getArtifact (http:Request _getArtifactReq, string artifactId) returns http:Response|error {
     http:Response _getArtifactRes = new;
-    string _getArtifactPayload = "Sample getArtifact Response";
-    _getArtifactRes.setTextPayload(_getArtifactPayload);
 
+    var params = _getArtifactReq.getQueryParams();
+    string username = "";
+    http:Response _getOrgRes = new;
+    if (params.hasKey(utils:USERNAME)){        
+        username = <string>params[utils:USERNAME];
+        log:printInfo(username +" is attempting to retrive artifact data");
+    }
+    else{
+        gen:Error err = {
+            code: utils:UNAUTHORIZED_STATUSCODE,
+            message: "Requesting user is not found",
+            description: ""
+        };
+        _getArtifactRes.setJsonPayload(check json.convert(err));
+        _getArtifactRes.statusCode = err.code; 
+        return _getArtifactRes;
+    }    
+
+    var res = db:retrieveArtifact(artifactId);
+
+    if (res is table<record {}> && res.count() > 0) {
+            gen:artifactLabels[] labels = [];
+            string[] ingresses = [];
+            gen:artifactResponse artRes;
+
+            foreach int i in 0...res.count()-1{                
+                artRes = check gen:artifactResponse.convert(res.getNext());
+                ingresses[i] = artRes.ingresses;
+                labels[i] = {name:artRes.labelKey, value:artRes.labelValue};
+            }
+            gen:artifactResponseResult rs = {
+                id: artRes.id,
+                imageName: artRes.imageName,
+                _version: artRes._version,
+                description: artRes.description,
+                pullCount: artRes.pullCount,
+                pushCount: artRes.pushCount,
+                visibility: artRes.visibility,
+                licenseIdentifier: artRes.licenseIdentifier,
+                owner: artRes.owner,
+                lastAuthor: artRes.lastAuthor,
+                createdDate: artRes.createdDate,
+                updatedDate: artRes.updatedDate,
+                stateful: artRes.stateful,
+                verified: artRes.verified,
+                ingresses: ingresses,
+                labels : labels
+            };
+        _getArtifactRes.statusCode = utils:SUCCESS_STATUSCODE;
+        json resPayload = check json.convert(rs);
+        _getArtifactRes.setJsonPayload(untaint resPayload);
+    }
+
+    else {
+        gen:Error err = {
+            code: utils:METHOD_NOT_ALLOWD_STATUSCODE, 
+            message: "unexpected error due to requested artifact not being available in the database ", 
+            description : "Artifact retrival faild : Artifact " + artifactId + " is not found in the db."
+        };
+        log:printError(err.description);
+        _getArtifactRes.setJsonPayload(check json.convert(err));
+        _getArtifactRes.statusCode = err.code;     
+    } 
 	return _getArtifactRes;
 }
 
@@ -273,7 +333,7 @@ public function updateArtifact (http:Request _updateArtifactReq, string artifact
             gen:Error err = {
                 code: utils:METHOD_NOT_ALLOWD_STATUSCODE, 
                 message: "unexpected error due to requested artifact not being available in the database", 
-                description : "Artifact " + _updateArtifactBody.id + "is not found in the db"
+                description : "Artifact update faild : Artifact " + _updateArtifactBody.id + "is not found in the db"
             };
             log:printError(err.message + err.message);
             _updateArtifactRes.setJsonPayload(check json.convert(err));

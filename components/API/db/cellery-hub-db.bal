@@ -29,7 +29,7 @@ public function insertOrganization(string org, string des, string dv) returns sq
 }
 
 public function selectOrg(string name) returns table<record {}>|error{
-    log:printInfo("Performing organization search");
+    log:printInfo("Performing organization search for Org name " + name);
     return connection->select("SELECT ORG_NAME, CREATED_DATE FROM REGISTRY_ORGANIZATION WHERE REGEXP_LIKE(ORG_NAME, ?)",gen:organizationResponse,name, loadToMemory = true);
 }
 
@@ -40,6 +40,24 @@ public function selectArtifact(string qry, string[] params)
 }
 
 public function updateArtifact(string des, string id) returns sql:UpdateResult|error{
-    log:printInfo("Performing update on artifact");
+    log:printInfo("Performing update on artifact " + id);
     return connection->update("UPDATE REGISTRY_ARTIFACT SET DESCRIPTION  = ? WHERE ARTIFACT_ID = ?",des,id);
+}
+
+public function retrieveArtifact(string id) returns table<record {}>|error{
+    log:printInfo("Performing data retrieval for articat " + id);
+    return connection->select("SELECT REGISTRY_ARTIFACT.ARTIFACT_ID, REGISTRY_ARTIFACT_IMAGE.IMAGE_NAME,
+                 REGISTRY_ARTIFACT.VERSION, REGISTRY_ARTIFACT.DESCRIPTION, REGISTRY_ARTIFACT.PULL_COUNT, REGISTRY_ARTIFACT.PUSH_COUNT,
+                 REGISTRY_ARTIFACT_IMAGE.VISIBILITY, REGISTRY_ARTIFACT_IMAGE.LICENSE_IDENTIFIER,     
+                 REGISTRY_ARTIFACT.FIRST_AUTHOR, REGISTRY_ARTIFACT.LAST_AUTHOR, REGISTRY_ARTIFACT.CREATED_DATE,
+                 REGISTRY_ARTIFACT.UPDATED_DATE, REGISTRY_ARTIFACT.STATEFUL, REGISTRY_ARTIFACT.VERIFIED, 
+                 REGISTRY_ARTIFACT_INGRESS.INGRESS_TYPE, REGISTRY_ARTIFACT_LABEL.LABEL_KEY, REGISTRY_ARTIFACT_LABEL.LABEL_VALUE  
+                FROM REGISTRY_ARTIFACT INNER JOIN
+                REGISTRY_ARTIFACT_IMAGE ON REGISTRY_ARTIFACT.ARTIFACT_IMAGE_ID=REGISTRY_ARTIFACT_IMAGE.ARTIFACT_IMAGE_ID
+                LEFT JOIN
+                REGISTRY_ARTIFACT_LABEL ON REGISTRY_ARTIFACT.ARTIFACT_ID=REGISTRY_ARTIFACT_LABEL.ARTIFACT_ID
+                LEFT JOIN
+                REGISTRY_ARTIFACT_INGRESS ON REGISTRY_ARTIFACT.ARTIFACT_ID=REGISTRY_ARTIFACT_INGRESS.ARTIFACT_ID
+                WHERE REGISTRY_ARTIFACT.ARTIFACT_ID=?;"
+                ,gen:artifactResponse,id, loadToMemory = true);
 }

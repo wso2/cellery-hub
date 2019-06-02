@@ -79,15 +79,17 @@ public type artifactResponse record {
     int pushCount;
     string visibility;
     string licenseIdentifier;
-    string metadata;
+    // CellImageMetadata metadata;
     string owner;
     string lastAuthor;
     string createdDate;
     string updatedDate;
     boolean stateful;
     boolean verified;
-    string[] ingresses;
-    artifactLabels[] labels;
+    string ingresses ?;
+    string labelKey ?;
+    string labelValue ?;
+    // artifactLabels[] labels;
 };
 
 public type imageListResponse record { 
@@ -100,7 +102,47 @@ public type imageResponse record {
     string imageName;
 };
 
-
-type RegistryArtifact record {|
-    string ARTIFACT_ID;
+public type CellImageMetadata record {|
+	string org;
+	string name;
+	string ver;
+	map<string> labels;
+	string[] dockerImages;
+	int buildTimestamp;
+	string[] ingresses;
+	string[] components;
+	map<CellImageMetadata> dependencies;
 |};
+
+
+public type artifactResponseList record{
+    artifactResponse[] artifactResponses;
+};
+
+
+// public type artifactResponseResult record { 
+//     artifactResponse artRes;
+//     string[] allIngresses;
+//     artifactLabels[] allLabels;
+// };
+
+
+public type artifactResponseResult record { 
+    string id;
+    string imageName?;
+    string _version?;
+    string description?;
+    int pullCount?;
+    int pushCount?;
+    string visibility?;
+    string licenseIdentifier?;
+    // CellImageMetadata metadata;
+    string owner?;
+    string lastAuthor?;
+    string createdDate?;
+    string updatedDate?;
+    boolean stateful?;
+    boolean verified?;
+    string[] ingresses;
+    artifactLabels[] labels;
+};
