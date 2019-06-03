@@ -62,12 +62,6 @@ public type artifactListResponse record {
     string id;
     string imageName;
     string _version;
-    // string orgName;
-    // string ingressType?;
-    // boolean varified?;
-    // boolean stateful?;
-    // string labelKey;
-    // string labelValue;
 };
 
 public type artifactResponse record { 
@@ -89,7 +83,6 @@ public type artifactResponse record {
     string ingresses ?;
     string labelKey ?;
     string labelValue ?;
-    // artifactLabels[] labels;
 };
 
 public type imageListResponse record { 
@@ -118,13 +111,6 @@ public type CellImageMetadata record {|
 public type artifactResponseList record{
     artifactResponse[] artifactResponses;
 };
-
-
-// public type artifactResponseResult record { 
-//     artifactResponse artRes;
-//     string[] allIngresses;
-//     artifactLabels[] allLabels;
-// };
 
 
 public type artifactResponseResult record { 

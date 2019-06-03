@@ -20,7 +20,7 @@ import ballerina/http;
 import ballerina/log;
 import ballerina/mime;
 import ballerina/openapi;
-import cellery/gen;
+import cellery/pkg;
 import cellery/impl;
 import ballerina/time;
 import cellery/reader;
@@ -97,13 +97,8 @@ service SwaggerCelleryHubAPIs on echoListener {
         path:"/orgs"
     }
     resource function getOrg (http:Caller outboundEp, http:Request _getOrgReq) returns error? {
-        http:Response|error _getOrgRes = impl:getOrg(_getOrgReq);
-        if(_getOrgRes is http:Response){
-            error? x = outboundEp->respond(_getOrgRes);
-        }
-        else{
-            io:println("Error occured");
-        }
+        http:Response _getOrgRes = impl:getOrg(_getOrgReq);
+        error? x = outboundEp->respond(untaint _getOrgRes);
     }
 
     @openapi:ResourceInfo {
@@ -116,7 +111,7 @@ service SwaggerCelleryHubAPIs on echoListener {
         path:"/orgs",
         body:"_addOrgBody"
     }
-    resource function addOrg (http:Caller outboundEp, http:Request _addOrgReq, gen:organizationRequest _addOrgBody) returns error? {
+    resource function addOrg (http:Caller outboundEp, http:Request _addOrgReq, pkg:organizationRequest _addOrgBody) returns error? {
         http:Response|error _addOrgRes = impl:addOrg(_addOrgReq, _addOrgBody);
         if _addOrgRes is http:Response{
             error? x = outboundEp->respond(_addOrgRes);
@@ -199,7 +194,7 @@ service SwaggerCelleryHubAPIs on echoListener {
         path:"/artifact",
         body:"_addArtifactBody"
     }
-    resource function addArtifact (http:Caller outboundEp, http:Request _addArtifactReq, gen:createArtifactRequest _addArtifactBody) returns error? {
+    resource function addArtifact (http:Caller outboundEp, http:Request _addArtifactReq, pkg:createArtifactRequest _addArtifactBody) returns error? {
         http:Response _addArtifactRes = impl:addArtifact(_addArtifactReq, _addArtifactBody);
         error? x = outboundEp->respond(_addArtifactRes);
     }
@@ -253,7 +248,7 @@ service SwaggerCelleryHubAPIs on echoListener {
         path:"/artifact/{artifactId}",
         body:"_updateArtifactBody"
     }
-    resource function updateArtifact (http:Caller outboundEp, http:Request _updateArtifactReq, string artifactId, gen:updateArtifactRequest _updateArtifactBody) returns error? {
+    resource function updateArtifact (http:Caller outboundEp, http:Request _updateArtifactReq, string artifactId, pkg:updateArtifactRequest _updateArtifactBody) returns error? {
         http:Response|error _updateArtifactRes = untaint impl:updateArtifact(_updateArtifactReq, artifactId, _updateArtifactBody);
         if(_updateArtifactRes is http:Response){
             error? x = outboundEp->respond(_updateArtifactRes);
@@ -365,7 +360,7 @@ service SwaggerCelleryHubAPIs on echoListener {
         path:"/images/{imageId}",
         body:"_updateImageBody"
     }
-    resource function updateImage (http:Caller outboundEp, http:Request _updateImageReq, string imageId, gen:updateArtifactRequest _updateImageBody) returns error? {
+    resource function updateImage (http:Caller outboundEp, http:Request _updateImageReq, string imageId, pkg:updateArtifactRequest _updateImageBody) returns error? {
         http:Response _updateImageRes = impl:updateImage(_updateImageReq, imageId, _updateImageBody);
         error? x = outboundEp->respond(_updateImageRes);
     }

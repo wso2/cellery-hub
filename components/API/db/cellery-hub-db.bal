@@ -20,23 +20,40 @@ import ballerina/io;
 import ballerina/log;
 import ballerina/mysql;
 import ballerina/sql;
-import cellery/gen;
-import ballerina/utils;
+import ballerina/http;
+import ballerina/time;
+import cellery/pkg;
+
 
 public function insertOrganization(string org, string des, string dv) returns sql:UpdateResult|error{
     log:printInfo("Performing Organization insertion");
     return connection->update("INSERT INTO REGISTRY_ORGANIZATION(ORG_NAME,DESCRIPTION,DEFAULT_IMAGE_VISIBILITY)VALUES(?,?,?)",org,des,dv);
 }
 
-public function selectOrg(string name) returns table<record {}>|error{
-    log:printInfo("Performing organization search for Org name " + name);
-    return connection->select("SELECT ORG_NAME, CREATED_DATE FROM REGISTRY_ORGANIZATION WHERE REGEXP_LIKE(ORG_NAME, ?)",gen:organizationResponse,name, loadToMemory = true);
+public function selectOrg(string name) returns json|error{
+    log:printDebug("Performing organization search for Org name in REGISTRY_ORGANIZATION table " + name);
+    var res =  connection->select(pkg:GET_ORG_QUERY,pkg:organizationResponse,name, loadToMemory = true);
+
+    if (res is table<record {}>) {
+        io:println(res.count());
+        pkg:organizationListResponse orgListRes = {organizationresponseList : []};
+        foreach int i in 0...res.count()-1{
+            orgListRes.organizationresponseList[i] = check pkg:organizationResponse.convert(res.getNext());
+        }
+        json resPayload = check json.convert(orgListRes);
+        log:printDebug("Fetching data from REGISTRY_ORGANIZATION for getOrg EP is successful");  
+        return resPayload;       
+    }
+    else{
+        log:printDebug("Error occured while fetching data from REGISTRY_ORGANIZATION for getOrg EP");  
+        return res;              
+    }
 }
 
 public function selectArtifact(string qry, string[] params)
  returns table<record {}>|error{
     log:printInfo("Performing artifact search");
-    return connection->select(qry,gen:artifactListResponse, ...params, loadToMemory = true);
+    return connection->select(qry,pkg:artifactListResponse, ...params, loadToMemory = true);
 }
 
 public function updateArtifact(string des, string id) returns sql:UpdateResult|error{
@@ -59,5 +76,5 @@ public function retrieveArtifact(string id) returns table<record {}>|error{
                 LEFT JOIN
                 REGISTRY_ARTIFACT_INGRESS ON REGISTRY_ARTIFACT.ARTIFACT_ID=REGISTRY_ARTIFACT_INGRESS.ARTIFACT_ID
                 WHERE REGISTRY_ARTIFACT.ARTIFACT_ID=?;"
-                ,gen:artifactResponse,id, loadToMemory = true);
+                ,pkg:artifactResponse, id, loadToMemory = true);
 }
