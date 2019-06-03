@@ -154,6 +154,6 @@
 
     <properties>
         <docker.hub.identity.customization.version>0.0.1-SNAPSHOT</docker.hub.identity.customization.version>
-        <docker.hub.github.authenticator.version>1.0.1-SNAPSHOT</docker.hub.github.authenticator.version>
+        <docker.hub.github.authenticator.version>1.0.1</docker.hub.github.authenticator.version>
     </properties>
 </project>
