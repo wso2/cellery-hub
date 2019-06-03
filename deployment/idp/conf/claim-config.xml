@@ -1405,6 +1405,15 @@
                 <MappedLocalClaim>http://wso2.org/claims/github-pic-url</MappedLocalClaim>
             </Claim>
             <Claim>
+                <ClaimURI>google_pic_url</ClaimURI>
+                <DisplayName>Google Image</DisplayName>
+                <AttributeID>google-pic-url</AttributeID>
+                <Description>Google Image</Description>
+                <DisplayOrder>1</DisplayOrder>
+                <SupportedByDefault/>
+                <MappedLocalClaim>http://wso2.org/claims/google-pic-url</MappedLocalClaim>
+            </Claim>
+            <Claim>
                 <ClaimURI>name</ClaimURI>
                 <DisplayName>Full Name</DisplayName>
                 <AttributeID>cn</AttributeID>
