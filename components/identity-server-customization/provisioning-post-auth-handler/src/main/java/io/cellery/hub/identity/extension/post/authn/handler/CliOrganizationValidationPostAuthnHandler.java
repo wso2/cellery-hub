@@ -36,8 +36,7 @@ import java.sql.SQLException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import static org.wso2.carbon.identity.application.authentication.framework.handler.request.
-        PostAuthnHandlerFlowStatus.SUCCESS_COMPLETED;
+import static org.wso2.carbon.identity.application.authentication.framework.handler.request.PostAuthnHandlerFlowStatus.SUCCESS_COMPLETED;
 
 /**
  * In order to authenticate to CLI, users have to have an organization created.
@@ -50,6 +49,7 @@ public class CliOrganizationValidationPostAuthnHandler extends AbstractPostAuthn
     private static final String CREATE_ORG_ENDPOINT = "CREATE_ORG_ENDPOINT";
     private static final String ERROR_CODE_ORGANIZATION_CHECK_ERROR = "CLI001";
     private static final String ERROR_CODE_REDIRECTION_ERROR = "CLI002";
+    private static final String SKIP_ORG_CREATION_REQ_PARAM = "skipOrgCreation";
 
     public CliOrganizationValidationPostAuthnHandler() {
 
@@ -62,7 +62,16 @@ public class CliOrganizationValidationPostAuthnHandler extends AbstractPostAuthn
                                                      authenticationContext) throws
             PostAuthenticationFailedException {
 
+        if (!FrameworkUtils.isStepBasedSequenceHandlerExecuted(authenticationContext)) {
+            return SUCCESS_COMPLETED;
+        }
+        String skipOrgCreation = httpServletRequest.getParameter(SKIP_ORG_CREATION_REQ_PARAM);
+        // Skip organization creation if this parameter is present.
+        if (StringUtils.isNotEmpty(skipOrgCreation) && Boolean.parseBoolean(skipOrgCreation)) {
+            return SUCCESS_COMPLETED;
+        }
         String redirectUri = System.getenv(CREATE_ORG_ENDPOINT);
+        String federatedIdp = "";
 
         if (StringUtils.isEmpty(redirectUri)) {
             Object redirectUriObj = this.properties.get(CREATE_ORG_ENDPOINT);
@@ -70,10 +79,6 @@ public class CliOrganizationValidationPostAuthnHandler extends AbstractPostAuthn
                 redirectUri = redirectUriObj.toString();
             }
         }
-        if (!FrameworkUtils.isStepBasedSequenceHandlerExecuted(authenticationContext)) {
-            return SUCCESS_COMPLETED;
-        }
-
         String applicationName = authenticationContext.getSequenceConfig().getApplicationConfig().
                 getServiceProvider().getApplicationName();
         if (log.isDebugEnabled()) {
@@ -81,6 +86,10 @@ public class CliOrganizationValidationPostAuthnHandler extends AbstractPostAuthn
         }
         if (!(StringUtils.isNotEmpty(applicationName) && applicationName.toLowerCase().contains("cli"))) {
             return SUCCESS_COMPLETED;
+        }
+
+        if (authenticationContext.getAuthenticationStepHistory().get(0) != null) {
+            federatedIdp = authenticationContext.getAuthenticationStepHistory().get(0).getIdpName();
         }
         if (log.isDebugEnabled()) {
             log.debug("Application contains \"cli\" in it's name. Hence proceeding : " + applicationName);
@@ -101,7 +110,7 @@ public class CliOrganizationValidationPostAuthnHandler extends AbstractPostAuthn
                 return SUCCESS_COMPLETED;
             }
         } catch (SQLException e) {
-            throw new PostAuthenticationFailedException(ERROR_CODE_REDIRECTION_ERROR,
+            throw new PostAuthenticationFailedException(ERROR_CODE_ORGANIZATION_CHECK_ERROR,
                     "Error while redirecting to the uri : " + redirectUri, e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(connection, null, prepStmt);
@@ -111,7 +120,8 @@ public class CliOrganizationValidationPostAuthnHandler extends AbstractPostAuthn
             if (log.isDebugEnabled()) {
                 log.debug("No organizations found for user :" + username);
             }
-            redirectUri = redirectUri + "?sessionDataKey=" + authenticationContext.getContextIdentifier();
+            redirectUri = redirectUri + "?sessionDataKey=" + authenticationContext.getContextIdentifier() +
+                    "&fidp=" + federatedIdp;
             httpServletResponse.sendRedirect(redirectUri);
         } catch (IOException e) {
             throw new PostAuthenticationFailedException(ERROR_CODE_REDIRECTION_ERROR,
