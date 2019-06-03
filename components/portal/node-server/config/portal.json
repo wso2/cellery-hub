@@ -1,4 +1,7 @@
 {
-    "hubApiUrl": "http://api.hub.cellery.io",
-    "idpURL": "https://idp.hub.cellery.io"
+    "hubApiUrl": "https://api.hub.cellery.io",
+    "idp": {
+        "url": "https://idp.hub.cellery.io:9443",
+        "clientId": "celleryhubapplication"
+    }
 }

@@ -15,6 +15,7 @@
  */
 
 import AppBar from "@material-ui/core/AppBar";
+import AuthUtils from "../../utils/api/authUtils";
 import BgImg from "../../img/celleryOverviewBg.png";
 import Button from "@material-ui/core/Button";
 import CellImage from "../../img/CellImage";
@@ -25,6 +26,7 @@ import Footer from "../appLayout/Footer";
 import GithubLogo from "../../img/GithubLogo";
 import GoogleLogo from "../../img/GoogleLogo";
 import Grid from "@material-ui/core/Grid";
+import HttpUtils from "../../utils/api/httpUtils";
 import Link from "@material-ui/core/Link";
 import Menu from "@material-ui/core/Menu";
 import MenuItem from "@material-ui/core/MenuItem";
@@ -171,6 +173,23 @@ class Home extends React.Component {
         });
     };
 
+    /**
+     * @typedef {AuthUtils.FederatedIdP.GOOGLE|AuthUtils.FederatedIdP.GITHUB} FederatedIdPType
+     */
+
+    /**
+     * Handle sign-in to Cellery Hub.
+     *
+     * @param {FederatedIdPType} fidp The federated IdP to be used
+     */
+    handleSignIn = (fidp) => {
+        const {history} = this.props;
+        const search = HttpUtils.generateQueryParamString({
+            fidp: fidp
+        });
+        history.push(`/sign-in${search}`);
+    };
+
     render = () => {
         const {classes} = this.props;
         const {accountPopoverElement} = this.state;
@@ -183,7 +202,7 @@ class Home extends React.Component {
                         <Grid item xs={12} sm={6} md={6}>
                         </Grid>
                         <Grid item xs={12} sm={6} md={6}>
-                            <div className={classes.topHeaderLine}></div>
+                            <div className={classes.topHeaderLine}/>
                         </Grid>
                     </Grid>
                     <Container maxWidth="md">
@@ -215,10 +234,16 @@ class Home extends React.Component {
                                                 }}
                                                 open={isAccountPopoverOpen}
                                                 onClose={this.handleAccountPopoverClose}>
-                                                <MenuItem onClick={this.handleAccountPopoverClose}>
+                                                <MenuItem onClick={() => {
+                                                    this.handleSignIn(AuthUtils.FederatedIdP.GITHUB);
+                                                    this.handleAccountPopoverClose();
+                                                }}>
                                                     <GithubLogo className={classes.leftIcon}/> Github
                                                 </MenuItem>
-                                                <MenuItem>
+                                                <MenuItem onClick={() => {
+                                                    this.handleSignIn(AuthUtils.FederatedIdP.GOOGLE);
+                                                    this.handleAccountPopoverClose();
+                                                }}>
                                                     <GoogleLogo className={classes.leftIcon}/> Google
                                                 </MenuItem>
                                             </Menu>
@@ -245,14 +270,16 @@ class Home extends React.Component {
                                     Sign In/ Sign Up with
                                 </Typography>
                                 <div className={classes.signInContent}>
-                                    <Button variant="outlined" color="inherit" className={classes.button}>
+                                    <Button variant="outlined" color="inherit" className={classes.button}
+                                        onClick={() => this.handleSignIn(AuthUtils.FederatedIdP.GITHUB)}>
                                         <GithubLogo className={classes.leftIcon}/>
                                         Github
                                     </Button>
                                     <Typography variant="subtitle2" color="inherit" className={classes.connector}>
                                         or
                                     </Typography>
-                                    <Button variant="outlined" color="inherit" className={classes.button}>
+                                    <Button variant="outlined" color="inherit" className={classes.button}
+                                        onClick={() => this.handleSignIn(AuthUtils.FederatedIdP.GOOGLE)}>
                                         <GoogleLogo className={classes.leftIcon}/>
                                         Google
                                     </Button>
@@ -266,12 +293,12 @@ class Home extends React.Component {
                                 </div>
                             </Grid>
                             <Grid item xs={12} sm={4} md={4}>
-                                <div className={classes.celleryOverview}></div>
+                                <div className={classes.celleryOverview}/>
                             </Grid>
                         </Grid>
                     </Container>
                 </div>
-                <div className={classes.bgImg}></div>
+                <div className={classes.bgImg}/>
                 <Footer/>
             </div>
         </React.Fragment>;
@@ -280,7 +307,10 @@ class Home extends React.Component {
 }
 
 Home.propTypes = {
-    classes: PropTypes.object.isRequired
+    classes: PropTypes.object.isRequired,
+    history: PropTypes.shape({
+        push: PropTypes.func.isRequired
+    }).isRequired
 };
 
 export default withStyles(styles)(Home);
