@@ -32,7 +32,7 @@ public function getOrg (http:Request _getOrgReq) returns http:Response{
     if (params.hasKey(pkg:ORG_NAME)){
         orgName = <string>params[pkg:ORG_NAME];
 
-        json|error res = db:selectOrg(orgName);
+        json|error res = db:getOrganization(orgName);
 
         if (res is json){
             _getOrgRes.statusCode = pkg:SUCCESS_STATUSCODE; 
@@ -41,7 +41,7 @@ public function getOrg (http:Request _getOrgReq) returns http:Response{
         }
         else{      
             string errMsg = "Unexpected error occured when fetching data from REGISTRY_ORGANIZATION";
-            log:printError(errMsg + " : " , err = res);        
+            log:printError(errMsg , err = res);        
             return pkg:errorResponse(pkg:INTERNAL_ERROR_STATUSCODE, errMsg, untaint <string>res.detail().message); 
         }        
     }
@@ -53,39 +53,29 @@ public function getOrg (http:Request _getOrgReq) returns http:Response{
 }
 
 
-public function addOrg (http:Request _addOrgReq, pkg:organizationRequest _addOrgBody) returns http:Response|error {
+public function addOrg (http:Request _addOrgReq, pkg:organizationRequest _addOrgBody) returns http:Response{
     http:Response _addOrgRes = new;
     if (_addOrgReq.hasHeader(pkg:USERNAME)){
         string userName = _addOrgReq.getHeader(pkg:USERNAME);
         log:printInfo(userName + " is attempting to create a new organization");
     }
-    else{
+    else {
         string errDescription = "Unauthenticated request : Username is not found";
         log:printError(errDescription);
         return pkg:errorResponse(pkg:UNAUTHORIZED_STATUSCODE, "Unable to create organization", errDescription);
     }
     string orgName = _addOrgBody.name;
-    var ret = db:insertOrganization(orgName, _addOrgBody.description, _addOrgBody.defaultImageVisibility);
+    var res = db:insertOrganization(orgName, _addOrgBody.description, _addOrgBody.defaultImageVisibility);
 
-    if (ret is sql:UpdateResult) {
-            log:printInfo(" New organization created with name " + orgName);
-            pkg:organizationResponse orgResPayload = {
-                name: orgName, 
-                createdDate: time:toString(time:currentTime())
-            };
-            _addOrgRes.setJsonPayload(check untaint json.convert(orgResPayload), contentType = "application/json");
-            _addOrgRes.statusCode = pkg:SUCCESS_STATUSCODE;
-    } else {
-            log:printError(" failed: " + <string>ret.detail().message);
-            pkg:Error err = {
-                code: pkg:METHOD_NOT_ALLOWD_STATUSCODE, 
-                message: "Unable to create organization", 
-                description : <string>ret.detail().message
-            };
-            _addOrgRes.setJsonPayload(check json.convert(err));
-            _addOrgRes.statusCode = err.code;
-        }
-	return _addOrgRes;
+    if (res is json) {
+        _addOrgRes.setJsonPayload(untaint res);
+        _addOrgRes.statusCode = pkg:SUCCESS_STATUSCODE;
+    } else{
+        string errMsg = "Unexpected error occured when insert Organization to REGISTRY_ORGANIZATION";
+        log:printError(errMsg, err = res);
+        return pkg:errorResponse(pkg:INTERNAL_ERROR_STATUSCODE, errMsg, untaint <string>res.detail().message);
+    }
+    return _addOrgRes;
 }
 
 public function searchArtifact (http:Request _searchArtifactReq) returns http:Response|error {

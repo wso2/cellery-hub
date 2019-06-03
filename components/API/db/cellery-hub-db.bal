@@ -25,23 +25,36 @@ import ballerina/time;
 import cellery/pkg;
 
 
-public function insertOrganization(string org, string des, string dv) returns sql:UpdateResult|error{
-    log:printInfo("Performing Organization insertion");
-    return connection->update("INSERT INTO REGISTRY_ORGANIZATION(ORG_NAME,DESCRIPTION,DEFAULT_IMAGE_VISIBILITY)VALUES(?,?,?)",org,des,dv);
+public function insertOrganization(string org, string des, string dv) returns json|error{
+    log:printDebug("Performing Organization insertion in REGISTRY_ORGANIZATION table" + org);
+    var res = connection->update(pkg:ADD_ORG_QUERY,org,des,dv);
+
+    if (res is sql:UpdateResult) {
+        pkg:organizationResponse orgResPayload = {
+            name: org, 
+            createdDate: time:toString(time:currentTime())
+        };
+        json resPayload = check json.convert(orgResPayload);
+        log:printDebug("Insert organization " +org+ " to REGISTRY_ORGANIZATION is successful");  
+        return resPayload;
+    } else {
+        log:printDebug("Unexpected error occured when insert Organization to REGISTRY_ORGANIZATION");        
+        return res;
+    }
 }
 
-public function selectOrg(string name) returns json|error{
+
+public function getOrganization(string name) returns json|error{
     log:printDebug("Performing organization search for Org name in REGISTRY_ORGANIZATION table " + name);
     var res =  connection->select(pkg:GET_ORG_QUERY,pkg:organizationResponse,name, loadToMemory = true);
 
     if (res is table<record {}>) {
-        io:println(res.count());
         pkg:organizationListResponse orgListRes = {organizationresponseList : []};
         foreach int i in 0...res.count()-1{
             orgListRes.organizationresponseList[i] = check pkg:organizationResponse.convert(res.getNext());
         }
         json resPayload = check json.convert(orgListRes);
-        log:printDebug("Fetching data from REGISTRY_ORGANIZATION for getOrg EP is successful");  
+        log:printDebug("Fetching data for organization " +name+ ", from REGISTRY_ORGANIZATION is successful");  
         return resPayload;       
     }
     else{
