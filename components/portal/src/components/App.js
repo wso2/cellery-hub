@@ -21,6 +21,7 @@ import AppLayout from "./appLayout";
 import CssBaseline from "@material-ui/core/CssBaseline/CssBaseline";
 import ErrorBoundary from "./common/error/ErrorBoundary";
 import Explore from "./explore";
+import FederatedIdpSelect from "./sdk/FederatedIdpSelect";
 import Home from "./home";
 import Image from "./overview/image";
 import ImageVersion from "./overview/image/ImageVersion";
@@ -44,6 +45,7 @@ const SDKPortal = withGlobalState(({globalState, match}) => {
             <SDKAppLayout>
                 <ErrorBoundary>
                     <Switch>
+                        <Route exact path={`${match.url}/sign-in`} component={FederatedIdpSelect}/>
                         <Route exact path={`${match.url}/create-org`} component={SDKOrgCreate}/>
                         <Route exact path={`${match.url}/auth-success`} component={SDKSignInSuccess}/>
                     </Switch>
