@@ -9,7 +9,7 @@
                 <xsd1:applicationName>CelleryCLI</xsd1:applicationName>
                 <xsd1:backChannelLogoutUrl/>
                 <xsd1:bypassClientCredentials>true</xsd1:bypassClientCredentials>
-                <xsd1:callbackUrl>regexp=http://localhost:(.*)</xsd1:callbackUrl>
+                <xsd1:callbackUrl>regexp=http://localhost:[0-9]+/(.*)</xsd1:callbackUrl>
                 <xsd1:grantTypes>refresh_token urn:ietf:params:oauth:grant-type:saml2-bearer implicit password client_credentials iwa:ntlm authorization_code urn:ietf:params:oauth:grant-type:jwt-bearer</xsd1:grantTypes>
                 <xsd1:idTokenEncryptionEnabled>false</xsd1:idTokenEncryptionEnabled>
                 <xsd1:idTokenExpiryTime>3600</xsd1:idTokenExpiryTime>

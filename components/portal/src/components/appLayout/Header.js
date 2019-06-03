@@ -18,6 +18,7 @@
 
 import AccountCircle from "@material-ui/icons/AccountCircle";
 import AppBar from "@material-ui/core/AppBar";
+import AuthUtils from "../../utils/api/authUtils";
 import Button from "@material-ui/core/Button";
 import CelleryLogo from "../../img/celleryLogo.svg";
 import Container from "@material-ui/core/Container";
@@ -28,6 +29,7 @@ import Toolbar from "@material-ui/core/Toolbar";
 import classNames from "classnames";
 import {withRouter} from "react-router-dom";
 import {withStyles} from "@material-ui/core/styles";
+import withGlobalState, {StateHolder} from "../common/state";
 import * as PropTypes from "prop-types";
 
 const styles = (theme) => ({
@@ -117,8 +119,9 @@ class Header extends React.Component {
     };
 
     render = () => {
-        const {classes} = this.props;
+        const {classes, globalState} = this.props;
         const {accountPopoverElement, docsPopoverElement} = this.state;
+
         const isAccountPopoverOpen = Boolean(accountPopoverElement);
         const isDocsPopoverOpen = Boolean(docsPopoverElement);
         const pages = [
@@ -127,6 +130,7 @@ class Header extends React.Component {
             "/explore"
         ];
 
+        const loggedInUser = globalState.get(StateHolder.USER);
         return (
             <header>
                 <div className={classes.headerContent}>
@@ -139,12 +143,26 @@ class Header extends React.Component {
                                         hub
                                     </div>
                                 </div>
-                                <Button disableTouchRipple={true} color="inherit" onClick={(event) => {
-                                    this.handleNavItemClick(pages[0], event);
-                                }} className={classes.navButton}>Images</Button>
-                                <Button disableTouchRipple={true} color="inherit" onClick={(event) => {
-                                    this.handleNavItemClick(pages[1], event);
-                                }} className={classes.navButton}>Organisations</Button>
+                                {
+                                    loggedInUser
+                                        ? (
+                                            <React.Fragment>
+                                                <Button disableTouchRipple={true} color="inherit"
+                                                    onClick={(event) => {
+                                                        this.handleNavItemClick(pages[0], event);
+                                                    }} className={classes.navButton}>
+                                                    Images
+                                                </Button>
+                                                <Button disableTouchRipple={true} color="inherit"
+                                                    onClick={(event) => {
+                                                        this.handleNavItemClick(pages[1], event);
+                                                    }} className={classes.navButton}>
+                                                    Organisations
+                                                </Button>
+                                            </React.Fragment>
+                                        )
+                                        : null
+                                }
                                 <Button disableTouchRipple={true} color="inherit" onClick={(event) => {
                                     this.handleNavItemClick(pages[2], event);
                                 }} className={classes.navButton}>Explore</Button>
@@ -172,11 +190,18 @@ class Header extends React.Component {
                                     </Menu>
                                 </div>
                                 <div>
-                                    <Button disableTouchRipple={true} color="inherit"
-                                        className={classNames(classes.usernameBtn, classes.navButton)}
-                                        aria-haspopup="true"
-                                        onClick={this.handleAccountPopoverOpen}>
-                                        <AccountCircle className={classes.leftIcon}/> john</Button>
+                                    {
+                                        loggedInUser
+                                            ? (
+                                                <Button disableTouchRipple={true} color="inherit"
+                                                    className={classNames(classes.usernameBtn, classes.navButton)}
+                                                    aria-haspopup="true" onClick={this.handleAccountPopoverOpen}>
+                                                    <AccountCircle className={classes.leftIcon}/>
+                                                    {loggedInUser.username}
+                                                </Button>
+                                            )
+                                            : null
+                                    }
                                     <Menu id="user-info" anchorEl={accountPopoverElement}
                                         anchorOrigin={{
                                             vertical: "top",
@@ -188,12 +213,20 @@ class Header extends React.Component {
                                         }}
                                         open={isAccountPopoverOpen}
                                         onClose={this.handleAccountPopoverClose}>
-                                        <MenuItem onClick={this.handleAccountPopoverClose}>
-                                            My Profile
-                                        </MenuItem>
-                                        <MenuItem>
-                                            Logout
-                                        </MenuItem>
+                                        {
+                                            loggedInUser
+                                                ? (
+                                                    <React.Fragment>
+                                                        <MenuItem onClick={this.handleAccountPopoverClose}>
+                                                            My Profile
+                                                        </MenuItem>
+                                                        <MenuItem onClick={() => AuthUtils.signOut(globalState)}>
+                                                            Logout
+                                                        </MenuItem>
+                                                    </React.Fragment>
+                                                )
+                                                : null
+                                        }
                                     </Menu>
                                 </div>
                             </Toolbar>
@@ -210,8 +243,9 @@ Header.propTypes = {
     classes: PropTypes.object.isRequired,
     history: PropTypes.shape({
         push: PropTypes.func.isRequired
-    }).isRequired
+    }).isRequired,
+    globalState: PropTypes.instanceOf(StateHolder).isRequired
 };
 
-export default withStyles(styles)(withRouter(Header));
+export default withStyles(styles)(withRouter(withGlobalState(Header)));
 
