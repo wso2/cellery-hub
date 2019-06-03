@@ -16,8 +16,11 @@
  * under the License.
  */
 
+/* eslint camelcase: ["off"] */
+
 import AuthUtils from "./authUtils";
 import {StateHolder} from "../../components/common/state";
+import HttpUtils from "./httpUtils";
 
 describe("AuthUtils", () => {
     const username = "User1";
@@ -73,8 +76,12 @@ describe("AuthUtils", () => {
                 listener: []
             };
             jest.spyOn(window.location, "assign").mockImplementation((location) => {
-                expect(location).toEqual(`${stateHolder.get(StateHolder.CONFIG).idp.url}/oidc/logout`
-                    + `?id_token_hint=54321&post_logout_redirect_uri=${window.location.origin}`);
+                const params = {
+                    id_token_hint: "54321",
+                    post_logout_redirect_uri: window.location.origin
+                };
+                const endpoint = `${stateHolder.get(StateHolder.CONFIG).idp.url}${AuthUtils.LOGOUT_ENDPOINT}`;
+                expect(location).toEqual(`${endpoint}${HttpUtils.generateQueryParamString(params)}`);
             });
             AuthUtils.signOut(stateHolder);
             expect(localStorage.getItem(StateHolder.USER)).toBeNull();

@@ -17,6 +17,7 @@
  */
 
 /* eslint prefer-promise-reject-errors: ["off"] */
+/* eslint camelcase: ["off"] */
 
 import AuthUtils from "./authUtils";
 import HttpUtils from "./httpUtils";
@@ -401,12 +402,19 @@ describe("HttpUtils", () => {
             });
         });
 
-        it(`should sign out and reject with response when axios rejects with a ${unauthorizedStatusCode} status code`,
+        it(`should reject with response and initiate login flow when axios rejects with a ${unauthorizedStatusCode} status code`,
             async () => {
-                const spy = jest.spyOn(AuthUtils, "signOut");
+                const spy = jest.spyOn(AuthUtils, "initiateLoginFlow");
                 jest.spyOn(window.location, "assign").mockImplementation((location) => {
-                    expect(location).toEqual(`${stateHolder.get(StateHolder.CONFIG).idp.url}/oidc/logout`
-                        + `?id_token_hint=54321&post_logout_redirect_uri=${window.location.origin}`);
+                    const params = {
+                        response_type: "code",
+                        nonce: "auth",
+                        scope: "openid",
+                        client_id: "testclientid",
+                        redirect_uri: window.location.href
+                    };
+                    const endpoint = `${globalConfig.idp.url}${AuthUtils.AUTHORIZATION_ENDPOINT}`;
+                    expect(location).toEqual(`${endpoint}${HttpUtils.generateQueryParamString(params)}`);
                 });
                 await expect(mockReject(unauthorizedStatusCode)).rejects.toEqual(new Error(ERROR_DATA));
                 expect(spy).toHaveBeenCalledTimes(1);
