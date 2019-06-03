@@ -59,6 +59,30 @@
                     <xsd:claimMappings>
                         <xsd:localClaim>
                             <xsd:claimId>0</xsd:claimId>
+                            <xsd:claimUri>http://wso2.org/claims/github-pic-url</xsd:claimUri>
+                        </xsd:localClaim>
+                        <xsd:mandatory>false</xsd:mandatory>
+                        <xsd:remoteClaim>
+                            <xsd:claimId>0</xsd:claimId>
+                            <xsd:claimUri>http://wso2.org/claims/github-pic-url</xsd:claimUri>
+                        </xsd:remoteClaim>
+                        <xsd:requested>true</xsd:requested>
+                    </xsd:claimMappings>
+                    <xsd:claimMappings>
+                        <xsd:localClaim>
+                            <xsd:claimId>0</xsd:claimId>
+                            <xsd:claimUri>http://wso2.org/claims/google-pic-url</xsd:claimUri>
+                        </xsd:localClaim>
+                        <xsd:mandatory>false</xsd:mandatory>
+                        <xsd:remoteClaim>
+                            <xsd:claimId>0</xsd:claimId>
+                            <xsd:claimUri>http://wso2.org/claims/google-pic-url</xsd:claimUri>
+                        </xsd:remoteClaim>
+                        <xsd:requested>true</xsd:requested>
+                    </xsd:claimMappings>
+                    <xsd:claimMappings>
+                        <xsd:localClaim>
+                            <xsd:claimId>0</xsd:claimId>
                             <xsd:claimUri>http://wso2.org/claims/region</xsd:claimUri>
                         </xsd:localClaim>
                         <xsd:mandatory>false</xsd:mandatory>
