@@ -30,7 +30,7 @@
                   <xsd:displayOrder>0</xsd:displayOrder>
                   <xsd:name>ClientSecret</xsd:name>
                   <xsd:required>false</xsd:required>
-                  <xsd:value>vjzv6-t60N5UXthjc9fO0RRx</xsd:value>
+                  <xsd:value>{CELLERY_HUB_GOOGLE_CLIENT_SECRET}</xsd:value>
                </xsd:properties>
                <xsd:properties>
                   <xsd:advanced>false</xsd:advanced>
@@ -46,7 +46,7 @@
                   <xsd:displayOrder>0</xsd:displayOrder>
                   <xsd:name>ClientId</xsd:name>
                   <xsd:required>false</xsd:required>
-                  <xsd:value>1028740252372-vd7gf8rr6sb9avi3nd099mb5o3pmhmu5.apps.googleusercontent.com</xsd:value>
+                  <xsd:value>{CELLERY_HUB_GOOGLE_CLIENT_ID}</xsd:value>
                </xsd:properties>
                <xsd:properties>
                   <xsd:advanced>false</xsd:advanced>
