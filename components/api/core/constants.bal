@@ -16,5 +16,9 @@
 //
 // ------------------------------------------------------------------------
 
-public const string GET_ORG_QUERY = "SELECT ORG_NAME, CREATED_DATE FROM REGISTRY_ORGANIZATION WHERE REGEXP_LIKE(ORG_NAME, ?)";
-public const string ADD_ORG_QUERY = "INSERT INTO REGISTRY_ORGANIZATION(ORG_NAME,DESCRIPTION,DEFAULT_IMAGE_VISIBILITY)VALUES(?,?,?)";
+public const int SUCCESS_STATUSCODE = 200;
+public const int METHOD_NOT_ALLOWD_STATUSCODE = 405;
+public const int INTERNAL_ERROR_STATUSCODE = 500;
+public const int UNAUTHORIZED_STATUSCODE = 401;
+
+public const string ORG_NAME = "orgName";

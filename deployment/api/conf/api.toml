@@ -1,0 +1,6 @@
+[database]
+host="localhost"
+port=3306
+default="CELLERY_HUB"
+user="root"
+password="mysqlroot"

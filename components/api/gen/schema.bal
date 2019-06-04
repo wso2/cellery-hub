@@ -28,13 +28,14 @@ public type organizationRequest record {
     string defaultImageVisibility;
 };
 
-public type organizationListResponse record {
+public type organizationListResponse record { 
     organizationResponse[] organizationresponseList;
 };
 
 public type organizationResponse record { 
     string name;
-    string createdDate;
+    string description;
+    string defaultVisibility;
 };
 
 public type createArtifactRequest record { 
@@ -73,16 +74,15 @@ public type artifactResponse record {
     int pushCount;
     string visibility;
     string licenseIdentifier;
-    // CellImageMetadata metadata;
+    string metadata;
     string owner;
     string lastAuthor;
     string createdDate;
     string updatedDate;
     boolean stateful;
     boolean verified;
-    string ingresses ?;
-    string labelKey ?;
-    string labelValue ?;
+    string[] ingresses;
+    artifactLabels[] labels;
 };
 
 public type imageListResponse record { 
@@ -93,42 +93,4 @@ public type imageResponse record {
     string id;
     string org;
     string imageName;
-};
-
-public type CellImageMetadata record {|
-	string org;
-	string name;
-	string ver;
-	map<string> labels;
-	string[] dockerImages;
-	int buildTimestamp;
-	string[] ingresses;
-	string[] components;
-	map<CellImageMetadata> dependencies;
-|};
-
-
-public type artifactResponseList record{
-    artifactResponse[] artifactResponses;
-};
-
-
-public type artifactResponseResult record { 
-    string id;
-    string imageName?;
-    string _version?;
-    string description?;
-    int pullCount?;
-    int pushCount?;
-    string visibility?;
-    string licenseIdentifier?;
-    // CellImageMetadata metadata;
-    string owner?;
-    string lastAuthor?;
-    string createdDate?;
-    string updatedDate?;
-    boolean stateful?;
-    boolean verified?;
-    string[] ingresses;
-    artifactLabels[] labels;
 };

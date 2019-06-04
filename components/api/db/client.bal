@@ -15,14 +15,16 @@
 // limitations under the License
 //
 // ------------------------------------------------------------------------
+import ballerina/config;
 
-import ballerina/mysql;
-
-mysql:Client connection = new({
-        host: "localhost",
-        port: 3306,
-        name: "CELLERY_HUB",
-        username: "root",
-        password: "mysqlroot",
-        dbOptions: { useSSL: false }
+mysql:Client connection = new ({
+        host: config:getAsString("database.host"),
+        port: config:getAsInt("database.port"),
+        name: config:getAsString("database.default"),
+        username: config:getAsString("database.user"),
+        password: config:getAsString("database.password"),
+        dbOptions: {
+        useSSL: false,
+        allowPublicKeyRetrieval: true
+        }
 });
