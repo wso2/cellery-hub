@@ -157,7 +157,7 @@
                   <xsd:displayOrder>0</xsd:displayOrder>
                   <xsd:name>ClientId</xsd:name>
                   <xsd:required>false</xsd:required>
-                  <xsd:value>85f76d28207487db545f</xsd:value>
+                  <xsd:value>{CELLERY_HUB_GITHUB_CLIENT_ID}</xsd:value>
                </xsd:properties>
                <xsd:properties>
                   <xsd:advanced>false</xsd:advanced>
@@ -173,7 +173,7 @@
                   <xsd:displayOrder>0</xsd:displayOrder>
                   <xsd:name>ClientSecret</xsd:name>
                   <xsd:required>false</xsd:required>
-                  <xsd:value>18b7d6d31afe8eff8de6af4a1d20b1335158dc03</xsd:value>
+                  <xsd:value>{CELLERY_HUB_GITHUB_CLIENT_SECRET}</xsd:value>
                </xsd:properties>
                <xsd:properties>
                   <xsd:advanced>false</xsd:advanced>
@@ -181,7 +181,7 @@
                   <xsd:displayOrder>0</xsd:displayOrder>
                   <xsd:name>callbackUrl</xsd:name>
                   <xsd:required>false</xsd:required>
-                  <xsd:value>https://localhost:9443/commonauth</xsd:value>
+                  <xsd:value>{CELLERY_HUB_FEDERATED_CALLBACL_URL}</xsd:value>
                </xsd:properties>
             </xsd:federatedAuthenticatorConfigs>
             <xsd:justInTimeProvisioningConfig>
