@@ -64,7 +64,6 @@ const styles = (theme) => ({
         left: 0,
         width: "200px",
         height: "100px"
-
     }
 });
 
@@ -93,7 +92,7 @@ class SignIn extends React.Component {
                 }
             });
         } else {
-            AuthUtils.initiateLoginFlow(globalState, searchParams.fidp);
+            AuthUtils.initiateHubLoginFlow(globalState, searchParams.fidp);
         }
     }
 
@@ -102,7 +101,9 @@ class SignIn extends React.Component {
 SignIn.propTypes = {
     classes: PropTypes.object.isRequired,
     globalState: PropTypes.instanceOf(StateHolder).isRequired,
-    location: PropTypes.object.isRequired,
+    location: PropTypes.shape({
+        search: PropTypes.string.isRequired
+    }).isRequired,
     history: PropTypes.shape({
         replace: PropTypes.func.isRequired
     }),

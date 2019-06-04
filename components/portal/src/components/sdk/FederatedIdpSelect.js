@@ -16,13 +16,17 @@
  * under the License.
  */
 
+import AuthUtils from "../../utils/api/authUtils";
 import Button from "@material-ui/core/Button";
 import Divider from "@material-ui/core/Divider";
 import GithubLogo from "../../img/GithubLogo";
 import GoogleLogo from "../../img/GoogleLogo";
 import Grid from "@material-ui/core/Grid";
+import HttpUtils from "../../utils/api/httpUtils";
 import React from "react";
+import StateHolder from "../common/state/stateHolder";
 import Typography from "@material-ui/core/Typography";
+import withGlobalState from "../common/state";
 import {withStyles} from "@material-ui/core/styles";
 import * as PropTypes from "prop-types";
 
@@ -54,9 +58,11 @@ const styles = (theme) => ({
 });
 
 const FederatedIdpSelect = (props) => {
-    const {classes} = props;
+    const {classes, globalState, location} = props;
 
-    return (
+    const params = HttpUtils.parseQueryParams(location.search);
+    const redirectUrl = params.redirectUrl;
+    const view = (
         <div className={classes.content}>
             <Grid container spacing={4} direction="row" justify="center" alignItems="center">
                 <Grid item xs={12} sm={4} md={4} className={classes.signInContainer}>
@@ -64,11 +70,15 @@ const FederatedIdpSelect = (props) => {
                         Sign in
                     </Typography>
                     <Divider className={classes.divider}/>
-                    <Button fullWidth variant="outlined" size="large" className={classes.signInBtn}>
+                    <Button fullWidth variant="outlined" size="large" className={classes.signInBtn} onClick={() => {
+                        AuthUtils.initiateSdkLoginFlow(globalState, AuthUtils.FederatedIdP.GOOGLE, redirectUrl);
+                    }}>
                         <GoogleLogo className={classes.leftIcon}/>
                         Sign in with Google
                     </Button>
-                    <Button fullWidth variant="outlined" size="large" className={classes.signInBtn}>
+                    <Button fullWidth variant="outlined" size="large" className={classes.signInBtn} onClick={() => {
+                        AuthUtils.initiateSdkLoginFlow(globalState, AuthUtils.FederatedIdP.GITHUB, redirectUrl);
+                    }}>
                         <GithubLogo className={classes.leftIcon}/>
                         Sign in with Github
                     </Button>
@@ -76,10 +86,19 @@ const FederatedIdpSelect = (props) => {
             </Grid>
         </div>
     );
+    if (params.fidp) {
+        AuthUtils.initiateSdkLoginFlow(globalState, params.fidp, redirectUrl);
+        return null;
+    }
+    return view;
 };
 
 FederatedIdpSelect.propTypes = {
-    classes: PropTypes.object.isRequired
+    classes: PropTypes.object.isRequired,
+    globalState: PropTypes.instanceOf(StateHolder).isRequired,
+    location: PropTypes.shape({
+        search: PropTypes.string.isRequired
+    }).isRequired
 };
 
-export default withStyles(styles)(FederatedIdpSelect);
+export default withStyles(styles)(withGlobalState(FederatedIdpSelect));
