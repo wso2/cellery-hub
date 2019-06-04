@@ -181,7 +181,7 @@
                   <xsd:displayOrder>0</xsd:displayOrder>
                   <xsd:name>callbackUrl</xsd:name>
                   <xsd:required>false</xsd:required>
-                  <xsd:value>https://localhost:9443/commonauth</xsd:value>
+                  <xsd:value>{CELLERY_HUB_FEDERATED_CALLBACL_URL}</xsd:value>
                </xsd:properties>
             </xsd:federatedAuthenticatorConfigs>
             <xsd:justInTimeProvisioningConfig>
