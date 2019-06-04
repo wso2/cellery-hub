@@ -16,81 +16,22 @@
 //
 // ------------------------------------------------------------------------
 
-public type Error record { 
-    int code;
-    string message;
+public type OrgCreateRequest record { 
+    string orgName;
     string description;
-};
-
-public type organizationRequest record { 
-    string name;
-    string description;
-    string defaultImageVisibility;
-};
-
-public type organizationListResponse record { 
-    organizationResponse[] organizationresponseList;
-};
-
-public type organizationResponse record { 
-    string name;
-    string description;
+    string websiteUrl;
     string defaultVisibility;
 };
 
-public type createArtifactRequest record { 
-    string org;
-    string imageName;
-    string _version;
-    string metadata;
-};
-
-public type updateArtifactRequest record { 
-    string id;
+public type OrgResponse record { 
     string description;
+    string websiteUrl;
+    string author;
+    string createdTimestamp;
 };
 
-public type artifactLabels record { 
-    string name;
-    string value;
-};
-
-public type listArtifactResponse record { 
-    artifactListResponse[] artifactlistresponseList;
-};
-
-public type artifactListResponse record { 
-    string id;
-    string imageName;
-    string _version;
-};
-
-public type artifactResponse record { 
-    string id;
-    string imageName;
-    string _version;
+public type ErrorResponse record { 
+    int code;
+    string message;
     string description;
-    int pullCount;
-    int pushCount;
-    string visibility;
-    string licenseIdentifier;
-    string metadata;
-    string owner;
-    string lastAuthor;
-    string createdDate;
-    string updatedDate;
-    boolean stateful;
-    boolean verified;
-    string[] ingresses;
-    artifactLabels[] labels;
-};
-
-public type imageListResponse record { 
-    imageResponse[] imageresponseList;
-};
-
-public type imageResponse record { 
-    string id;
-    string org;
-    string imageName;
 };

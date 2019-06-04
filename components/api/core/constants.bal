@@ -16,9 +16,4 @@
 //
 // ------------------------------------------------------------------------
 
-public const int SUCCESS_STATUSCODE = 200;
-public const int METHOD_NOT_ALLOWD_STATUSCODE = 405;
-public const int INTERNAL_ERROR_STATUSCODE = 500;
-public const int UNAUTHORIZED_STATUSCODE = 401;
-
-public const string ORG_NAME = "orgName";
+public const int API_DEFAULT_STATUSCODE = 1;

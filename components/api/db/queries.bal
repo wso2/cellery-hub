@@ -16,6 +16,6 @@
 //
 // ------------------------------------------------------------------------
 
-public const string GET_ORG_QUERY = "SELECT ORG_NAME, DESCRIPTION, DEFAULT_IMAGE_VISIBILITY
+public const string GET_ORG_QUERY = "SELECT DESCRIPTION, WEBSITE_URL, FIRST_AUTHOR, CREATED_DATE
                                     FROM REGISTRY_ORGANIZATION WHERE ORG_NAME = ?";
                                     

@@ -21,22 +21,16 @@ import ballerina/mysql;
 import ballerina/sql;
 import cellery_hub_api/gen;
 
-
-public function getOrganization (string name) returns json|error{
+public function getOrganization (string name) returns json|error {
     log:printDebug("Performing organization search for Org name in REGISTRY_ORGANIZATION table " + name);
-    var res =  connection->select(GET_ORG_QUERY,gen:organizationResponse,name, loadToMemory = true);
-
-    if (res is table<record {}>) {
-        gen:organizationListResponse orgListRes = {organizationresponseList : []};
-        foreach int i in 0...res.count()-1{
-            orgListRes.organizationresponseList[i] = check gen:organizationResponse.convert(res.getNext());
-        }
-        json resPayload = check json.convert(orgListRes);
-        log:printDebug("Fetching data for organization " +name+ ", from REGISTRY_ORGANIZATION is successful");  
+    table<record {}> res =  check connection->select(GET_ORG_QUERY,gen:OrgResponse,name, loadToMemory = true);
+    if (res.count() == 1) {
+        gen:OrgResponse orgRes = check gen:OrgResponse.convert(res.getNext());
+        json resPayload = check json.convert(orgRes);
+        log:printDebug("Fetching data for organization " +name+ ", from REGISTRY_ORGANIZATION is successful");
         return resPayload;       
-    }
-    else{
-        log:printDebug("Error occured while fetching data from REGISTRY_ORGANIZATION for getOrg EP");  
-        return res;              
+    } else {
+        log:printDebug("The requested organization is not found in REGISTRY_ORGANIZATION");
+        return null;
     }
 }

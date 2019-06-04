@@ -1,497 +1,139 @@
 swagger: "2.0"
 info:
-  description: "Cellery Hub APIs"
-  version: "1.0.0"
-  title: "Swagger Cellery Hub APIs"
-  termsOfService: "http://swagger.io/terms/"
+  version: "0.1.0"
+  title: "Cellery Hub API"
+  description: "Cellery Hub API"
   contact:
     email: "architecture@wso2.com"
   license:
     name: "Apache 2.0"
-    url: "http://www.apache.org/licenses/LICENSE-2.0.html"
-# host: "cellery.io"
-# basePath: "/api"
-tags:
-- name: "Cellery Hub"
-  description: "Cellery Hub APIs swagger"
-  externalDocs:
-    description: "Cellery API docs"
-    url: "http://swagger.io"
+    url: "http://www.apache.org/licenses/LICENSE-2.0"
+host: "api.hub.cellery.io"
+basePath: "/api/0.1.0"
 schemes:
 - "https"
-- "http"
+
 paths:
   /orgs:
     post:
-      tags:
-      -  "Cellery Hub"
-      summary: "Add a new organization"
-      description: "Add a new organization"
-      operationId: "addOrg"
+      operationId: "createOrgs"
+      summary: "Create organization"
       consumes:
       - "application/json"
       produces:
       - "application/json"
       parameters:
-      - in: "body"
-        name: "organization"
-        description: "Organization which needs to be registered"
-        required: true
-        schema:
-          $ref: '#/definitions/organizationRequest'
+      - $ref: "#/parameters/orgCreateBody"
       responses:
-        405:
-          description: "Invalid input"
-          schema:
-            $ref: '#/definitions/Error'
-        500:
-          description: "Internal server error"
-          schema:
-            $ref: '#/definitions/Error'
         200:
           description: "OK"
+        405:
+          description: "Invalid Input"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+        500:
+          description: "Internal Server Error"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+  /orgs/{orgName}:
     get:
-      tags:
-      -  "Cellery Hub"
-      summary: "Retrieve organizations"
-      description: "Retrieve organizations"
       operationId: "getOrg"
-      consumes:
-      - "application/json"
+      summary: "Get a specific organization"
       produces:
       - "application/json"
       parameters:
-        - $ref: '#/parameters/name'
+      - $ref: "#/parameters/orgNamePathParam"
       responses:
-        405:
-          description: "Invalid input"
-          schema:
-            $ref: '#/definitions/Error'
-        500:
-          description: "Internal server error"
-          schema:
-            $ref: '#/definitions/Error'
         200:
           description: "OK"
           schema:
-            $ref: '#/definitions/organizationListResponse'
-  
-  /artifact:
-    post:
-      tags:
-      -  "Cellery Hub"
-      summary: "Add a new artifact"
-      description: "Add a new artifact"
-      operationId: "addArtifact"
-      consumes:
-      - "application/json"
-      produces:
-      - "application/json"
-      parameters:
-      - in: "body"
-        name: "artifact"
-        description: "image information which needs to be added"
-        required: true
-        schema:
-          $ref: '#/definitions/createArtifactRequest'
-      responses:
+            $ref: "#/definitions/OrgResponse"
         405:
-          description: "Invalid input"
+          description: "Invalid Input"
           schema:
-            $ref: '#/definitions/Error'
+            $ref: "#/definitions/ErrorResponse"
         500:
-          description: "Internal server error"
+          description: "Internal Server Error"
           schema:
-            $ref: '#/definitions/Error'
-        200:
-          description: "Image added successfully"
-    get:
-      tags:
-      -  "Cellery Hub"
-      summary: "search artifact"
-      description: "search artifact"
-      operationId: "searchArtifact"
-      consumes:
-      - "application/json"
-      produces:
-      - "application/json"
-      parameters:
-        - $ref: '#/parameters/name'
-        - $ref: '#/parameters/userId'
-        - $ref: '#/parameters/artifactLabels'
-        - $ref: '#/parameters/artifactIngresses'
-        - $ref: '#/parameters/artifactVerified'
-        - $ref: '#/parameters/artifactStateful'
-      responses:
-        405:
-          description: "Invalid input"
-          schema:
-            $ref: '#/definitions/Error'
-        500:
-          description: "Internal server error"
-          schema:
-            $ref: '#/definitions/Error'
-        200:
-          description: "OK"
-          schema:
-            $ref: '#/definitions/listArtifactResponse'
-          
-  /artifact/{artifactId}:
-    get:
-      tags:
-      -  "Cellery Hub"
-      summary: "retrieve artifact"
-      description: "Retrieve artifact"
-      operationId: "getArtifact"
-      consumes:
-      - "application/json"
-      produces:
-      - "application/json"
-      parameters:
-        - $ref: '#/parameters/artifactId'
-      responses:
-        405:
-          description: "Invalid input"
-          schema:
-            $ref: '#/definitions/Error'
-        500:
-          description: "Internal server error"
-          schema:
-            $ref: '#/definitions/Error'
-        200:
-          description: "OK"
-          schema:
-            $ref: '#/definitions/listArtifactResponse'
-        
-    put:
-      tags:
-      -  "Cellery Hub"
-      summary: "update an existing artifact"
-      description: "update an existing artifact"
-      operationId: "updateArtifact"
-      consumes:
-      - "application/json"
-      produces:
-      - "application/json"
-      parameters:
-      - $ref: '#/parameters/artifactId'
-      - in: "body"
-        name: "artifact"
-        description: "image information which needs to be added"
-        required: true
-        schema:
-          $ref: '#/definitions/updateArtifactRequest'
-      responses:
-        405:
-          description: "Invalid input"
-          schema:
-            $ref: '#/definitions/Error'
-        500:
-          description: "Internal server error"
-          schema:
-            $ref: '#/definitions/Error'
-        200:
-          description: "Image added successfully"  
-          
-  /images:
-    get:
-      tags:
-      -  "Cellery Hub"
-      summary: "search images"
-      description: "search images"
-      operationId: "searchImage"
-      consumes:
-      - "application/json"
-      produces:
-      - "application/json"
-      parameters:
-        - $ref: '#/parameters/name'
-        - $ref: '#/parameters/artifactLabels'
-        - $ref: '#/parameters/keywords'
-        - $ref: '#/parameters/artifactIngresses'
-        - $ref: '#/parameters/artifactVerified'
-        - $ref: '#/parameters/artifactStateful'
-      responses:
-        405:
-          description: "Invalid input"
-          schema:
-            $ref: '#/definitions/Error'
-        500:
-          description: "Internal server error"
-          schema:
-            $ref: '#/definitions/Error'
-        200:
-          description: "OK"
-          schema:
-            $ref: '#/definitions/imageListResponse'
-        
-          
-  /images/{imageId}:
-    get:
-      tags:
-      -  "Cellery Hub"
-      summary: "retrieve image with given id"
-      description: "Retrieve image"
-      operationId: "getImage"
-      consumes:
-      - "application/json"
-      produces:
-      - "application/json"
-      parameters:
-        - $ref: '#/parameters/imageId'
-      responses:
-        405:
-          description: "Invalid input"
-          schema:
-            $ref: '#/definitions/Error'
-        500:
-          description: "Internal server error"
-          schema:
-            $ref: '#/definitions/Error'
-        200:
-          description: "OK"
-          schema:
-            $ref: '#/definitions/imageListResponse'
-        
-    put:
-      tags:
-      -  "Cellery Hub"
-      summary: "update an existing artifact"
-      description: "update an existing artifact"
-      operationId: "updateImage"
-      consumes:
-      - "application/json"
-      produces:
-      - "application/json"
-      parameters:
-      - $ref: '#/parameters/imageId'
-      - in: "body"
-        name: "artifact"
-        description: "image information which needs to be added"
-        required: true
-        schema:
-          $ref: '#/definitions/updateArtifactRequest'
-      responses:
-        405:
-          description: "Invalid input"
-          schema:
-            $ref: '#/definitions/Error'
-        500:
-          description: "Internal server error"
-          schema:
-            $ref: '#/definitions/Error'
-        200:
-          description: "Image updated successfully" 
-          
-definitions:
+            $ref: "#/definitions/ErrorResponse"
 
-  Error:
-    type: object
+parameters:
+  orgCreateBody:
+    name: "organization"
+    in: "body"
+    description: "Organization which needs to be created"
+    required: true
+    schema:
+      $ref: "#/definitions/OrgCreateRequest"
+  orgNamePathParam:
+    name: "orgName"
+    in: "path"
+    description: "Name of the organization"
+    required: true
+    type: "string"
+  orgNameQueryParam:
+    name: "orgName"
+    in: "query"
+    description: "Name of the organization"
+    required: false
+    type: "string"
+  imageNameQueryParam:
+    name: "imageName"
+    in: "query"
+    description: "Name of the Image"
+    required: false
+    type: "string"
+  imageOrderByQueryParam:
+    name: "orderBy"
+    in: "query"
+    description: "The attribute to order the images"
+    required: false
+    type: "string"
+  limitQueryParam:
+    name: "limit"
+    in: "query"
+    description: "Number of results returned for pagination"
+    required: true
+    type: "number"
+  offsetQueryParam:
+    name: "offset"
+    in: "query"
+    description: "Offset of the result set returned for pagination"
+    required: true
+    type: "number"
+    
+definitions:
+  OrgCreateRequest:
+    type: "object"
+    properties:
+      orgName:
+        type: "string"
+      description:
+        type: "string"
+      websiteUrl:
+        type: "string"
+      defaultVisibility:
+        type: "string"
+  OrgResponse:
+    type: "object"
+    properties:
+      description:
+        type: "string"
+      websiteUrl:
+        type: "string"
+      author:
+        type: "string"
+      createdTimestamp:
+        type: "string"
+  ErrorResponse:
+    type: "object"
     properties:
       code:
-        type: string
+        type: "number"
+        description: "API specific error code"
       message:
-        type: string
+        type: "string"
+        description: "The summarized error message"
       description:
-        type: string
-
-  organizationRequest:
-    type: object
-    properties:
-      name:
-        type: string
-      description: 
-        type: string
-      defaultImageVisibility:
-        type: string
-        
-    
-  organizationListResponse:
-    type: array
-    items:
-      $ref: '#/definitions/organizationResponse'
-      
-  organizationResponse:
-    type: object
-    properties:
-      name:
-        type: string
-      createdDate:
-        type: string
-      
-  createArtifactRequest:
-    type: object
-    properties:
-      org:
-        type: string
-      imageName:
-        type: string
-      version:
-        type: string
-      metadata:
-        type: string
-        
-  updateArtifactRequest:
-    type: object
-    properties:
-      id:
-        type: string
-      description:
-        type: string
-      
-        
-  artifactLabels:
-    type: object
-    properties:
-      name:
-        type: string
-      value:
-        type: string
-        
-  listArtifactResponse:
-    type: array
-    items:
-      $ref: '#/definitions/artifactListResponse'
-  
-  artifactListResponse:
-    type: object
-    properties:
-      id:
-        type: string
-      imageName:
-        type: string
-      version:
-        type: string
-      
-  artifactResponse:
-    type: object
-    properties:
-      id:
-        type: string
-      imageName:
-        type: string
-      version:
-        type: string
-      description:
-        type: string
-      pullCount:
-        type: integer
-      pushCount:
-        type: integer
-      visibility:
-        type: string
-      licenseIdentifier:
-        type: string
-      metadata:
-        type: string
-      owner:
-        type: string
-      lastAuthor:
-        type: string
-      createdDate:
-        type: string
-      updatedDate:
-        type: string
-      stateful:
-        type: boolean
-      verified:
-        type: boolean
-      ingresses:
-        type: array
-        items:
-          type: string
-      labels:
-        type: array
-        items:
-          $ref: '#/definitions/artifactLabels'
-        
-  
-  imageListResponse:
-    type: array
-    items:
-      $ref: '#/definitions/imageResponse'
-      
-  imageResponse:
-    type: object
-    properties:
-      id:
-        type: string
-      org:
-        type: string
-      imageName:
-        type: string
-      
-        
-#-----------------------------------------------------
-# Parameters
-#-----------------------------------------------------
-parameters:
-  name:
-    name: name
-    in: query
-    description: name of the organization/image
-    required: false
-    type: string
-  org:
-    name: org
-    in: query
-    description: organization name
-    required: false
-    type: string
-  version:
-    name: version
-    in: query
-    description: organization name
-    required: false
-    type: string
-  userId:
-    name: userId
-    in: query
-    description: user Id
-    required: false
-    type: string
-  artifactLabels:
-    name: labels
-    in: query
-    description: list of labels parsed as json labels = [{"key" = "vaue"}]
-    required: false
-    type: string
-  keywords:
-    name: keywords
-    in: query
-    description: list of keywords comma separated.
-    required: false
-    type: string
-  artifactIngresses:
-    name: artifactIngresses
-    in: query
-    description: list of keywords comma separated.
-    required: false
-    type: string
-  artifactStateful:
-    name: artifactStateful
-    in: query
-    description: whether the artifact is stateful or not. 
-    required: false
-    type: string
-  artifactVerified:
-    name: artifactVerified
-    in: query
-    description: artifact verified or not.
-    required: false
-    type: string
-  imageId:
-    name: imageId
-    in: path
-    description: imageId.
-    required: true
-    type: string
-  artifactId:
-    name: artifactId
-    in: path
-    description: artifactId.
-    required: true
-    type: string
-# Added by API Auto Mocking Plugin
-host: virtserver.swaggerhub.com
-basePath: /CelleryHubAPI/1.0.0
+        type: "string"
+        description: "Description about the error occurred"

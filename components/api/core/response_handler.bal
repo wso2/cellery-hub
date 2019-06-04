@@ -16,36 +16,31 @@
 //
 // ------------------------------------------------------------------------
 
-public function errorResponse (int code, string message, string description) returns http:Response {
+public function buildErrorResponse (int code, string message, string description) returns http:Response {
     http:Response res = new;
-    gen:Error errPassed = {
+    gen:ErrorResponse errPassed = {
         code: code,
         message: message,
         description: description
     };
-
     var errJson = json.convert(errPassed);
     if (errJson is json) {
         res.setJsonPayload(errJson);
-        res.statusCode = errPassed.code;
-    }
-    else {
-        res = buildErrorResponse("Error occured when converting Error struct to Json");
+        res.statusCode = http:INTERNAL_SERVER_ERROR_500;
+    } else {
+        res = buildUnknownErrorResponse("Error occured when converting Error struct to Json");
     }
     return res; 
 }
 
-function buildErrorResponse (string msg) returns http:Response {
+function buildUnknownErrorResponse (string msg) returns http:Response {
     http:Response res = new;
-
     json errDefault = {
-        code: INTERNAL_ERROR_STATUSCODE,
+        code: API_DEFAULT_STATUSCODE,
         message: msg,
         description: ""
     };
-
     res.setPayload(errDefault);
-    res.statusCode = INTERNAL_ERROR_STATUSCODE;
-
+    res.statusCode = http:INTERNAL_SERVER_ERROR_500;
     return res; 
 }

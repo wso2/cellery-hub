@@ -24,7 +24,7 @@ mysql:Client connection = new ({
         username: config:getAsString("database.user"),
         password: config:getAsString("database.password"),
         dbOptions: {
-        useSSL: false,
-        allowPublicKeyRetrieval: true
+                useSSL: false,
+                allowPublicKeyRetrieval: true
         }
 });
