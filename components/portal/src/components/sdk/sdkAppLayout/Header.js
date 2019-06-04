@@ -121,35 +121,36 @@ class Header extends React.Component {
                                         SDK
                                     </Typography>
                                 </div>
-                                <div>
-                                    <Button disableTouchRipple={true} color="inherit"
-                                        className={classNames(classes.usernameBtn, classes.navButton)}
-                                        aria-haspopup="true"
-                                        onClick={this.handleAccountPopoverOpen}>
-                                        <AccountCircle className={classes.leftIcon}/> {loggedInUser.username}
-                                    </Button>
-                                    <Menu id="user-info" anchorEl={accountPopoverElement}
-                                        anchorOrigin={{
-                                            vertical: "top",
-                                            horizontal: "right"
-                                        }}
-                                        transformOrigin={{
-                                            vertical: "top",
-                                            horizontal: "right"
-                                        }}
-                                        open={isAccountPopoverOpen}
-                                        onClose={this.handleAccountPopoverClose}>
-                                        {
-                                            loggedInUser
-                                                ? (
+                                {
+                                    loggedInUser
+                                        ? (
+                                            <div>
+                                                <Button disableTouchRipple={true} color="inherit"
+                                                    className={classNames(classes.usernameBtn, classes.navButton)}
+                                                    aria-haspopup="true"
+                                                    onClick={this.handleAccountPopoverOpen}>
+                                                    <AccountCircle className={classes.leftIcon}/>
+                                                    {loggedInUser.username}
+                                                </Button>
+                                                <Menu id="user-info" anchorEl={accountPopoverElement}
+                                                    anchorOrigin={{
+                                                        vertical: "top",
+                                                        horizontal: "right"
+                                                    }}
+                                                    transformOrigin={{
+                                                        vertical: "top",
+                                                        horizontal: "right"
+                                                    }}
+                                                    open={isAccountPopoverOpen}
+                                                    onClose={this.handleAccountPopoverClose}>
                                                     <MenuItem onClick={() => AuthUtils.signOut(globalState)}>
                                                         Logout
                                                     </MenuItem>
-                                                )
-                                                : null
-                                        }
-                                    </Menu>
-                                </div>
+                                                </Menu>
+                                            </div>
+                                        )
+                                        : null
+                                }
                             </Toolbar>
                         </AppBar>
                     </Container>

@@ -21,7 +21,6 @@ import AppLayout from "./appLayout";
 import CssBaseline from "@material-ui/core/CssBaseline/CssBaseline";
 import ErrorBoundary from "./common/error/ErrorBoundary";
 import Explore from "./explore";
-import FederatedIdpSelect from "./sdk/FederatedIdpSelect";
 import Home from "./home";
 import Image from "./overview/image";
 import ImageVersion from "./overview/image/ImageVersion";
@@ -29,34 +28,11 @@ import MyImages from "./myImages";
 import MyOrgs from "./myOrgs";
 import Org from "./overview/org";
 import React from "react";
-import SDKAppLayout from "./sdk/sdkAppLayout";
-import SDKOrgCreate from "./sdk/SDKOrgCreate";
-import SDKSignInSuccess from "./sdk/SDKSignInSuccess";
+import SDK from "./sdk";
 import SignIn from "./SignIn";
 import {BrowserRouter, Route, Switch} from "react-router-dom";
 import {MuiThemeProvider, createMuiTheme} from "@material-ui/core/styles";
 import withGlobalState, {StateHolder, StateProvider} from "./common/state";
-
-const SDKPortal = withGlobalState(({globalState, match}) => {
-    const isLoggedIn = Boolean(globalState.get(StateHolder.USER));
-    let view;
-    if (isLoggedIn) {
-        view = (
-            <SDKAppLayout>
-                <ErrorBoundary>
-                    <Switch>
-                        <Route exact path={`${match.url}/sign-in`} component={FederatedIdpSelect}/>
-                        <Route exact path={`${match.url}/create-org`} component={SDKOrgCreate}/>
-                        <Route exact path={`${match.url}/auth-success`} component={SDKSignInSuccess}/>
-                    </Switch>
-                </ErrorBoundary>
-            </SDKAppLayout>
-        );
-    } else {
-        view = <SignIn/>;
-    }
-    return view;
-});
 
 const HubPortal = withGlobalState(({globalState}) => {
     const isLoggedIn = Boolean(globalState.get(StateHolder.USER));
@@ -127,7 +103,7 @@ const App = () => (
             <ErrorBoundary showNavigationButtons={true}>
                 <StateProvider>
                     <Switch>
-                        <Route path={"/sdk"} component={SDKPortal}/>
+                        <Route path={"/sdk"} component={SDK}/>
                         <Route path={"/"} component={HubPortal}/>
                     </Switch>
                 </StateProvider>

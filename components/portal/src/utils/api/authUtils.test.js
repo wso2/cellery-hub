@@ -19,8 +19,8 @@
 /* eslint camelcase: ["off"] */
 
 import AuthUtils from "./authUtils";
-import {StateHolder} from "../../components/common/state";
 import HttpUtils from "./httpUtils";
+import {StateHolder} from "../../components/common/state";
 
 describe("AuthUtils", () => {
     const username = "User1";

@@ -155,7 +155,8 @@ describe("HttpUtils", () => {
             hubApiUrl: "http://api.hub.cellery.io",
             idp: {
                 url: "https://idp.hub.cellery.io",
-                clientId: "testclientid"
+                hubClientId: "testhubclientid",
+                sdkClientId: "testsdkclientid"
             }
         };
 
@@ -402,23 +403,23 @@ describe("HttpUtils", () => {
             });
         });
 
-        it(`should reject with response and initiate login flow when axios rejects with a ${unauthorizedStatusCode} status code`,
-            async () => {
-                const spy = jest.spyOn(AuthUtils, "initiateLoginFlow");
-                jest.spyOn(window.location, "assign").mockImplementation((location) => {
-                    const params = {
-                        response_type: "code",
-                        nonce: "auth",
-                        scope: "openid",
-                        client_id: "testclientid",
-                        redirect_uri: window.location.href
-                    };
-                    const endpoint = `${globalConfig.idp.url}${AuthUtils.AUTHORIZATION_ENDPOINT}`;
-                    expect(location).toEqual(`${endpoint}${HttpUtils.generateQueryParamString(params)}`);
-                });
-                await expect(mockReject(unauthorizedStatusCode)).rejects.toEqual(new Error(ERROR_DATA));
-                expect(spy).toHaveBeenCalledTimes(1);
-                window.location.assign.mockClear();
+        it("should reject with response and initiate login flow when axios rejects with a "
+            + `${unauthorizedStatusCode} status code`, async () => {
+            const spy = jest.spyOn(AuthUtils, "initiateHubLoginFlow");
+            jest.spyOn(window.location, "assign").mockImplementation((location) => {
+                const params = {
+                    response_type: "code",
+                    nonce: "auth",
+                    scope: "openid",
+                    client_id: globalConfig.idp.hubClientId,
+                    redirect_uri: window.location.href
+                };
+                const endpoint = `${globalConfig.idp.url}${AuthUtils.AUTHORIZATION_ENDPOINT}`;
+                expect(location).toEqual(`${endpoint}${HttpUtils.generateQueryParamString(params)}`);
             });
+            await expect(mockReject(unauthorizedStatusCode)).rejects.toEqual(new Error(ERROR_DATA));
+            expect(spy).toHaveBeenCalledTimes(1);
+            window.location.assign.mockClear();
+        });
     });
 });

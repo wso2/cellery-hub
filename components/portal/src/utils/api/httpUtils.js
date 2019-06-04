@@ -160,7 +160,7 @@ class HttpUtils {
                     if (errorResponse.status === 401) {
                         const fidp = AuthUtils.getDefaultFIdP();
                         AuthUtils.removeUser(globalState);
-                        AuthUtils.initiateLoginFlow(globalState, fidp);
+                        AuthUtils.initiateHubLoginFlow(globalState, fidp);
                     }
                     reject(new Error(errorResponse.data));
                 } else {

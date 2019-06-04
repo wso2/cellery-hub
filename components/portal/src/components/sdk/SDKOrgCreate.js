@@ -78,7 +78,7 @@ class SDKOrgCreate extends React.Component {
     };
 
     handleCreateOrg = () => {
-        // TODO: Create organization and call this.handleContinue() if successful
+        // TODO: Create organization and call this.handleContinue(false) if successful
     };
 
     /**
@@ -87,8 +87,8 @@ class SDKOrgCreate extends React.Component {
      * @param {boolean} skipOrgCheck Whether to skip checking for organizations
      */
     handleContinue = (skipOrgCheck) => {
-        const {globalState, match} = this.props;
-        const params = HttpUtils.parseQueryParams(match.search);
+        const {globalState, location} = this.props;
+        const params = HttpUtils.parseQueryParams(location.search);
         AuthUtils.continueLoginFlow(globalState, params.sessionDataKey, skipOrgCheck);
     };
 
@@ -150,7 +150,7 @@ class SDKOrgCreate extends React.Component {
                                     </Button>
                                     <Button color="primary" autoFocus onClick={() => {
                                         this.handleSkipConfirmDialogClose();
-                                        this.handleContinue();
+                                        this.handleContinue(true);
                                     }}>
                                         Continue
                                     </Button>
@@ -167,7 +167,7 @@ class SDKOrgCreate extends React.Component {
 
 SDKOrgCreate.propTypes = {
     classes: PropTypes.object.isRequired,
-    match: PropTypes.shape({
+    location: PropTypes.shape({
         search: PropTypes.string.isRequired
     }).isRequired,
     globalState: PropTypes.instanceOf(StateHolder).isRequired

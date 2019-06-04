@@ -45,22 +45,47 @@ class AuthUtils {
      */
 
     /**
-     * Redirect the user to IDP for authentication.
+     * Redirect the user to IDP for Hub authentication.
      *
      * @param {StateHolder} globalState The global state provided to the current component
      * @param {FederatedIdPType} [fidp] The federated idp to be used
      */
-    static initiateLoginFlow(globalState, fidp) {
+    static initiateHubLoginFlow(globalState, fidp) {
+        const clientId = globalState.get(StateHolder.CONFIG).idp.hubClientId;
+        this.initiateLoginFlow(globalState, fidp, clientId, window.location.href);
+    }
+
+    /**
+     * Redirect the user to IDP for SDK authentication.
+     *
+     * @param {StateHolder} globalState The global state provided to the current component
+     * @param {FederatedIdPType} [fidp] The federated idp to be used
+     * @param {string} redirectUrl The URL to redirect back to
+     */
+    static initiateSdkLoginFlow(globalState, fidp, redirectUrl) {
+        const clientId = globalState.get(StateHolder.CONFIG).idp.sdkClientId;
+        this.initiateLoginFlow(globalState, fidp, clientId, redirectUrl);
+    }
+
+    /**
+     * Redirect the user to IDP for authentication.
+     *
+     * @private
+     * @param {StateHolder} globalState The global state provided to the current component
+     * @param {FederatedIdPType} [fidp] The federated idp to be used
+     * @param {string} clientId The client ID to be used
+     * @param {string} redirectUrl The URL to redirect back to
+     */
+    static initiateLoginFlow(globalState, fidp, clientId, redirectUrl) {
         AuthUtils.setDefaultFIdP(fidp);
-        const clientId = globalState.get(StateHolder.CONFIG).idp.clientId;
         const params = {
             response_type: "code",
             nonce: "auth",
             scope: "openid",
             client_id: clientId,
-            redirect_uri: window.location.href
+            redirect_uri: redirectUrl,
+            fidp: fidp
         };
-        params.fidp = fidp;
         const authEndpoint = `${globalState.get(StateHolder.CONFIG).idp.url}${AuthUtils.AUTHORIZATION_ENDPOINT}`;
         window.location.assign(`${authEndpoint}${HttpUtils.generateQueryParamString(params)}`);
     }

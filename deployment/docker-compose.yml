@@ -49,7 +49,7 @@ services:
       volumes:
         - ./idp/conf:/home/wso2carbon/wso2-config-volume/repository/conf
       environment:
-        - CREATE_ORG_ENDPOINT=https://hub.cellery.io:9000/sdk/create-org
+        - CREATE_ORG_ENDPOINT=https://hub.cellery.io:9000/sdk/org-create
   docker-registry.hub.internal:
     image: registry:2
     restart: always
