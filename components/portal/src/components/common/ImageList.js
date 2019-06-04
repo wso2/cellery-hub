@@ -28,7 +28,6 @@ import ListItemAvatar from "@material-ui/core/ListItemAvatar";
 import ListItemText from "@material-ui/core/ListItemText";
 import Lock from "@material-ui/icons/Lock";
 import React from "react";
-import Star from "@material-ui/icons/Star";
 import TablePagination from "@material-ui/core/TablePagination";
 import Typography from "@material-ui/core/Typography";
 import {withRouter} from "react-router-dom";
@@ -164,10 +163,6 @@ class ImageList extends React.Component {
                                 <GetApp className={classes.elementIcon}/>
                                 <Typography variant="subtitle2" color="inherit" className={classes.elementText}>
                                     {image.pulls}
-                                </Typography>
-                                <Star className={classes.elementIcon}/>
-                                <Typography variant="subtitle2" color="inherit" className={classes.elementText}>
-                                    {image.stars}
                                 </Typography>
                                 {
                                     image.public

@@ -16,7 +16,10 @@
  * under the License.
  */
 
+import CustomizedTabs from "../common/CustomizedTabs";
 import Divider from "@material-ui/core/Divider";
+import Images from "./Images";
+import Orgs from "./Orgs";
 import React from "react";
 import Typography from "@material-ui/core/Typography";
 import {withStyles} from "@material-ui/core/styles";
@@ -25,19 +28,84 @@ import * as PropTypes from "prop-types";
 const styles = (theme) => ({
     content: {
         paddingTop: theme.spacing(4)
+    },
+    divider: {
+        marginBottom: theme.spacing(4)
     }
 });
 
+const imageData = [
+    {
+        name: "pet-fe",
+        summary: "This contains the four components which involves with working with the Pet Store data and"
+        + " business logic.",
+        organization: "alpha",
+        public: true,
+        pulls: 10,
+        stars: 3,
+        lastUpdated: "2 days",
+        lastUpdatedBy: "john"
+    },
+    {
+        name: "pet-be",
+        summary: "This contains of a single component which serves the portal.",
+        organization: "alpha",
+        public: true,
+        pulls: 15,
+        stars: 11,
+        lastUpdated: "20 hours",
+        lastUpdatedBy: "john"
+    },
+    {
+        name: "hello-world",
+        summary: "Sample hello world cell.",
+        organization: "beta",
+        public: false,
+        pulls: 7,
+        stars: 4,
+        lastUpdated: "5 days",
+        lastUpdatedBy: "john"
+    }
+];
+
+const orgData = [
+    {
+        name: "Alpha",
+        value: "alpha",
+        members: 5,
+        images: 3,
+        description: "Sample description"
+
+    },
+    {
+        name: "Beta",
+        value: "beta",
+        members: 10,
+        images: 6,
+        description: "Sample description"
+    }
+];
+
 const Explore = (props) => {
     const {classes} = props;
+    const tabs = [
+        {
+            label: "Images",
+            component: <Images data={imageData}/>
+        },
+        {
+            label: "Organizations",
+            component: <Orgs data={orgData}/>
+        }
+    ];
 
     return (
         <div className={classes.content}>
             <Typography variant="h5" color="inherit">
                 Explore
             </Typography>
-            <Divider/>
-            {/* TODO: Add explore page content*/}
+            <Divider className={classes.divider}/>
+            <CustomizedTabs data={tabs}/>
         </div>
     );
 };

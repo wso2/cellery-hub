@@ -54,8 +54,7 @@ const styles = (theme) => ({
         paddingBottom: theme.spacing(2)
     },
     stats: {
-        display: "flex",
-        paddingTop: theme.spacing(2)
+        display: "flex"
     },
     title: {
         display: "inline-block"
@@ -63,6 +62,15 @@ const styles = (theme) => ({
     link: {
         color: "#666666",
         fontWeight: 400
+    },
+    orgName: {
+        textTransform: "uppercase",
+        color: "#ffffff"
+    },
+    imageContainer: {
+        backgroundColor: "#91c56f",
+        borderRadius: 5,
+        minHeight: 100
     }
 });
 
@@ -135,6 +143,20 @@ const Org = (props) => {
                 <Divider/>
                 <div className={classes.container}>
                     <Grid container spacing={4}>
+                        <Grid item xs={2} sm={2} md={2}>
+                            <Grid container justify="center" alignContent="center" className={classes.imageContainer}>
+                                <Typography variant="h2" color="inherit" className={classes.orgName}>
+                                    {data.orgName.charAt(0)}
+                                </Typography>
+                            </Grid>
+                        </Grid>
+                        <Grid item xs={10} sm={10} md={10}>
+                            <div className={classes.stats}>
+                                <Typography variant="subtitle2" color="inherit" className={classes.elementText}>
+                                    Created by {data.createdDate} on {data.createdBy}
+                                </Typography>
+                            </div>
+                        </Grid>
                         <Grid item xs={12} sm={12} md={12}>
                             <Grid container>
                                 <Grid item xs={12} sm={12} md={12}>

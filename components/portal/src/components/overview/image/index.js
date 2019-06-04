@@ -29,7 +29,6 @@ import InputBase from "@material-ui/core/InputBase/InputBase";
 import Language from "@material-ui/icons/Language";
 import Lock from "@material-ui/icons/Lock";
 import React from "react";
-import Star from "@material-ui/icons/Star";
 import Tooltip from "@material-ui/core/Tooltip/Tooltip";
 import Typography from "@material-ui/core/Typography";
 import VersionList from "./VersionList";
@@ -241,11 +240,6 @@ class Image extends React.Component {
                                             <Typography variant="subtitle2" color="inherit"
                                                 className={classes.elementText}>
                                                 {data.pulls}
-                                            </Typography>
-                                            <Star className={classNames(classes.elementIcon, classes.spaceLeft)}/>
-                                            <Typography variant="subtitle2" color="inherit"
-                                                className={classes.elementText}>
-                                                {data.stars}
                                             </Typography>
                                             {
                                                 data.public
