@@ -30,7 +30,7 @@ services:
       - "5001:5001"
     volumes:
       - ./docker-auth/conf:/conf
-      - ./docker-registry/security:/security
+      - ./docker-auth/security:/security
       - ./docker-auth/extension-logs:/extension-logs
     environment:
       - IDP_CERT=/security/idp.crt
