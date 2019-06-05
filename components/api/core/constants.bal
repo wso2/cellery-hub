@@ -16,4 +16,6 @@
 //
 // ------------------------------------------------------------------------
 
-public const int API_DEFAULT_STATUSCODE = 1;
+public const int API_ERROR_CODE = 1;
+
+public const string USERNAME = "username";
