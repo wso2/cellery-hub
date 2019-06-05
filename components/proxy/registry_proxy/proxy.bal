@@ -18,6 +18,7 @@
 
 import ballerina/auth;
 import ballerina/config;
+import ballerina/encoding;
 import ballerina/http;
 import ballerina/io;
 import ballerina/log;
@@ -28,22 +29,9 @@ import cellery_hub/image;
 
 http:ServiceEndpointConfiguration registryProxyServiceEPConfig = {
     secureSocket: {
-        keyStore: {
-            path: config:getAsString("security.keystore.file"),
-            password: config:getAsString("security.keystore.password")
-        }
+        certFile: config:getAsString("security.proxycert"),
+        keyFile: config:getAsString("security.proxykey")
     }
-};
-
-auth:JWTValidatorConfig idpJwtValidatorConfig = {
-    issuer: config:getAsString("docker.auth.issuer"),
-    audience: [config:getAsString("docker.auth.audience")],
-    trustStore: {
-        path: config:getAsString("security.truststore.file"),
-        password: config:getAsString("security.truststore.password")
-    },
-    certificateAlias: config:getAsString("docker.auth.certalias"),
-    validateCertificate: false
 };
 
 @http:ServiceConfig {
@@ -227,8 +215,9 @@ function handlePassThroughProxying(http:Caller caller, http:Request req) {
 # + jwtToken - The JWT token to be used
 # + return - The user who performed the action
 function getUserId(string jwtToken) returns (string|error) {
-    var jwtPayload = check auth:validateJwt(jwtToken, idpJwtValidatorConfig);
-    return jwtPayload.sub;
+    var jwtTokenSplit = jwtToken.split(".");
+    var jwtJson = check json.convert(encoding:decodeBase64(jwtTokenSplit[1]));
+    return <string>jwtJson.sub;
 }
 
 # Handle Proxy API errors.

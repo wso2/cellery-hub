@@ -1,7 +1,7 @@
 server:
   addr: ":5001"
-  certificate: "/security/docker-auth-TLS.crt"
-  key: "/security/docker-auth-TLS.key"
+  certificate: "/security/docker-auth-tls.crt"
+  key: "/security/docker-auth-tls.key"
 
 token:
   issuer: "auth.registry.hub.cellery.io"

@@ -40,7 +40,6 @@ split_resluts
   tput setaf 2;
     echo $1
     tput sgr0;
-    break
   else
     tput setaf 1;
     echo "$2 , Status code : $STATUS"

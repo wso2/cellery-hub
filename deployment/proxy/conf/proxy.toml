@@ -1,10 +1,7 @@
-[security.truststore]
-file="/security/truststore.p12"
-password="ballerina"
-
-[security.keystore]
-file="/security/keystore.p12"
-password="ballerina"
+[security]
+proxycert="/security/proxy-tls.crt"
+proxykey="/security/proxy-tls.pem"
+trustedcerts="/security/trusted-tls.crt"
 
 [database]
 host="mysql.hub.internal"

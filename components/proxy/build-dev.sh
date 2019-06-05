@@ -17,5 +17,5 @@
 #
 # ------------------------------------------------------------------------
 
-ballerina build
-cp ../../deployment/api/conf/api.toml target/ballerina.conf
+ballerina build --experimental
+cp ../../deployment/proxy/conf/proxy.toml target/ballerina.conf

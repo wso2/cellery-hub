@@ -62,8 +62,8 @@ services:
       - REGISTRY_AUTH_TOKEN_SERVICE="Docker registry"
       - REGISTRY_AUTH_TOKEN_ISSUER="auth.registry.hub.cellery.io"
       - REGISTRY_AUTH_TOKEN_ROOTCERTBUNDLE=/security/docker-auth-sign.crt
-      - REGISTRY_HTTP_TLS_CERTIFICATE=/security/docker-registry-TLS.crt
-      - REGISTRY_HTTP_TLS_KEY=/security/docker-registry-TLS.key
+      - REGISTRY_HTTP_TLS_CERTIFICATE=/security/docker-registry-tls.crt
+      - REGISTRY_HTTP_TLS_KEY=/security/docker-registry-tls.key
       - REGISTRY_COMPATIBILITY_SCHEMA1_ENABLED=true
       - REGISTRY_HTTP_HOST=https://registry.hub.cellery.io:9090
   mysql.hub.internal:
