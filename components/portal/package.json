@@ -15,7 +15,8 @@
     "react-dom": "^16.8.6",
     "react-router-dom": "^5.0.0",
     "react-scripts": "3.0.0",
-    "typeface-roboto": "0.0.54"
+    "typeface-roboto": "0.0.54",
+    "vis": "^4.21.0"
   },
   "scripts": {
     "start": "concurrently --kill-others --names \"config-server,webpack-dev-server\" \"APP_ENV=DEV PORTAL_PORT=4000 node node-server/serve.js\" \"react-scripts start\"",
