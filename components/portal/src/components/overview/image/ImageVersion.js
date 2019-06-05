@@ -20,7 +20,7 @@ import AccessTime from "@material-ui/icons/AccessTime";
 import ArrowBack from "@material-ui/icons/ArrowBack";
 import CellImage from "../../../img/CellImage";
 import CustomizedTabs from "../../common/CustomizedTabs";
-import Dependency from "./Dependency";
+import DependencyDiagram from "./dependencyDiagram";
 import Divider from "@material-ui/core/Divider";
 import FileCopy from "@material-ui/icons/FileCopyOutlined";
 import GetApp from "@material-ui/icons/GetApp";
@@ -202,7 +202,7 @@ class ImageVersion extends React.Component {
         const tabs = [
             {
                 label: "Dependencies",
-                component: <Dependency data={data.versions}/>
+                component: <DependencyDiagram cell={data.name}/>
             }
         ];
 
