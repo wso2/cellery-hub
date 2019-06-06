@@ -57,15 +57,12 @@ public type CaptchaRequestFilter object {
                 return false;
             }
         } else {
-            log:printDebug("Error occured while running Gcaptcha filter " + orgCountResult.reason());
-
+            log:printError("Error occured while running Gcaptcha filter " + orgCountResult.reason());
         }
         return true;
     }
 
-    public function filterResponse(http:Response response,
-    http:FilterContext context)
-    returns boolean {
+    public function filterResponse(http:Response response, http:FilterContext context) returns boolean {
         return true;
     }
 };
@@ -83,7 +80,7 @@ public function validateCaptcha(http:Request request) returns boolean {
     string body = "secret=" + gcaptchaSecret + "&response=" + captchaResult;
     log:printDebug("Request towards GCaptcha API " + body);
     req.setPayload(untaint body);
-    var err = req.setContentType("application/x-www-form-urlencoded");
+    var err = req.setContentType(constants:APPLICATION_URL_ENCODED_CONTENT_TYPE);
     var response = clientEndpoint->post("", req);
     var captchaValidationResult = interpretCaptchaResponse(response);
     if (captchaValidationResult is boolean && captchaValidationResult) {
@@ -106,10 +103,10 @@ function interpretCaptchaResponse(http:Response | error response) returns boolea
             log:printInfo("Gcaptcha validation failed from google API");
             return false;
         } else {
-            log:printDebug("Didn't recieve a json response from captcha verification API: " + msg.reason());
+            log:printError("Didn't recieve a json response from captcha verification API: " + msg.reason());
         }
     } else {
-        log:printDebug("Error when calling the google recaptcha API for valication: " + response.reason());
+        log:printError("Error when calling the google recaptcha API for valication: " + response.reason());
     }
     return false;
 }
