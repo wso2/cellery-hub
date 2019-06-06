@@ -21,8 +21,10 @@ import ballerina/log;
 import ballerina/mime;
 import ballerina/openapi;
 import cellery_hub_api/gen;
+import cellery_hub_api/filter;
 
-listener http:Listener ep = new(9090, config = {});
+filter:CaptchaRequestFilter catpchaFilter = new;
+listener http:Listener ep = new(9090, config = { filters: [catpchaFilter]});
 
 @openapi:ServiceInfo {
     title: "Cellery Hub API",

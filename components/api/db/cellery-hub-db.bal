@@ -20,6 +20,7 @@ import ballerina/log;
 import ballerina/mysql;
 import ballerina/sql;
 import cellery_hub_api/gen;
+import ballerina/io;
 
 public function getOrganization (string name) returns json|error {
     log:printDebug("Performing organization search for Org name in REGISTRY_ORGANIZATION table " + name);
@@ -33,4 +34,15 @@ public function getOrganization (string name) returns json|error {
         log:printDebug("The requested organization is not found in REGISTRY_ORGANIZATION");
         return null;
     }
+}
+
+
+public function getOrganizationCount(string userId) returns int | error {
+    log:printDebug("Retriving number organiations for user : " + userId);
+    table< record {}> selectRet = check connection->select(GET_ORG_COUNT_FOR_USER, (), userId);
+    json jsonConversionRet = check json.convert(selectRet);
+    log:printDebug("Response from organization count query from DB: " + check string.convert(jsonConversionRet));
+    int value = check int.convert(jsonConversionRet[0]["COUNT(ORG_NAME)"]);
+    log:printDebug("Count organiations for user : " + userId + ": " + value);
+    return value;
 }

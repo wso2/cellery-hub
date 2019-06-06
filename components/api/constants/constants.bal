@@ -14,9 +14,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License
 //
-// ------------------------------------------------------------------------
+//
 
-public const string GET_ORG_QUERY = "SELECT DESCRIPTION, WEBSITE_URL, FIRST_AUTHOR, CREATED_DATE
-                                    FROM REGISTRY_ORGANIZATION WHERE ORG_NAME = ?";
-
-public const string GET_ORG_COUNT_FOR_USER = "SELECT COUNT(ORG_NAME) FROM REGISTRY_ORG_USER_MAPPING WHERE USER_UUID=?";
+public const string APPLICATION_URL_ENCODED_CONTENT_TYPE = "application/x-www-form-urlencoded"
+public const string AUTHENTICATED_USER = "x-cellery-hub-user";
+public const string G_CAPTCHA_RESPONSE = "g-recaptcha-response";
