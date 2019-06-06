@@ -3,4 +3,9 @@ host="localhost"
 port=3306
 default="CELLERY_HUB"
 user="root"
-password="mysqlroot"
+password="root"
+
+[filter.captcha]
+secret="someSecret"
+endpoint="https://www.google.com/recaptcha/api/siteverify"
+engaged.paths="[{\"path\" : \"/api/0.1.0/orgs/*\", \"method\": \"get\"}]"
