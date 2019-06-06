@@ -11,8 +11,6 @@ token:
 
 ext_auth:
   command: "/extensions/authentication"
-  args: ["-log_dir=/extension-logs"]
 
 ext_authz:
   command: "/extensions/authorization"
-  args: [""]
