@@ -16,48 +16,44 @@
 //
 // ------------------------------------------------------------------------
 import cellery_hub_api/db;
-import ballerina/http;
 
-public function createOrg (http:Request createOrgReq, gen:OrgCreateRequest createOrgsBody) returns http:Response{
-    http:Response _addOrgRes = new;
-    if (createOrgReq.hasHeader(USERNAME)){
-        string userName = createOrgReq.getHeader(USERNAME);
-        var res = db:insertOrganization(userName, createOrgsBody);
+public function createOrg(http:Request createOrgReq, gen:OrgCreateRequest createOrgsBody) returns http:Response {
+    if (createOrgReq.hasHeader(USER_ID)) {
+        string userId = createOrgReq.getHeader(USER_ID);
+        var res = db:insertOrganization(userId, createOrgsBody);
         if (res is error) {
-            string errMsg = "Unexpected error occured while inserting organization " + untaint createOrgsBody.orgName;
-            log:printError(errMsg, err = res);
-            return buildErrorResponse(http:INTERNAL_SERVER_ERROR_500, API_ERROR_CODE, errMsg, "Organization name \'" + 
-                                                                    untaint createOrgsBody.orgName+ "\' is already taken");
-        } else {        
-            _addOrgRes.statusCode = http:OK_200;
-            log:printDebug("Organization \'" +createOrgsBody.orgName+ "\' is created. Author : " +userName);   
-            return _addOrgRes;
+            log:printError("Unexpected error occured while inserting organization " + untaint createOrgsBody.orgName, err = res);
+            return buildUnknownErrorResponse();
+        } else {
+            http:Response createOrgRes = new;
+            createOrgRes.statusCode = http:OK_200;
+            log:printDebug("Organization \'" + createOrgsBody.orgName + "\' is created. Author : " + userId);
+            return createOrgRes;
         }
     } else {
-        string errDescription = "Unauthenticated request : Username is not found";
-        log:printError(errDescription);
-        return buildErrorResponse(http:UNAUTHORIZED_401, API_ERROR_CODE, "Unable to create organization", errDescription);
-    }    
+        log:printError("Unauthenticated request. Username is not found");
+        return buildErrorResponse(http:UNAUTHORIZED_401, API_ERROR_CODE, "Unable to create organization", 
+                                                            "Unauthenticated request. Auth token is not provided");
+    }
 }
 
-public function getOrg (http:Request getOrgReq, string orgName) returns http:Response {
-    http:Response _getOrgRes = new;
+public function getOrg(http:Request getOrgReq, string orgName) returns http:Response {    
     json | error res = db:getOrganization(orgName);
-    if (res is json){
-        if (res != null){
-            _getOrgRes.statusCode = http:OK_200; 
-            _getOrgRes.setJsonPayload(untaint res);
-            log:printDebug("Successfully fetched organization " +orgName );        
-            return _getOrgRes;
+    if (res is json) {
+        if (res != null) {
+            http:Response getOrgRes = new;
+            getOrgRes.statusCode = http:OK_200;
+            getOrgRes.setJsonPayload(untaint res);
+            log:printDebug("Successfully fetched organization " + orgName);
+            return getOrgRes;
+        } else {
+            string errMsg = "Unable to fetch organization. ";
+            string errDes = "There is no organization named \'" + orgName + "\'";
+            log:printError(errMsg + errDes);
+            return buildErrorResponse(http:NOT_FOUND_404, API_ERROR_CODE, errMsg, errDes);
         }
-        else{
-            string errMsg = "Ubable to fetch organization";
-            log:printError(errMsg);        
-            return buildErrorResponse(http:NOT_FOUND_404, API_ERROR_CODE, errMsg, "There is no organization named \'" +orgName+ "\'"); 
-        }
-    } else {      
-        string errMsg = "Ubable to fetch organization";
-        log:printError(errMsg , err = res);        
-        return buildErrorResponse(http:INTERNAL_SERVER_ERROR_500, API_ERROR_CODE, errMsg, "Unexpected error occured while fetching data"); 
-    } 
+    } else {
+        log:printError("Unable to fetch organization", err = res);
+        return buildUnknownErrorResponse();
+    }
 }

@@ -18,4 +18,4 @@
 
 public const int API_ERROR_CODE = 1;
 
-public const string USERNAME = "username";
+public const string USER_ID = "userId";

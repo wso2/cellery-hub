@@ -37,7 +37,7 @@ function buildUnknownErrorResponse () returns http:Response {
     http:Response res = new;
     json errDefault = {
         code: API_ERROR_CODE,
-        message: "Error occured when converting Error struct to Json",
+        message: "Unexpected error occurred",
         description: ""
     };
     res.setPayload(errDefault);

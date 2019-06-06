@@ -23,7 +23,7 @@ import cellery_hub_api/gen;
 import ballerina/io;
 
 public function getOrganization (string orgName) returns json|error {
-    log:printDebug("Performing search on REGISTRY_ORGANIZATION table, Org name : " + orgName);
+    log:printDebug("Performing data retreival on REGISTRY_ORGANIZATION table, Org name : " + orgName);
     table<record {}> res =  check connection -> select (GET_ORG_QUERY, gen:OrgResponse, orgName, loadToMemory = true);
     if (res.count() == 1) {
         gen:OrgResponse orgRes = check gen:OrgResponse.convert(res.getNext());
