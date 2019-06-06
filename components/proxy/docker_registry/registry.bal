@@ -21,7 +21,7 @@ import ballerina/http;
 
 http:Client dockerRegistryClientEP = new(config:getAsString("docker.registry.url"), config = {
     secureSocket: {
-        trustedCertFile: config:getAsString("security.trustedcerts")
+        trustedCertFile: config:getAsString("security.trustedcertsfile")
     }
 });
 

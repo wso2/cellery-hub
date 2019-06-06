@@ -12,6 +12,16 @@ services:
       - PORTAL_PORT=9000
       - PORTAL_PRIVATE_KEY=/portal/security/portal.key
       - PORTAL_CERT=/portal/security/portal.cert
+  api.hub.cellery.io:
+    image: wso2cellery/cellery-hub-api:latest
+    restart: always
+    ports:
+      - "11000:9090"
+    volumes:
+      - ./api/security:/security
+      - ./api/conf:/conf
+    environment:
+      - API_CONF=/conf/api.toml
   registry.hub.cellery.io:
     image: wso2cellery/cellery-hub-proxy:latest
     restart: always

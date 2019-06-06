@@ -16,6 +16,7 @@
 //
 // ------------------------------------------------------------------------
 
+import ballerina/config;
 import ballerina/http;
 import ballerina/log;
 import ballerina/mime;
@@ -24,8 +25,19 @@ import cellery_hub_api/gen;
 import cellery_hub_api/filter;
 import cellery_hub_api/constants;
 
+<<<<<<< HEAD
 filter:CaptchaRequestFilter catpchaFilter = new;
 listener http:Listener ep = new(9090, config = { filters: [catpchaFilter]});
+=======
+http:ServiceEndpointConfiguration celleryHubAPIEPConfig = {
+    secureSocket: {
+        certFile: config:getAsString("security.certfile"),
+        keyFile: config:getAsString("security.keyfile")
+    }
+};
+
+listener http:Listener ep = new(9090, config = celleryHubAPIEPConfig);
+>>>>>>> Add support to start API service over HTTPS
 
 @openapi:ServiceInfo {
     title: "Cellery Hub API",

@@ -66,12 +66,14 @@ test: build
 docker:
 	docker build -t $(DOCKER_REPO)/cellery-hub-docker-auth:$(VERSION) -f ./docker/docker-auth/Dockerfile .
 	docker build -t $(DOCKER_REPO)/cellery-hub-proxy:$(VERSION) -f ./docker/proxy/Dockerfile .
+	docker build -t $(DOCKER_REPO)/cellery-hub-api:$(VERSION) -f ./docker/api/Dockerfile .
 	docker build -t $(DOCKER_REPO)/cellery-hub-portal:$(VERSION) -f ./docker/portal/Dockerfile .
 
 .PHONY: docker-push
 docker-push: docker
 	docker push $(DOCKER_REPO)/cellery-hub-docker-auth:$(VERSION)
 	docker push $(DOCKER_REPO)/cellery-hub-proxy:$(VERSION)
+	docker push $(DOCKER_REPO)/cellery-hub-api:$(VERSION)
 	docker push $(DOCKER_REPO)/cellery-hub-portal:$(VERSION)
 
 .PHONY: deploy

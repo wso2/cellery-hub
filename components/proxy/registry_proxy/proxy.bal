@@ -29,8 +29,8 @@ import cellery_hub/image;
 
 http:ServiceEndpointConfiguration registryProxyServiceEPConfig = {
     secureSocket: {
-        certFile: config:getAsString("security.proxycert"),
-        keyFile: config:getAsString("security.proxykey")
+        certFile: config:getAsString("security.certfile"),
+        keyFile: config:getAsString("security.keyfile")
     }
 };
 
