@@ -296,7 +296,7 @@ returns http:Response {
                     users[counter] = userResponse;
                     counter += 1;
                 } else {
-                    log:printError(io:sprintf("Error while retriving user info for user %s", user.userId), 
+                    log:printError(io:sprintf("Error while retriving user info for user %s", user.userId),
                     err = userinfoResponse);
                 }
             }
@@ -321,7 +321,7 @@ returns http:Response {
             }
         } else {
 
-            log:printError(io:sprintf("Error occured while retriving users from DB for organization %s : user %s", 
+            log:printError(io:sprintf("Error occured while retriving users from DB for organization %s : user %s",
             orgName, userId));
             return buildUnknownErrorResponse();
         }
