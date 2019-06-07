@@ -25,19 +25,17 @@ import cellery_hub_api/gen;
 import cellery_hub_api/filter;
 import cellery_hub_api/constants;
 
-<<<<<<< HEAD
-filter:CaptchaRequestFilter catpchaFilter = new;
-listener http:Listener ep = new(9090, config = { filters: [catpchaFilter]});
-=======
 http:ServiceEndpointConfiguration celleryHubAPIEPConfig = {
     secureSocket: {
         certFile: config:getAsString("security.certfile"),
         keyFile: config:getAsString("security.keyfile")
-    }
+    },
+    filters: [
+        new filter:CaptchaRequestFilter()
+    ]
 };
 
 listener http:Listener ep = new(9090, config = celleryHubAPIEPConfig);
->>>>>>> Add support to start API service over HTTPS
 
 @openapi:ServiceInfo {
     title: "Cellery Hub API",
@@ -47,7 +45,11 @@ listener http:Listener ep = new(9090, config = celleryHubAPIEPConfig);
     license: {name: "Apache 2.0", url: "http://www.apache.org/licenses/LICENSE-2.0"}
 }
 @http:ServiceConfig {
-    basePath: "/api/0.1.0"
+    basePath: "/api/0.1.0",
+    cors: {
+        allowOrigins: [config:getAsString("portal.publicurl")],
+        allowCredentials: true
+    }
 }
 service CelleryHubAPI on ep {
 

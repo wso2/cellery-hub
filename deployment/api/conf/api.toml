@@ -3,6 +3,9 @@ certfile="/security/api-tls.crt"
 keyfile="/security/api-tls.pem"
 trustedcertsfile="/security/trusted-tls.crt"
 
+[portal]
+publicurl="https://hub.cellery.io:9000"
+
 [database]
 host="mysql.hub.internal"
 port=3306

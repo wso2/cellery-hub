@@ -101,7 +101,7 @@ parameters:
     description: "Offset of the result set returned for pagination"
     required: true
     type: "number"
-    
+
 definitions:
   OrgCreateRequest:
     type: "object"
