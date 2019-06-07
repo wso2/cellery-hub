@@ -22,6 +22,7 @@ import ballerina/mime;
 import ballerina/openapi;
 import cellery_hub_api/gen;
 import cellery_hub_api/filter;
+import cellery_hub_api/constants;
 
 filter:CaptchaRequestFilter catpchaFilter = new;
 listener http:Listener ep = new(9090, config = { filters: [catpchaFilter]});
@@ -71,5 +72,54 @@ service CelleryHubAPI on ep {
     resource function getOrg (http:Caller outboundEp, http:Request _getOrgReq, string orgName) returns error? {
         http:Response _getOrgRes = getOrg(_getOrgReq, untaint orgName);
         error? x = outboundEp->respond(_getOrgRes);
+    }
+
+    @openapi:ResourceInfo {
+        summary: "Get a specific Image with versions",
+        parameters: [
+        {
+            name: "orgName",
+            inInfo: "path",
+            paramType: "string",
+            description: "Name of the organization which the image belogs to",
+            required: true,
+            allowEmptyValue: ""
+        },
+        {
+            name: "imageName",
+            inInfo: "path",
+            paramType: "string",
+            description: "Name of the image",
+            required: true,
+            allowEmptyValue: ""
+        }
+        ]
+    }
+    @http:ResourceConfig {
+        methods: ["GET"],
+        path: "/images/{orgName}/{imageName}"
+    }
+    resource function getImage(http:Caller outboundEp, http:Request _getImageReq, string orgName, string imageName)
+    returns error? {
+        map<string> queryParams = _getImageReq.getQueryParams();
+        int offset = 0;
+        int resultLimit = 10;
+        if (queryParams.hasKey(constants:OFFSET)) {
+            int | error offsetQueryParam = int.convert(queryParams.offset);
+            if (offsetQueryParam is int) {
+                offset = offsetQueryParam;
+            }
+        }
+        if (queryParams.hasKey(constants:RESULT_LIMIT)) {
+
+            int | error resultLimitQueryParam = int.convert(queryParams.
+            resultLimit);
+            if (resultLimitQueryParam is int) {
+                resultLimit = resultLimitQueryParam;
+            }
+        }
+
+        http:Response _getImageRes = getImageByImageName(_getImageReq, untaint orgName, untaint imageName, offset, resultLimit);
+        error? x = outboundEp->respond(_getImageRes);
     }
 }

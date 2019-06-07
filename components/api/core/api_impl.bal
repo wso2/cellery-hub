@@ -17,6 +17,8 @@
 // ------------------------------------------------------------------------
 import cellery_hub_api/db;
 import cellery_hub_api/constants;
+import ballerina/io;
+import ballerina/log;
 
 public function createOrg(http:Request createOrgReq, gen:OrgCreateRequest createOrgsBody) returns http:Response {
     if (createOrgReq.hasHeader(constants:AUTHENTICATED_USER)) {
@@ -57,4 +59,73 @@ public function getOrg(http:Request getOrgReq, string orgName) returns http:Resp
         log:printError("Unable to fetch organization", err = res);
         return buildUnknownErrorResponse();
     }
+}
+public function getImageByImageName(http:Request getImageRequest, string orgName, string imageName, int offset, int resultLimit) returns http:Response {
+
+
+    log:printDebug("Searching images for organization \'" + orgName + "\' imageName : " + imageName + ". Search offset: "
+    + offset + ", limit: " + resultLimit);
+    table<gen:Image> | error results;
+    if (getImageRequest.hasHeader(constants:AUTHENTICATED_USER)) {
+        string userId = getImageRequest.getHeader(constants:AUTHENTICATED_USER);
+        log:printDebug("get Image request with authenticated User : " + userId);
+        results = db:getUserImage(orgName, imageName, userId);
+    } else {
+        log:printDebug("get Image request without an authenticated user");
+        results = db:getPublicImage(orgName, imageName);
+    }
+
+    if (results is table<gen:Image>) {
+        log:printDebug("Number of results found for search : " + results.count());
+        if (results.count() == 0) {
+            string errMsg = "No image found with given image name and organization";
+            log:printError(errMsg);
+            return buildErrorResponse(http:NOT_FOUND_404, constants:API_ERROR_CODE, errMsg, errMsg);
+        } else if (results.count() > 1) {
+            log:printError("Found more than one result for image GET: Number of results : " + results.count());
+            return buildUnknownErrorResponse();
+        }
+        if (results.hasNext()) {
+            gen:Image image = <gen:Image>results.getNext();
+            log:printDebug("Found an image with Id: " + image.artifactImageId);
+            gen:ImageVersion[] versions = [];
+            table<gen:ImageVersion> | error versionsResult = db:getImageVersions(image.artifactImageId, offset, resultLimit);
+            if (versionsResult is table<gen:ImageVersion>) {
+                int versionResultCount = versionsResult.count();
+                log:printDebug("Versions found for image :" + imageName + ": " + versionResultCount);
+                int count = 0;
+                foreach var imageVersion in versionsResult {
+                    log:printDebug("Found version: " + imageVersion.imageVersion);
+                    versions[count] = imageVersion;
+                    count += 1;
+                }
+                gen:ImageResponse imageResponse = {
+                    artifactImageId: image.artifactImageId,
+                    orgName: image.orgName,
+                    imageName: image.imageName,
+                    description: image.description,
+                    licenseIdentifier: image.licenseIdentifier,
+                    apiDocUrl: image.apiDocUrl,
+                    sourceUrl: image.sourceUrl,
+                    firstAuthor: image.firstAuthor,
+                    visibility: image.visibility,
+                    versions: versions
+                };
+
+                json | error resPayload =  json.convert(imageResponse);
+                if (resPayload is json) {
+                    return buildSuccessResponse(resPayload);
+                } else {
+                    log:printError("Error while converting payload to json" + imageName, err = resPayload);
+                }
+            } else {
+                log:printError("Error while converting payload to json" + imageName, err = versionsResult);
+            }
+
+        }
+    } else {
+        log:printError("Error while retriving image" + imageName, err = results);
+    }
+
+    return buildUnknownErrorResponse();
 }

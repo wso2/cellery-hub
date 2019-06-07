@@ -44,3 +44,10 @@ function buildUnknownErrorResponse () returns http:Response {
     res.statusCode = http:INTERNAL_SERVER_ERROR_500;
     return res; 
 }
+
+function buildSuccessResponse(json jsonResponse) returns http:Response {
+    http:Response resp = new;
+    resp.statusCode = http:OK_200;
+    resp.setJsonPayload(untaint jsonResponse);
+    return resp;
+}

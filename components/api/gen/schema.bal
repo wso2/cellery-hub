@@ -30,6 +30,38 @@ public type OrgResponse record {
     string createdTimestamp;
 };
 
+public type Image record {
+    string artifactImageId;
+    string orgName;
+    string imageName;
+    string description;
+    string licenseIdentifier;
+    string apiDocUrl;
+    string sourceUrl;
+    string firstAuthor;
+    string visibility;
+};
+
+public type ImageResponse record {
+    string artifactImageId;
+    string orgName;
+    string imageName;
+    string description;
+    string licenseIdentifier;
+    string apiDocUrl;
+    string sourceUrl;
+    string firstAuthor;
+    string visibility;
+    ImageVersion[] versions;
+};
+
+public type ImageVersion record {
+    string imageVersion;
+    int pushCount;
+    int pullCount;
+    string lastUpdated;
+};
+
 public type ErrorResponse record { 
     int code;
     string message;
