@@ -36,7 +36,7 @@ public function buildErrorResponse (int statusCode, int code, string message, st
 function buildUnknownErrorResponse () returns http:Response {
     http:Response res = new;
     json errDefault = {
-        code: API_ERROR_CODE,
+        code: constants:API_ERROR_CODE,
         message: "Unexpected error occurred",
         description: ""
     };

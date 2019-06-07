@@ -16,10 +16,11 @@
 //
 // ------------------------------------------------------------------------
 import cellery_hub_api/db;
+import cellery_hub_api/constants;
 
 public function createOrg(http:Request createOrgReq, gen:OrgCreateRequest createOrgsBody) returns http:Response {
-    if (createOrgReq.hasHeader(USER_ID)) {
-        string userId = createOrgReq.getHeader(USER_ID);
+    if (createOrgReq.hasHeader(constants:AUTHENTICATED_USER)) {
+        string userId = createOrgReq.getHeader(constants:AUTHENTICATED_USER);
         var res = db:insertOrganization(userId, createOrgsBody);
         if (res is error) {
             log:printError("Unexpected error occured while inserting organization " + untaint createOrgsBody.orgName, err = res);
@@ -32,7 +33,7 @@ public function createOrg(http:Request createOrgReq, gen:OrgCreateRequest create
         }
     } else {
         log:printError("Unauthenticated request. Username is not found");
-        return buildErrorResponse(http:UNAUTHORIZED_401, API_ERROR_CODE, "Unable to create organization", 
+        return buildErrorResponse(http:UNAUTHORIZED_401, constants:API_ERROR_CODE, "Unable to create organization", 
                                                             "Unauthenticated request. Auth token is not provided");
     }
 }
@@ -50,7 +51,7 @@ public function getOrg(http:Request getOrgReq, string orgName) returns http:Resp
             string errMsg = "Unable to fetch organization. ";
             string errDes = "There is no organization named \'" + orgName + "\'";
             log:printError(errMsg + errDes);
-            return buildErrorResponse(http:NOT_FOUND_404, API_ERROR_CODE, errMsg, errDes);
+            return buildErrorResponse(http:NOT_FOUND_404, constants:API_ERROR_CODE, errMsg, errDes);
         }
     } else {
         log:printError("Unable to fetch organization", err = res);
