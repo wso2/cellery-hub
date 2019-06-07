@@ -44,11 +44,11 @@ service CelleryHubAPI on ep {
     @http:ResourceConfig {
         methods:["POST"],
         path:"/orgs",
-        body:"_createOrgsBody"
+        body:"_createOrgBody"
     }
-    resource function createOrgs (http:Caller outboundEp, http:Request _createOrgsReq, gen:OrgCreateRequest _createOrgsBody) returns error? {
-        http:Response _createOrgsRes = createOrgs(_createOrgsReq, _createOrgsBody);
-        error? x = outboundEp->respond(_createOrgsRes);
+    resource function createOrg (http:Caller outboundEp, http:Request _createOrgReq, gen:OrgCreateRequest _createOrgBody) returns error? {
+        http:Response _createOrgRes = createOrg(_createOrgReq, untaint _createOrgBody);
+        error? x = outboundEp->respond(_createOrgRes);
     }
 
     @openapi:ResourceInfo {
@@ -69,7 +69,7 @@ service CelleryHubAPI on ep {
         path:"/orgs/{orgName}"
     }
     resource function getOrg (http:Caller outboundEp, http:Request _getOrgReq, string orgName) returns error? {
-        http:Response _getOrgRes = getOrg(_getOrgReq, orgName);
+        http:Response _getOrgRes = getOrg(_getOrgReq, untaint orgName);
         error? x = outboundEp->respond(_getOrgRes);
     }
 }

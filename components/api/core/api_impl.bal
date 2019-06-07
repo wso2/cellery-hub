@@ -16,26 +16,45 @@
 //
 // ------------------------------------------------------------------------
 import cellery_hub_api/db;
-import ballerina/http;
+import cellery_hub_api/constants;
 
-public function createOrgs (http:Request _createOrgsReq, gen:OrgCreateRequest _createOrgsBody) returns http:Response {
-    // stub code - fill as necessary
-    http:Response _createOrgsRes = new;
-    string _createOrgsPayload = "Sample createOrgs Response";
-    _createOrgsRes.setTextPayload(_createOrgsPayload);
-	return _createOrgsRes;
+public function createOrg(http:Request createOrgReq, gen:OrgCreateRequest createOrgsBody) returns http:Response {
+    if (createOrgReq.hasHeader(constants:AUTHENTICATED_USER)) {
+        string userId = createOrgReq.getHeader(constants:AUTHENTICATED_USER);
+        var res = db:insertOrganization(userId, createOrgsBody);
+        if (res is error) {
+            log:printError("Unexpected error occured while inserting organization " + untaint createOrgsBody.orgName, err = res);
+            return buildUnknownErrorResponse();
+        } else {
+            http:Response createOrgRes = new;
+            createOrgRes.statusCode = http:OK_200;
+            log:printDebug("Organization \'" + createOrgsBody.orgName + "\' is created. Author : " + userId);
+            return createOrgRes;
+        }
+    } else {
+        log:printError("Unauthenticated request. Username is not found");
+        return buildErrorResponse(http:UNAUTHORIZED_401, constants:API_ERROR_CODE, "Unable to create organization", 
+                                                            "Unauthenticated request. Auth token is not provided");
+    }
 }
-public function getOrg (http:Request getOrgReq, string orgName) returns http:Response {
-    http:Response _getOrgRes = new;
+
+public function getOrg(http:Request getOrgReq, string orgName) returns http:Response {    
     json | error res = db:getOrganization(orgName);
-    if (res is json){
-        _getOrgRes.statusCode = http:OK_200; 
-        _getOrgRes.setJsonPayload(untaint res);
-        log:printDebug("Successfully fetched organization " +orgName );        
-        return _getOrgRes;
-    } else {      
-        string errMsg = "Unexpected error occured while fetching data";
-        log:printError(errMsg , err = res);        
-        return buildErrorResponse(API_DEFAULT_STATUSCODE, errMsg, untaint <string>res.detail().message); 
-    } 
+    if (res is json) {
+        if (res != null) {
+            http:Response getOrgRes = new;
+            getOrgRes.statusCode = http:OK_200;
+            getOrgRes.setJsonPayload(untaint res);
+            log:printDebug("Successfully fetched organization " + orgName);
+            return getOrgRes;
+        } else {
+            string errMsg = "Unable to fetch organization. ";
+            string errDes = "There is no organization named \'" + orgName + "\'";
+            log:printError(errMsg + errDes);
+            return buildErrorResponse(http:NOT_FOUND_404, constants:API_ERROR_CODE, errMsg, errDes);
+        }
+    } else {
+        log:printError("Unable to fetch organization", err = res);
+        return buildUnknownErrorResponse();
+    }
 }

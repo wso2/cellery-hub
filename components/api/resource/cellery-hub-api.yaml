@@ -16,7 +16,7 @@ schemes:
 paths:
   /orgs:
     post:
-      operationId: "createOrgs"
+      operationId: "createOrg"
       summary: "Create organization"
       consumes:
       - "application/json"
@@ -137,3 +137,4 @@ definitions:
       description:
         type: "string"
         description: "Description about the error occurred"
+

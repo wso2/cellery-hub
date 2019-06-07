@@ -22,20 +22,25 @@ import ballerina/sql;
 import cellery_hub_api/gen;
 import ballerina/io;
 
-public function getOrganization (string name) returns json|error {
-    log:printDebug("Performing organization search for Org name in REGISTRY_ORGANIZATION table " + name);
-    table<record {}> res =  check connection->select(GET_ORG_QUERY,gen:OrgResponse,name, loadToMemory = true);
+public function getOrganization (string orgName) returns json|error {
+    log:printDebug("Performing data retreival on REGISTRY_ORGANIZATION table, Org name : " + orgName);
+    table<record {}> res =  check connection -> select (GET_ORG_QUERY, gen:OrgResponse, orgName, loadToMemory = true);
     if (res.count() == 1) {
         gen:OrgResponse orgRes = check gen:OrgResponse.convert(res.getNext());
         json resPayload = check json.convert(orgRes);
-        log:printDebug("Fetching data for organization " +name+ ", from REGISTRY_ORGANIZATION is successful");
+        log:printDebug("Fetching data for organization " +orgName+ ", from REGISTRY_ORGANIZATION is successful");
         return resPayload;       
     } else {
-        log:printDebug("The requested organization is not found in REGISTRY_ORGANIZATION");
+        log:printDebug("The requested organization \'" +orgName+ "\' is not found in REGISTRY_ORGANIZATION");
         return null;
     }
 }
 
+public function insertOrganization (string author, gen:OrgCreateRequest createOrgsBody) returns error? {
+    log:printDebug ("Performing insertion on REGISTRY_ORGANIZATION table, Org name : " + createOrgsBody.orgName);
+    sql:UpdateResult res = check connection -> update (ADD_ORG_QUERY, createOrgsBody.orgName, createOrgsBody.description,
+                                            createOrgsBody.websiteUrl, createOrgsBody.defaultVisibility, author);
+}
 
 public function getOrganizationCount(string userId) returns int | error {
     log:printDebug("Retriving number organiations for user : " + userId);
