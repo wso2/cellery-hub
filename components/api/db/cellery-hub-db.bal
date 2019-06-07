@@ -21,8 +21,9 @@ import ballerina/mysql;
 import ballerina/sql;
 import cellery_hub_api/gen;
 import ballerina/io;
+import ballerina/encoding;
 
-public function getOrganization (string orgName) returns json|error {
+public function getOrganization (string orgName) returns json | error {
     log:printDebug("Performing data retreival on REGISTRY_ORGANIZATION table, Org name : " + orgName);
     table<record {}> res =  check connection -> select (GET_ORG_QUERY, gen:OrgResponse, orgName, loadToMemory = true);
     if (res.count() == 1) {
@@ -31,7 +32,7 @@ public function getOrganization (string orgName) returns json|error {
         log:printDebug("Fetching data for organization " +orgName+ ", from REGISTRY_ORGANIZATION is successful");
         return resPayload;       
     } else {
-        log:printDebug("The requested organization \'" +orgName+ "\' is not found in REGISTRY_ORGANIZATION");
+        log:printDebug("The requested organization \'" +orgName+ "\' was not found in REGISTRY_ORGANIZATION");
         return null;
     }
 }
@@ -70,6 +71,30 @@ public function getImageVersions(string imageId, int offset, int resultLimit) re
     table<gen:ImageVersion> res = check connection->select(GET_IMAGE_VERSIONS, gen:ImageVersion, imageId, resultLimit, offset,
     loadToMemory = true);
     return res;
+}
+
+public function retrieveArtifact(string orgName, string imageName, string artifactVersion) returns json | error{
+    log:printInfo("Performing data retrieval for articat " +imageName+ "-" +artifactVersion);
+    table<record {}> res = check connection->select(GET_ARTIFACT, gen:ArtifactResponse, orgName, imageName,
+                                                    artifactVersion, loadToMemory = true);
+    if (res.count() == 1) {
+        json resPayload = {};
+        gen:ArtifactResponse artRes = check gen:ArtifactResponse.convert(res.getNext());
+        string metadataString = encoding:byteArrayToString(artRes.metadata);
+        io:StringReader sr = new(metadataString, encoding = "UTF-8");
+        json metadataJson = check sr.readJson();
+        resPayload["description"] = artRes.description;
+        resPayload["pullCount"] = artRes.pullCount;
+        resPayload["lastAuthor"] = artRes.lastAuthor;
+        resPayload["updatedTimestamp"] = artRes.updatedTimestamp;
+        resPayload["metadata"] = metadataJson;
+        return resPayload;
+    } else {
+        string errMsg = io:sprintf("The requested artifact \'%s/%s:%s\' was not found in REGISTRY_ORGANIZATION",
+                                    orgName, imageName, artifactVersion);
+        log:printDebug(errMsg);
+        return null;
+    }
 }
 
 
