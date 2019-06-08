@@ -134,9 +134,6 @@ public function getImageByImageName(http:Request getImageRequest, string orgName
                     orgName: image.orgName,
                     imageName: image.imageName,
                     description: image.description,
-                    licenseIdentifier: image.licenseIdentifier,
-                    apiDocUrl: image.apiDocUrl,
-                    sourceUrl: image.sourceUrl,
                     firstAuthor: image.firstAuthor,
                     visibility: image.visibility,
                     versions: versions

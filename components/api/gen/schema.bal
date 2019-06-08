@@ -40,9 +40,6 @@ public type Image record {
     string orgName;
     string imageName;
     string description;
-    string licenseIdentifier;
-    string apiDocUrl;
-    string sourceUrl;
     string firstAuthor;
     string visibility;
 };
@@ -52,9 +49,6 @@ public type ImageResponse record {
     string orgName;
     string imageName;
     string description;
-    string licenseIdentifier;
-    string apiDocUrl;
-    string sourceUrl;
     string firstAuthor;
     string visibility;
     ImageVersion[] versions;
