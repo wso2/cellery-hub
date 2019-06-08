@@ -18,6 +18,7 @@
 
 import AuthUtils from "../../utils/api/authUtils";
 import Button from "@material-ui/core/Button";
+import Constants from "../../utils/constants";
 import Dialog from "@material-ui/core/Dialog";
 import DialogActions from "@material-ui/core/DialogActions";
 import DialogContent from "@material-ui/core/DialogContent";
@@ -25,15 +26,17 @@ import DialogContentText from "@material-ui/core/DialogContentText";
 import DialogTitle from "@material-ui/core/DialogTitle";
 import DoneAllRounded from "@material-ui/icons/DoneAll";
 import FormControl from "@material-ui/core/FormControl";
+import FormHelperText from "@material-ui/core/FormHelperText";
 import Grid from "@material-ui/core/Grid";
-import HttpUtils from "../../utils/api/httpUtils";
 import IconButton from "@material-ui/core/IconButton";
 import Input from "@material-ui/core/Input";
 import InputAdornment from "@material-ui/core/InputAdornment";
 import InputLabel from "@material-ui/core/InputLabel";
+import NotificationUtils from "../../utils/common/notificationUtils";
 import React from "react";
 import Typography from "@material-ui/core/Typography";
 import {withStyles} from "@material-ui/core/styles";
+import HttpUtils, {HubApiError} from "../../utils/api/httpUtils";
 import withGlobalState, {StateHolder} from "../common/state";
 import * as PropTypes from "prop-types";
 
@@ -61,9 +64,28 @@ class SDKOrgCreate extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            isDialogOpen: false
+            orgNameToBeCreated: "",
+            isDialogOpen: false,
+            isOrgVerified: false,
+            errorMessage: ""
         };
     }
+
+    handleOrgInputChange = (event) => {
+        const orgName = event.currentTarget.value;
+        let errorMessage = "";
+        if (orgName) {
+            if (!new RegExp(`^${Constants.Pattern.CELLERY_ID}$`).test(orgName)) {
+                errorMessage = "Organization name can only contain lower case letters, numbers and dashes"
+                    + " and should be surrounded by lower case letters and numbers";
+            }
+        }
+        this.setState({
+            orgNameToBeCreated: orgName,
+            isOrgVerified: false,
+            errorMessage: errorMessage
+        });
+    };
 
     handleSkipConfirmDialogOpen = () => {
         this.setState({
@@ -78,7 +100,32 @@ class SDKOrgCreate extends React.Component {
     };
 
     handleCreateOrg = () => {
-        // TODO: Create organization and call this.handleContinue(false) if successful
+        const self = this;
+        const {globalState} = self.props;
+        const {orgNameToBeCreated} = self.state;
+        NotificationUtils.showLoadingOverlay(`Creating organization ${orgNameToBeCreated}`, globalState);
+        HttpUtils.callHubAPI(
+            {
+                url: "/orgs",
+                method: "POST",
+                data: {
+                    orgName: orgNameToBeCreated
+                }
+            },
+            globalState
+        ).then(() => {
+            self.handleContinue(false);
+            NotificationUtils.hideLoadingOverlay(globalState);
+        }).catch((err) => {
+            let errorMessage;
+            if (err instanceof HubApiError) {
+                errorMessage = err.getMessage();
+            } else {
+                errorMessage = "Failed to create organization";
+            }
+            NotificationUtils.hideLoadingOverlay(globalState);
+            NotificationUtils.showNotification(errorMessage, NotificationUtils.Levels.ERROR, globalState);
+        });
     };
 
     /**
@@ -92,13 +139,55 @@ class SDKOrgCreate extends React.Component {
         AuthUtils.continueLoginFlow(globalState, params.session_state, skipOrgCheck);
     };
 
-    handleCheckAvailability = (value) => {
-        // TODO: Check if the input name is already taken or not
+    handleCheckAvailability = () => {
+        const self = this;
+        const {globalState} = self.props;
+        const {orgNameToBeCreated} = self.state;
+        if (orgNameToBeCreated) {
+            NotificationUtils.showLoadingOverlay(`Validating organization name "${orgNameToBeCreated}"`,
+                globalState);
+            HttpUtils.callHubAPI(
+                {
+                    url: `/orgs/${orgNameToBeCreated}`,
+                    method: "GET"
+                },
+                globalState
+            ).then(() => {
+                self.setState({
+                    isOrgVerified: true,
+                    errorMessage: `Organization ${orgNameToBeCreated} is already taken`
+                });
+                NotificationUtils.hideLoadingOverlay(globalState);
+            }).catch((err) => {
+                let errorMessage;
+                if (err instanceof HubApiError) {
+                    if (err.getStatusCode() === 404) {
+                        self.setState({
+                            isOrgVerified: true
+                        });
+                    } else {
+                        self.setState({
+                            isOrgVerified: false
+                        });
+                        errorMessage = err.getMessage();
+                    }
+                } else {
+                    self.setState({
+                        isOrgVerified: false
+                    });
+                    errorMessage = `Failed to verify if Organization ${orgNameToBeCreated} exists`;
+                }
+                NotificationUtils.hideLoadingOverlay(globalState);
+                if (errorMessage) {
+                    NotificationUtils.showNotification(errorMessage, NotificationUtils.Levels.ERROR, globalState);
+                }
+            });
+        }
     };
 
     render = () => {
         const {classes} = this.props;
-        const {isDialogOpen} = this.state;
+        const {isDialogOpen, isOrgVerified, orgNameToBeCreated, errorMessage} = this.state;
 
         return (
             <div className={classes.content}>
@@ -110,34 +199,35 @@ class SDKOrgCreate extends React.Component {
                     </Grid>
                     <Grid item xs={12} sm={6} md={6}>
                         <div className={classes.form}>
-                            <FormControl fullWidth>
+                            <FormControl fullWidth className={classes.orgTextField} error={errorMessage}>
                                 <InputLabel htmlFor="organization-name">Organization Name</InputLabel>
-                                <Input id="organization-name" type="text" fullWidth autoFocus
-                                    className={classes.orgTextField} endAdornment={
+                                <Input value={orgNameToBeCreated} type={"text"} fullWidth autoFocus
+                                    onChange={this.handleOrgInputChange}
+                                    endAdornment={
                                         <InputAdornment position="end">
-                                            <IconButton aria-label="Toggle password visibility"
-                                                onClick={this.handleCheckAvailability}>
+                                            <IconButton aria-label={"Toggle password visibility"}
+                                                onClick={this.handleCheckAvailability}
+                                                disabled={!orgNameToBeCreated || errorMessage}>
                                                 <DoneAllRounded/>
                                             </IconButton>
                                         </InputAdornment>
                                     }
                                 />
+                                {errorMessage ? <FormHelperText>{errorMessage}</FormHelperText> : null}
                             </FormControl>
-                            <Button variant="contained" color="primary" onClick={(event) => {
-                                this.handleCreateOrg();
-                            }}>Create Organization
+                            <Button variant="contained" color="primary" onClick={this.handleCreateOrg}
+                                disabled={!isOrgVerified || !orgNameToBeCreated || errorMessage}>
+                                Create Organization
                             </Button>
                             <Button variant="outlined" color="default" className={classes.skipBtn}
                                 onClick={this.handleSkipConfirmDialogOpen}>Skip this step
                             </Button>
-                            <Dialog
-                                open={isDialogOpen}
-                                onClose={this.handleSkipConfirmDialogClose}
-                                aria-labelledby="alert-dialog-title"
-                                aria-describedby="alert-dialog-description"
-                            >
-                                <DialogTitle id="alert-dialog-title">{"Do you want to skip creating an"
-                                + " organization?"}</DialogTitle>
+                            <Dialog open={isDialogOpen} onClose={this.handleSkipConfirmDialogClose}
+                                aria-labelledby={"alert-dialog-title"}
+                                aria-describedby={"alert-dialog-description"}>
+                                <DialogTitle id={"alert-dialog-title"}>
+                                    Do you want to skip creating an organization?
+                                </DialogTitle>
                                 <DialogContent>
                                     <DialogContentText id="alert-dialog-description">
                                         If you skip this step you will have to go to Cellery Hub and create a

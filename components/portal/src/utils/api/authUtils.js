@@ -177,28 +177,6 @@ class AuthUtils {
     }
 
     /**
-     * Remove the stored user.
-     *
-     * @param {StateHolder} globalState The global state provided to the current component
-     */
-    static removeUser(globalState) {
-        localStorage.removeItem(AuthUtils.USER_KEY);
-        globalState.unset(StateHolder.USER);
-    }
-
-    /**
-     * Update the user stored in the browser.
-     *
-     * @private
-     * @param {Object} user The user to be signed in
-     * @param {StateHolder} globalState The global state provided to the current component
-     */
-    static updateUser(user, globalState) {
-        localStorage.setItem(AuthUtils.USER_KEY, JSON.stringify(user));
-        globalState.set(StateHolder.USER, user);
-    }
-
-    /**
      * Set the default federated IdP to be used.
      *
      * @private
@@ -215,6 +193,27 @@ class AuthUtils {
      */
     static getDefaultFIdP() {
         return /** @type{FederatedIdPType} **/ localStorage.getItem(AuthUtils.FEDERATED_IDP_KEY);
+    }
+
+    /**
+     * Remove the stored user from local storage.
+     *
+     * @param {StateHolder} globalState The global state provided to the current component
+     */
+    static removeUserFromStorageOnly(globalState) {
+        localStorage.removeItem(AuthUtils.USER_KEY);
+    }
+
+    /**
+     * Update the user stored in the browser.
+     *
+     * @private
+     * @param {Object} user The user to be signed in
+     * @param {StateHolder} globalState The global state provided to the current component
+     */
+    static updateUser(user, globalState) {
+        localStorage.setItem(AuthUtils.USER_KEY, JSON.stringify(user));
+        globalState.set(StateHolder.USER, user);
     }
 
     /**

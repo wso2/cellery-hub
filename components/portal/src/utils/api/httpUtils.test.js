@@ -20,7 +20,7 @@
 /* eslint camelcase: ["off"] */
 
 import AuthUtils from "./authUtils";
-import HttpUtils from "./httpUtils";
+import HttpUtils, {HubApiError} from "./httpUtils";
 import {StateHolder} from "../../components/common/state";
 import axios from "axios";
 
@@ -401,7 +401,7 @@ describe("HttpUtils", () => {
         rejectStatusCodes.filter((statusCode) => statusCode !== unauthorizedStatusCode).forEach((statusCode) => {
             it(`should reject with response data when axios rejects with a ${statusCode} status code`, () => {
                 expect.assertions(1);
-                return expect(mockReject(statusCode)).rejects.toEqual(new Error(ERROR_DATA));
+                return expect(mockReject(statusCode)).rejects.toEqual(new HubApiError(ERROR_DATA, statusCode));
             });
         });
 
@@ -419,7 +419,8 @@ describe("HttpUtils", () => {
                 const endpoint = `${globalConfig.idp.url}${AuthUtils.AUTHORIZATION_ENDPOINT}`;
                 expect(location).toEqual(`${endpoint}${HttpUtils.generateQueryParamString(params)}`);
             });
-            await expect(mockReject(unauthorizedStatusCode)).rejects.toEqual(new Error(ERROR_DATA));
+            await expect(mockReject(unauthorizedStatusCode)).rejects.toEqual(
+                new HubApiError(ERROR_DATA, unauthorizedStatusCode));
             expect(spy).toHaveBeenCalledTimes(1);
             window.location.assign.mockClear();
         });

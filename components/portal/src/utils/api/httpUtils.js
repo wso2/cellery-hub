@@ -20,6 +20,68 @@ import AuthUtils from "./authUtils";
 import {StateHolder} from "../../components/common/state";
 import axios from "axios";
 
+/**
+ * Error representing an error returned from Hub API.
+ */
+class HubApiError extends Error {
+
+    /**
+     * @private
+     * @type{{code: number, message: string, description: string}}
+     */
+    errorResponse;
+
+    /**
+     * @private
+     * @type{number}
+     */
+    statusCode;
+
+    constructor(errorResponse, statusCode) {
+        super(errorResponse.message);
+        this.errorResponse = errorResponse;
+        this.statusCode = statusCode;
+        Error.captureStackTrace(this, this.constructor);
+    }
+
+    /**
+     * Get the application error code returned from Hub API.
+     *
+     * @returns {number} The Application Error Code
+     */
+    getErrorCode() {
+        return this.errorResponse.code;
+    }
+
+    /**
+     * Get the error message returned from Hub API.
+     *
+     * @returns {string} The error message
+     */
+    getMessage() {
+        return this.errorResponse.message;
+    }
+
+    /**
+     * Get the error description returned from Hub API.
+     *
+     * @returns {string} The error description
+     */
+    getDescription() {
+        return this.errorResponse.description;
+    }
+
+    /**
+     * Get the HTTP status code returned from Hub API.
+     *
+     * @returns {number} The HTTP status code
+     */
+    getStatusCode() {
+        return this.statusCode;
+    }
+
+}
+
 class HttpUtils {
 
     /**
@@ -120,10 +182,10 @@ class HttpUtils {
                     const errorResponse = error.response;
                     if (errorResponse.status === 401) {
                         const fidp = AuthUtils.getDefaultFIdP();
-                        AuthUtils.removeUser(globalState);
+                        AuthUtils.removeUserFromStorageOnly(globalState);
                         AuthUtils.initiateHubLoginFlow(globalState, fidp);
                     }
-                    reject(new Error(errorResponse.data));
+                    reject(new HubApiError(errorResponse.data, errorResponse.status));
                 } else {
                     reject(error);
                 }
@@ -133,3 +195,4 @@ class HttpUtils {
 }
 
 export default HttpUtils;
+export {HubApiError};

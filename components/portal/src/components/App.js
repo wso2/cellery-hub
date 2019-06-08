@@ -27,6 +27,7 @@ import ImageVersion from "./overview/image/ImageVersion";
 import MyImages from "./myImages";
 import MyOrgs from "./myOrgs";
 import Org from "./overview/org";
+import PortalExtras from "./PortalExtras";
 import React from "react";
 import SDK from "./sdk";
 import SignIn from "./SignIn";
@@ -102,6 +103,7 @@ const App = () => (
         <BrowserRouter>
             <ErrorBoundary showNavigationButtons={true}>
                 <StateProvider>
+                    <PortalExtras/>
                     <Switch>
                         <Route path={"/sdk"} component={SDK}/>
                         <Route path={"/"} component={HubPortal}/>
