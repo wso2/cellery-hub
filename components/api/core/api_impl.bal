@@ -15,10 +15,40 @@
 // limitations under the License
 //
 // ------------------------------------------------------------------------
-import cellery_hub_api/db;
-import cellery_hub_api/constants;
+
+import ballerina/http;
 import ballerina/io;
 import ballerina/log;
+import cellery_hub_api/constants;
+import cellery_hub_api/db;
+import cellery_hub_api/idp;
+
+# Get Auth Tokens
+#
+# + getTokensReq - getTokensReq Parameter Description
+# + return - Return Value Description
+public function getTokens (http:Request getTokensReq) returns http:Response {
+    var queryParams = getTokensReq.getQueryParams();
+    var authCode = queryParams.authCode;
+    var callbackUrl = queryParams.callbackUrl;
+
+    var tokens = idp:getTokens(authCode, callbackUrl);
+    if (tokens is gen:TokensResponse) {
+        var jsonPayload = json.convert(tokens);
+        if (jsonPayload is json) {
+            http:Response getTokensRes = new;
+            getTokensRes.statusCode = http:OK_200;
+            getTokensRes.setJsonPayload(untaint jsonPayload);
+            return getTokensRes;
+        } else {
+            log:printError("Failed to convert tokens response to JSON", err = jsonPayload);
+            return buildUnknownErrorResponse();
+        }
+    } else {
+        log:printError("Failed to fetch tokens from the IdP", err = tokens);
+        return buildUnknownErrorResponse();
+    }
+}
 
 public function createOrg(http:Request createOrgReq, gen:OrgCreateRequest createOrgsBody) returns http:Response {
     if (createOrgReq.hasHeader(constants:AUTHENTICATED_USER)) {
@@ -35,12 +65,12 @@ public function createOrg(http:Request createOrgReq, gen:OrgCreateRequest create
         }
     } else {
         log:printError("Unauthenticated request. Username is not found");
-        return buildErrorResponse(http:UNAUTHORIZED_401, constants:API_ERROR_CODE, "Unable to create organization", 
-                                                            "Unauthenticated request. Auth token is not provided");
+        return buildErrorResponse(http:UNAUTHORIZED_401, constants:API_ERROR_CODE, "Unable to create organization",
+                                  "Unauthenticated request. Auth token is not provided");
     }
 }
 
-public function getOrg(http:Request getOrgReq, string orgName) returns http:Response {    
+public function getOrg(http:Request getOrgReq, string orgName) returns http:Response {
     json | error res = db:getOrganization(orgName);
     if (res is json) {
         if (res != null) {

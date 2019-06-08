@@ -19,6 +19,7 @@
 import AccountCircle from "@material-ui/icons/AccountCircle";
 import AppBar from "@material-ui/core/AppBar";
 import AuthUtils from "../../utils/api/authUtils";
+import Avatar from "@material-ui/core/Avatar";
 import Button from "@material-ui/core/Button";
 import CelleryLogo from "../../img/celleryLogo.svg";
 import Container from "@material-ui/core/Container";
@@ -85,9 +86,17 @@ class Header extends React.Component {
         super(props);
         this.state = {
             accountPopoverElement: null,
-            docsPopoverElement: null
+            docsPopoverElement: null,
+            user: props.globalState.get(StateHolder.USER)
         };
+        props.globalState.addListener(StateHolder.USER, this.handleUserChange);
     }
+
+    handleUserChange = (key, oldValue, newValue) => {
+        this.setState({
+            user: newValue
+        });
+    };
 
     handleAccountPopoverOpen = (event) => {
         this.setState({
@@ -120,7 +129,7 @@ class Header extends React.Component {
 
     render = () => {
         const {classes, globalState} = this.props;
-        const {accountPopoverElement, docsPopoverElement} = this.state;
+        const {accountPopoverElement, docsPopoverElement, user} = this.state;
 
         const isAccountPopoverOpen = Boolean(accountPopoverElement);
         const isDocsPopoverOpen = Boolean(docsPopoverElement);
@@ -130,7 +139,6 @@ class Header extends React.Component {
             "/explore"
         ];
 
-        const loggedInUser = globalState.get(StateHolder.USER);
         return (
             <header>
                 <div className={classes.headerContent}>
@@ -144,7 +152,7 @@ class Header extends React.Component {
                                     </div>
                                 </div>
                                 {
-                                    loggedInUser
+                                    user
                                         ? (
                                             <React.Fragment>
                                                 <Button disableTouchRipple={true} color="inherit"
@@ -191,13 +199,20 @@ class Header extends React.Component {
                                 </div>
                                 <div>
                                     {
-                                        loggedInUser
+                                        user
                                             ? (
                                                 <Button disableTouchRipple={true} color="inherit"
                                                     className={classNames(classes.usernameBtn, classes.navButton)}
                                                     aria-haspopup="true" onClick={this.handleAccountPopoverOpen}>
-                                                    <AccountCircle className={classes.leftIcon}/>
-                                                    {loggedInUser.username}
+                                                    {
+                                                        user.avatarUrl
+                                                            ? (
+                                                                <Avatar alt={user.username} src={user.avatarUrl}
+                                                                    className={classes.leftIcon} />
+                                                            )
+                                                            : <AccountCircle className={classes.leftIcon}/>
+                                                    }
+                                                    {user.username}
                                                 </Button>
                                             )
                                             : null
@@ -214,7 +229,7 @@ class Header extends React.Component {
                                         open={isAccountPopoverOpen}
                                         onClose={this.handleAccountPopoverClose}>
                                         {
-                                            loggedInUser
+                                            user
                                                 ? (
                                                     <React.Fragment>
                                                         <MenuItem onClick={this.handleAccountPopoverClose}>

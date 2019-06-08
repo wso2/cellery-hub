@@ -52,7 +52,7 @@ class AuthUtils {
      */
     static initiateHubLoginFlow(globalState, fidp) {
         const clientId = globalState.get(StateHolder.CONFIG).idp.hubClientId;
-        this.initiateLoginFlow(globalState, fidp, clientId, window.location.href);
+        this.initiateLoginFlow(globalState, fidp, clientId, window.location.href.split("?")[0]);
     }
 
     /**
@@ -114,18 +114,36 @@ class AuthUtils {
      * @param {Function} [onSuccess] The callback to be called after retrieving taokens
      */
     static retrieveTokens(authCode, globalState, onSuccess) {
-        HttpUtils.callOpenAPI(
+        const searchParams = {
+            authCode: authCode,
+            callbackUrl: window.location.href.split("?")[0]
+        };
+        HttpUtils.callHubAPI(
             {
-                url: `/auth/tokens/${authCode}`,
+                url: `/auth/token${HttpUtils.generateQueryParamString(searchParams)}`,
                 method: "GET"
             },
             globalState
         ).then((resp) => {
             const decodedToken = jwtDecode(resp.idToken);
+            let name = decodedToken.name;
+            if (!name) {
+                name = decodedToken.email.split("@")[0];
+            }
+            let avatarUrl = decodedToken.avatar_url;
+            if (!avatarUrl) {
+                avatarUrl = decodedToken.google_pic_url;
+            }
             const user = {
-                username: decodedToken.sub,
-                accessToken: resp.accessToken,
-                idToken: resp.idToken
+                userId: decodedToken.sub,
+                username: name,
+                email: decodedToken.email,
+                avatarUrl: avatarUrl,
+                tokens: {
+                    accessToken: resp.accessToken,
+                    idToken: resp.idToken,
+                    expirationTime: decodedToken.exp * 1000
+                }
             };
             AuthUtils.updateUser(user, globalState);
             if (onSuccess) {
@@ -151,7 +169,7 @@ class AuthUtils {
         localStorage.removeItem(AuthUtils.FEDERATED_IDP_KEY);
 
         const params = {
-            id_token_hint: globalState.get(StateHolder.USER).idToken,
+            id_token_hint: globalState.get(StateHolder.USER).tokens.idToken,
             post_logout_redirect_uri: window.location.origin
         };
         const signOutEndpoint = `${globalState.get(StateHolder.CONFIG).idp.url}${AuthUtils.LOGOUT_ENDPOINT}`;
@@ -176,12 +194,8 @@ class AuthUtils {
      * @param {StateHolder} globalState The global state provided to the current component
      */
     static updateUser(user, globalState) {
-        if (user.username) {
-            localStorage.setItem(AuthUtils.USER_KEY, JSON.stringify(user));
-            globalState.set(StateHolder.USER, user);
-        } else {
-            throw Error(`Username provided cannot be "${user.username}"`);
-        }
+        localStorage.setItem(AuthUtils.USER_KEY, JSON.stringify(user));
+        globalState.set(StateHolder.USER, user);
     }
 
     /**
@@ -212,6 +226,12 @@ class AuthUtils {
         let user;
         try {
             user = JSON.parse(localStorage.getItem(AuthUtils.USER_KEY));
+            if (user && user.tokens && user.tokens.expirationTime
+                    && new Date().getTime() > user.tokens.expirationTime) {
+                // Removing expired user login data
+                user = null;
+                localStorage.removeItem(AuthUtils.USER_KEY);
+            }
         } catch {
             user = null;
             localStorage.removeItem(AuthUtils.USER_KEY);

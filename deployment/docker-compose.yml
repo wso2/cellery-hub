@@ -47,17 +47,18 @@ services:
       - REGISTRY_AUTH_TOKEN_ROOTCERTBUNDLE=/security/docker-auth-sign.crt
       - REGISTRY_AUTH_TOKEN_ISSUER="auth.registry.hub.cellery.io"
       - IS_JWT=false
-      - IDP_HOST=idp.registry.hub.cellery.io
+      - IDP_HOST=idp.hub.cellery.io
       - IDP_PORT=9443
       - USERNAME=admin
       - PASSWORD=admin
-  idp.registry.hub.cellery.io:
+  idp.hub.cellery.io:
       image: wso2cellery/cellery-hub-idp:5.7.0
       restart: always
       ports:
         - "9443:9443"
       volumes:
         - ./idp/conf:/home/wso2carbon/wso2-config-volume/repository/conf
+        - ./idp/artifacts:/home/wso2carbon/wso2-artifact-volume/repository
       environment:
         - CREATE_ORG_ENDPOINT=https://hub.cellery.io:9000/sdk/org-create
   docker-registry.hub.internal:
@@ -81,5 +82,6 @@ services:
     restart: always
     volumes:
       - ./mysql/dbscripts:/docker-entrypoint-initdb.d
+      - ./mysql/mnt:/var/lib/mysql
     environment:
       - MYSQL_ROOT_PASSWORD=root

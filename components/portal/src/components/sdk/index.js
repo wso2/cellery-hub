@@ -27,12 +27,56 @@ import {Route, Switch} from "react-router-dom";
 import withGlobalState, {StateHolder} from "../common/state";
 import * as PropTypes from "prop-types";
 
+class StatelessProtectedSDKPortal extends React.Component {
+
+    constructor(props) {
+        super(props);
+        this.state = {
+            user: props.globalState.get(StateHolder.USER)
+        };
+        props.globalState.addListener(StateHolder.USER, this.handleUserChange);
+    }
+
+    handleUserChange = (key, oldValue, newValue) => {
+        this.setState({
+            user: newValue
+        });
+    };
+
+    render = () => {
+        const {match} = this.props;
+        const {user} = this.state;
+        let view;
+        if (user) {
+            view = (
+                <Switch>
+                    <Route exact path={`${match.path}/org-create`} component={SDKOrgCreate}/>
+                    <Route exact path={`${match.path}/auth-success`} component={SDKSignInSuccess}/>
+                </Switch>
+            );
+        } else {
+            view = <SignIn/>;
+        }
+        return view;
+    }
+
+}
+
+StatelessProtectedSDKPortal.propTypes = {
+    match: PropTypes.shape({
+        url: PropTypes.string.isRequired
+    }).isRequired,
+    globalState: PropTypes.instanceOf(StateHolder)
+};
+
+const ProtectedSDKPortal = withGlobalState(StatelessProtectedSDKPortal);
+
 const SDK = ({match}) => (
     <SDKAppLayout>
         <ErrorBoundary>
             <Switch>
-                <Route exact path={`${match.url}/fidp-select`} component={FederatedIdpSelect}/>
-                <Route path={`${match.url}*`} component={ProtectedSDKPortal}/>
+                <Route exact path={`${match.path}/fidp-select`} component={FederatedIdpSelect}/>
+                <Route path={`${match.path}*`} component={ProtectedSDKPortal}/>
             </Switch>
         </ErrorBoundary>
     </SDKAppLayout>
@@ -43,21 +87,5 @@ SDK.propTypes = {
         url: PropTypes.string.isRequired
     }).isRequired
 };
-
-const ProtectedSDKPortal = withGlobalState(({globalState, match}) => {
-    const isLoggedIn = Boolean(globalState.get(StateHolder.USER));
-    let view;
-    if (isLoggedIn) {
-        view = (
-            <Switch>
-                <Route exact path={`${match.url}/org-create`} component={SDKOrgCreate}/>
-                <Route exact path={`${match.url}/auth-success`} component={SDKSignInSuccess}/>
-            </Switch>
-        );
-    } else {
-        view = <SignIn/>;
-    }
-    return view;
-});
 
 export default SDK;

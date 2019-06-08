@@ -62,7 +62,15 @@ const FederatedIdpSelect = (props) => {
 
     const params = HttpUtils.parseQueryParams(location.search);
     const redirectUrl = params.redirectUrl;
-    const view = (
+    let fidp = AuthUtils.getDefaultFIdP();
+    if (!fidp) {
+        fidp = params.fidp;
+    }
+    if (fidp) {
+        AuthUtils.initiateSdkLoginFlow(globalState, fidp, redirectUrl);
+        return null;
+    }
+    return (
         <div className={classes.content}>
             <Grid container spacing={4} direction="row" justify="center" alignItems="center">
                 <Grid item xs={12} sm={4} md={4} className={classes.signInContainer}>
@@ -71,26 +79,21 @@ const FederatedIdpSelect = (props) => {
                     </Typography>
                     <Divider className={classes.divider}/>
                     <Button fullWidth variant="outlined" size="large" className={classes.signInBtn} onClick={() => {
-                        AuthUtils.initiateSdkLoginFlow(globalState, AuthUtils.FederatedIdP.GOOGLE, redirectUrl);
-                    }}>
-                        <GoogleLogo className={classes.leftIcon}/>
-                        Sign in with Google
-                    </Button>
-                    <Button fullWidth variant="outlined" size="large" className={classes.signInBtn} onClick={() => {
                         AuthUtils.initiateSdkLoginFlow(globalState, AuthUtils.FederatedIdP.GITHUB, redirectUrl);
                     }}>
                         <GithubLogo className={classes.leftIcon}/>
                         Sign in with Github
                     </Button>
+                    <Button fullWidth variant="outlined" size="large" className={classes.signInBtn} onClick={() => {
+                        AuthUtils.initiateSdkLoginFlow(globalState, AuthUtils.FederatedIdP.GOOGLE, redirectUrl);
+                    }}>
+                        <GoogleLogo className={classes.leftIcon}/>
+                        Sign in with Google
+                    </Button>
                 </Grid>
             </Grid>
         </div>
     );
-    if (params.fidp) {
-        AuthUtils.initiateSdkLoginFlow(globalState, params.fidp, redirectUrl);
-        return null;
-    }
-    return view;
 };
 
 FederatedIdpSelect.propTypes = {

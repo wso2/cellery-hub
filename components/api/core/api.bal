@@ -54,6 +54,36 @@ listener http:Listener ep = new(9090, config = celleryHubAPIEPConfig);
 service CelleryHubAPI on ep {
 
     @openapi:ResourceInfo {
+        summary: "Get tokens",
+        parameters: [
+            {
+                name: "authCode",
+                inInfo: "query",
+                paramType: "string",
+                description: "Auth code retrieved from a OIDC provider",
+                required: true,
+                allowEmptyValue: ""
+            },
+            {
+                name: "callbackUrl",
+                inInfo: "query",
+                paramType: "string",
+                description: "callback Url used in the OIDC flow",
+                required: true,
+                allowEmptyValue: ""
+            }
+        ]
+    }
+    @http:ResourceConfig {
+        methods:["GET"],
+        path:"/auth/token"
+    }
+    resource function getTokens (http:Caller outboundEp, http:Request _getTokensReq) returns error? {
+        http:Response _getTokensRes = getTokens(_getTokensReq);
+        error? x = outboundEp->respond(_getTokensRes);
+    }
+
+    @openapi:ResourceInfo {
         summary: "Create organization"
     }
     @http:ResourceConfig {

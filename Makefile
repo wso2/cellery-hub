@@ -78,12 +78,16 @@ docker-push: docker
 
 .PHONY: deploy
 deploy:
-	mkdir -p deployment/docker-auth/extension-logs
+	mkdir -p deployment/mysql/mnt
 	mkdir -p deployment/docker-registry/mnt
+	mkdir -p deployment/docker-auth/extension-logs
 	cd deployment; \
 	docker-compose up
 
 .PHONY: undeploy
 undeploy:
+	sudo rm -rf deployment/mysql/mnt
+	sudo rm -rf deployment/docker-registry/mnt
+	sudo rm -rf deployment/docker-auth/extension-logs
 	cd deployment; \
 	docker-compose down

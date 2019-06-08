@@ -89,7 +89,7 @@ class SDKOrgCreate extends React.Component {
     handleContinue = (skipOrgCheck) => {
         const {globalState, location} = this.props;
         const params = HttpUtils.parseQueryParams(location.search);
-        AuthUtils.continueLoginFlow(globalState, params.sessionDataKey, skipOrgCheck);
+        AuthUtils.continueLoginFlow(globalState, params.session_state, skipOrgCheck);
     };
 
     handleCheckAvailability = (value) => {

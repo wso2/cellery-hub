@@ -1,7 +1,14 @@
 [security]
 certfile="/security/api-tls.crt"
 keyfile="/security/api-tls.pem"
-trustedcertsfile="/security/trusted-tls.crt"
+truststore="/security/truststore.p12"
+truststorepass="ballerina"
+
+[idp.oidc]
+providerurl="https://idp.hub.cellery.io:9443"
+tokenendpoint="/oauth2/token"
+clientid="celleryhubapplication"
+clientsecret="celleryhubapplication"
 
 [portal]
 publicurl="https://hub.cellery.io:9000"

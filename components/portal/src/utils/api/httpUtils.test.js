@@ -148,8 +148,10 @@ describe("HttpUtils", () => {
         let stateHolder;
         const loggedInUser = {
             username: "test-user",
-            accessToken: "12345",
-            idToken: "54321"
+            tokens: {
+                accessToken: "12345",
+                idToken: "54321"
+            }
         };
         const globalConfig = {
             hubApiUrl: "http://api.hub.cellery.io",
@@ -175,7 +177,7 @@ describe("HttpUtils", () => {
                 expect(Object.keys(config.headers)).toHaveLength(4);
                 expect(config.headers["X-Key"]).toBe("value");
                 expect(config.headers.Accept).toBe("application/json");
-                expect(config.headers.Authorization).toBe(`Bearer ${loggedInUser.accessToken}`);
+                expect(config.headers.Authorization).toBe(`Bearer ${loggedInUser.tokens.accessToken}`);
                 expect(config.headers["Content-Type"]).toBe("application/json");
 
                 return new Promise((resolve) => {
@@ -207,7 +209,7 @@ describe("HttpUtils", () => {
                 expect(config.url).toBe(globalConfig.hubApiUrl + endpoint);
                 expect(Object.keys(config.headers)).toHaveLength(3);
                 expect(config.headers.Accept).toBe("application/json");
-                expect(config.headers.Authorization).toBe(`Bearer ${loggedInUser.accessToken}`);
+                expect(config.headers.Authorization).toBe(`Bearer ${loggedInUser.tokens.accessToken}`);
                 expect(config.headers["Content-Type"]).toBe("application/json");
 
                 return new Promise((resolve) => {
@@ -236,7 +238,7 @@ describe("HttpUtils", () => {
                 expect(config.url).toBe(globalConfig.hubApiUrl + endpoint);
                 expect(Object.keys(config.headers)).toHaveLength(3);
                 expect(config.headers.Accept).toBe("application/xml");
-                expect(config.headers.Authorization).toBe(`Bearer ${loggedInUser.accessToken}`);
+                expect(config.headers.Authorization).toBe(`Bearer ${loggedInUser.tokens.accessToken}`);
                 expect(config.headers["Content-Type"]).toBe("application/json");
 
                 return new Promise((resolve) => {
@@ -268,7 +270,7 @@ describe("HttpUtils", () => {
                 expect(config.url).toBe(globalConfig.hubApiUrl + endpoint);
                 expect(Object.keys(config.headers)).toHaveLength(3);
                 expect(config.headers.Accept).toBe("application/json");
-                expect(config.headers.Authorization).toBe(`Bearer ${loggedInUser.accessToken}`);
+                expect(config.headers.Authorization).toBe(`Bearer ${loggedInUser.tokens.accessToken}`);
                 expect(config.headers["Content-Type"]).toBe("application/json");
 
                 return new Promise((resolve) => {
@@ -297,7 +299,7 @@ describe("HttpUtils", () => {
                 expect(config.url).toBe(globalConfig.hubApiUrl + endpoint);
                 expect(Object.keys(config.headers)).toHaveLength(3);
                 expect(config.headers.Accept).toBe("application/json");
-                expect(config.headers.Authorization).toBe(`Bearer ${loggedInUser.accessToken}`);
+                expect(config.headers.Authorization).toBe(`Bearer ${loggedInUser.tokens.accessToken}`);
                 expect(config.headers["Content-Type"]).toBe("application/xml");
 
                 return new Promise((resolve) => {

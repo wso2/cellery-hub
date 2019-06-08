@@ -16,14 +16,19 @@
 //
 // ------------------------------------------------------------------------
 
-public type OrgCreateRequest record { 
+public type TokensResponse record {
+    string accessToken;
+    string idToken;
+};
+
+public type OrgCreateRequest record {
     string orgName;
     string description;
     string websiteUrl;
     string defaultVisibility;
 };
 
-public type OrgResponse record { 
+public type OrgResponse record {
     string description;
     string websiteUrl;
     string author;
@@ -62,7 +67,7 @@ public type ImageVersion record {
     string lastUpdated;
 };
 
-public type ErrorResponse record { 
+public type ErrorResponse record {
     int code;
     string message;
     string description;

@@ -83,46 +83,7 @@ class HttpUtils {
     };
 
     /**
-     * Call the Cellery Hub open APIs.
-     *
-     * @param {Object} config Axios configuration object
-     * @param {StateHolder} [globalState] The global state provided to the current component
-     * @returns {Promise} A promise for the API call
-     */
-    static callOpenAPI = (config, globalState) => new Promise((resolve, reject) => {
-        config.url = `${globalState.get(StateHolder.CONFIG).hubApiUrl}${config.url}`;
-        config.withCredentials = true;
-        if (!config.headers) {
-            config.headers = {};
-        }
-        if (!config.headers.Accept) {
-            config.headers.Accept = "application/json";
-        }
-        if (!config.headers["Content-Type"]) {
-            config.headers["Content-Type"] = "application/json";
-        }
-        if (!config.data && (config.method === "POST" || config.method === "PUT" || config.method === "PATCH")) {
-            config.data = {};
-        }
-        axios(config)
-            .then((response) => {
-                if (response.status >= 200 && response.status < 400) {
-                    resolve(response.data);
-                } else {
-                    reject(response.data);
-                }
-            })
-            .catch((error) => {
-                if (error.response) {
-                    reject(new Error(error.response.data));
-                } else {
-                    reject(error);
-                }
-            });
-    });
-
-    /**
-     * Call the Cellery Hub authenticated APIs.
+     * Call the Cellery Hub API.
      *
      * @param {Object} config Axios configuration object
      * @param {StateHolder} [globalState] The global state provided to the current component
@@ -138,7 +99,7 @@ class HttpUtils {
             config.headers.Accept = "application/json";
         }
         if (globalState.get(StateHolder.USER) !== null) {
-            config.headers.Authorization = `Bearer ${globalState.get(StateHolder.USER).accessToken}`;
+            config.headers.Authorization = `Bearer ${globalState.get(StateHolder.USER).tokens.accessToken}`;
         }
         if (!config.headers["Content-Type"]) {
             config.headers["Content-Type"] = "application/json";
