@@ -62,7 +62,7 @@ public function createOrg(http:Request createOrgReq, gen:OrgCreateRequest create
         } else {
             http:Response createOrgRes = new;
             createOrgRes.statusCode = http:OK_200;
-            log:printDebug("Organization \'" + createOrgsBody.orgName + "\' is created. Author : " + userId);
+            log:printDebug(io:sprintf("Organization \'%s\' is created. Author : %s", createOrgsBody.orgName, userId));
             return createOrgRes;
         }
     } else {
@@ -79,11 +79,11 @@ public function getOrg(http:Request getOrgReq, string orgName) returns http:Resp
             http:Response getOrgRes = new;
             getOrgRes.statusCode = http:OK_200;
             getOrgRes.setJsonPayload(untaint res);
-            log:printDebug("Successfully fetched organization " + orgName);
+            log:printDebug(io:sprintf("Successfully fetched organization \'%s\'", orgName));
             return getOrgRes;
         } else {
             string errMsg = "Unable to fetch organization. ";
-            string errDes = "There is no organization named \'" + orgName + "\'";
+            string errDes = io:sprintf("There is no organization named \'%s\'", orgName);
             log:printError(errMsg + errDes);
             return buildErrorResponse(http:NOT_FOUND_404, constants:API_ERROR_CODE, errMsg, errDes);
         }
@@ -159,14 +159,14 @@ public function getImageByImageName(http:Request getImageRequest, string orgName
     return buildUnknownErrorResponse();
 }
 
-public function getArtifact (http:Request getArtifactReq, string orgName, string imageName, string artifactVersion) returns http:Response|error{
+public function getArtifact (http:Request getArtifactReq, string orgName, string imageName, string artifactVersion) returns http:Response{
     json | error res = db:retrieveArtifact(orgName, imageName, artifactVersion);
     if (res is json) {
         if (res != null) {
             http:Response getArtifactRes = new;
             getArtifactRes.statusCode = http:OK_200;
             getArtifactRes.setJsonPayload(untaint res);
-            log:printDebug("Successfully fetched organization " + orgName);
+            log:printDebug(io:sprintf("Successfully fetched artifact \'%s/%s:%s\' ", orgName, imageName, artifactVersion));
             return getArtifactRes;
         } else {
             string errMsg = "Unable to fetch artifact. ";
