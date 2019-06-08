@@ -36,11 +36,11 @@ var dbConnection *sql.DB
 
 func createConn() bool {
 	dbDriver := MYSQL_DRIVER
-	dbUser := os.Getenv(MYSQL_USER_ENV_VAR)
-	dbPass := os.Getenv(MYSQL_PASSWORD_ENV_VAR)
+	dbUser := "root"
+	dbPass := "mysql"
 	dbName := DB_NAME
-	host := os.Getenv(MYSQL_HOST_ENV_VAR)
-	port := os.Getenv(MYSQL_PORT_ENV_VAR)
+	host := "localhost"
+	port := "3308"
 	var err error
 	dbConnection, err = sql.Open(dbDriver, dbUser+":"+dbPass+"@tcp("+host+":"+port+")/"+dbName)
 	if err != nil {
@@ -79,19 +79,40 @@ func makedir(path string) {
 	}
 }
 
+func setEnv() {
+	err := os.Setenv(MYSQL_USER_ENV_VAR, "root")
+	if err != nil {
+		fmt.Println("Error setting up the environment", MYSQL_USER_ENV_VAR, ":", err)
+	}
+	err = os.Setenv(MYSQL_PASSWORD_ENV_VAR, "mysql")
+	if err != nil {
+		fmt.Println("Error setting up the environment", MYSQL_PASSWORD_ENV_VAR, ":", err)
+	}
+	err = os.Setenv(MYSQL_HOST_ENV_VAR, "localhost")
+	if err != nil {
+		fmt.Println("Error setting up the environment", MYSQL_HOST_ENV_VAR, ":", err)
+	}
+	err = os.Setenv(MYSQL_PORT_ENV_VAR, "3308")
+	if err != nil {
+		fmt.Println("Error setting up the environment", MYSQL_PORT_ENV_VAR, ":", err)
+	}
+}
+
 func TestMain(m *testing.M) {
+	fmt.Println("Acl test started to run")
 	// make target dir
 	makedir("../../target/test/mysql_scripts")
 	moveFiles("../../../../deployment/mysql/dbscripts/init.sql", "../../target/test/mysql_scripts/1_init.sql")
 	moveFiles("../../test/data.sql", "../../target/test/mysql_scripts/2_data.sql")
-
+	setEnv()
+	fmt.Println("User:", os.Getenv(MYSQL_USER_ENV_VAR), "pass:", os.Getenv(MYSQL_PASSWORD_ENV_VAR), "host::",
+		os.Getenv(MYSQL_PORT_ENV_VAR))
 	path, err := filepath.Abs("../../target/test/mysql_scripts")
 	if err != nil {
 		fmt.Println("Could not resolve absolute path :", err)
 	}
-	cmd := exec.Command("docker", "run", "--name", "some-mysql", "-e", "MYSQL_ROOT_PASSWORD="+
-		os.Getenv("MYSQL_PASSWORD"),
-		"-d", "-v", path+":/docker-entrypoint-initdb.d", "-p", os.Getenv("MYSQL_PORT")+":3306", "mysql:5.7.26")
+	cmd := exec.Command("docker", "run", "--name", "some-mysql", "-e", "MYSQL_ROOT_PASSWORD=mysql",
+		"-d", "-v", path+":/docker-entrypoint-initdb.d", "-p", "3308:3306", "mysql:5.7.26")
 	_, err = cmd.Output()
 	if err != nil {
 		fmt.Println("Error in executing the docker run command :", err)
@@ -110,12 +131,14 @@ func TestMain(m *testing.M) {
 		// waiting for the mysql connection
 	}
 	time.Sleep(20 * time.Millisecond)
+	fmt.Println("Docker container created")
 	m.Run()
 	// Cleaning up the docker container
 	teardown()
 }
 
 func TestValidateAccess(t *testing.T) {
+
 	values := []struct {
 		text string
 	}{

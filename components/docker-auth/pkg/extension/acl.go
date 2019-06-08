@@ -53,7 +53,10 @@ func ValidateAccess(db *sql.DB, accessToken string) (bool, error) {
 	if len(authReqInfo.Actions) == pushActionCount {
 		isPullOnly = false
 	}
-	organization, image := getOrganizationAndImage(authReqInfo.Name)
+	organization, image, err := getOrganizationAndImage(authReqInfo.Name)
+	if err != nil {
+		return false, err
+	}
 	log.Println("Image name is declared as :", image)
 	if isPullOnly {
 		log.Println("Received a pulling task")
@@ -64,10 +67,14 @@ func ValidateAccess(db *sql.DB, accessToken string) (bool, error) {
 	}
 }
 
-func getOrganizationAndImage(imageFullName string) (string, string) {
+func getOrganizationAndImage(imageFullName string) (string, string, error) {
 	tokens := strings.Split(imageFullName, "/")
 	log.Println("Organization and image info: ", tokens)
-	return tokens[0], tokens[1]
+	if len(tokens) == 2 {
+		return tokens[0], tokens[1], nil
+	} else {
+		return "", "", errors.New("token length mismatched")
+	}
 }
 
 func checkImageAndRole(db *sql.DB, image, user string) (string, string, error) {

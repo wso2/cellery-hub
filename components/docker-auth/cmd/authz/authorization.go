@@ -21,9 +21,10 @@ package main
 import (
 	"database/sql"
 	"fmt"
-	"github.com/golang/glog"
 	"log"
 	"os"
+
+	"github.com/golang/glog"
 
 	"github.com/cellery-io/cellery-hub/components/docker-auth/pkg/extension"
 )
@@ -54,7 +55,7 @@ func main() {
 	}
 	defer func() {
 		err = file.Close()
-		if err!= nil{
+		if err != nil {
 			os.Exit(2)
 		}
 	}()
@@ -74,14 +75,14 @@ func main() {
 		log.Println("Error occurred while validating the user :", err)
 	}
 	if isValid {
-		err =  db.Close()
+		err = db.Close()
 		if err != nil {
 			log.Println("Error occurred while closing the db connection :", err)
 		}
 		log.Println("User access granted")
 		os.Exit(extension.SuccessExitCode)
 	} else {
-		err =  db.Close()
+		err = db.Close()
 		if err != nil {
 			log.Println("Error occurred while closing the db connection :", err)
 		}

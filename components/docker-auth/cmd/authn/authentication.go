@@ -40,7 +40,7 @@ const (
 	authTokenIssuerEnvVar = "REGISTRY_AUTH_TOKEN_ISSUER"
 	idpCertEnvVar         = "IDP_CERT"
 	dockerAuthCertEnvVar  = "REGISTRY_AUTH_TOKEN_ROOTCERTBUNDLE"
-	logFile = "/extension-logs/authentication.log"
+	logFile               = "/extension-logs/authentication.log"
 )
 
 func readCert(certPathEnv string) ([]byte, error) {
@@ -92,7 +92,7 @@ func main() {
 	}
 	defer func() {
 		err = file.Close()
-		if err!= nil{
+		if err != nil {
 			os.Exit(2)
 		}
 	}()

@@ -62,7 +62,7 @@ test: build
 	cd ./components/portal; \
 	npm run test
 	cd ../../
-	go test -race -covermode=atomic -coverprofile=$(PROJECT_ROOT)/coverage.txt ./components/docker-auth...
+	go test -test.v -race -covermode=atomic -coverprofile=$(PROJECT_ROOT)/coverage.txt ./components/docker-auth...
 
 .PHONY: docker
 docker:

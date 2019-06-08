@@ -45,3 +45,5 @@ deployment/mysql/mnt
 deployment/docker-registry/mnt
 deployment/docker-auth/extension-logs
 docker/identity-server/files/idp-variables.sh
+
+coverage.txt
