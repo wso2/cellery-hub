@@ -45,7 +45,7 @@ function buildUnknownErrorResponse () returns http:Response {
     return res; 
 }
 
-function buildSuccessResponse(json jsonResponse) returns http:Response {
+function buildSuccessResponse(json jsonResponse = null) returns http:Response {
     http:Response resp = new;
     resp.statusCode = http:OK_200;
     resp.setJsonPayload(untaint jsonResponse);
