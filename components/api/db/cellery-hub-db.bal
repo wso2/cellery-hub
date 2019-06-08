@@ -51,3 +51,25 @@ public function getOrganizationCount(string userId) returns int | error {
     log:printDebug("Count organiations for user : " + userId + ": " + value);
     return value;
 }
+public function getUserImage(string orgName, string imageName, string userId) returns table<gen:Image> | error {
+    log:printDebug("Retriving image :" + imageName + " in organization : " + orgName + "for user: " + userId);
+    table<gen:Image> res = check connection->select(GET_IMAGE_FOR_USER_FROM_IMAGE_NAME, gen:Image,
+    orgName, imageName, userId, orgName, imageName, loadToMemory = true);
+    return res;
+}
+
+public function getPublicImage(string orgName, string imageName) returns table<gen:Image> | error {
+    log:printDebug("Retriving image :" + imageName + " in organization : " + orgName);
+    table<gen:Image> res = check connection->select(GET_IMAGE_FROM_IMAGE_NAME, gen:Image,
+    orgName, imageName, loadToMemory = true);
+    return res;
+}
+
+public function getImageVersions(string imageId, int offset, int resultLimit) returns table<gen:ImageVersion> | error {
+    log:printDebug("Retriving images for ID :" + imageId);
+    table<gen:ImageVersion> res = check connection->select(GET_IMAGE_VERSIONS, gen:ImageVersion, imageId, resultLimit, offset,
+    loadToMemory = true);
+    return res;
+}
+
+
