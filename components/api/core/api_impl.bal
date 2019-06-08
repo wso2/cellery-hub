@@ -92,9 +92,8 @@ public function getOrg(http:Request getOrgReq, string orgName) returns http:Resp
         return buildUnknownErrorResponse();
     }
 }
+
 public function getImageByImageName(http:Request getImageRequest, string orgName, string imageName, int offset, int resultLimit) returns http:Response {
-
-
     log:printDebug("Searching images for organization \'" + orgName + "\' imageName : " + imageName + ". Search offset: "
     + offset + ", limit: " + resultLimit);
     table<gen:Image> | error results;
@@ -155,12 +154,19 @@ public function getImageByImageName(http:Request getImageRequest, string orgName
     } else {
         log:printError("Error while retriving image" + imageName, err = results);
     }
-
     return buildUnknownErrorResponse();
 }
 
-public function getArtifact (http:Request getArtifactReq, string orgName, string imageName, string artifactVersion) returns http:Response{
-    json | error res = db:retrieveArtifact(orgName, imageName, artifactVersion);
+public function getArtifact (http:Request getArtifactReq, string orgName, string imageName, string artifactVersion) returns http:Response {
+    json | error res;
+    if (getArtifactReq.hasHeader(constants:AUTHENTICATED_USER)) {
+        string userId = getArtifactReq.getHeader(constants:AUTHENTICATED_USER);
+        log:printDebug(io:sprintf("get Artifact request with authenticated User : %s", userId));
+        res = db:getUserArtifact(userId, orgName, imageName, artifactVersion);
+    } else {
+        log:printDebug("get Artifact request without an authenticated user");
+        res = db:getPublicArtifact(orgName, imageName, artifactVersion);
+    }
     if (res is json) {
         if (res != null) {
             http:Response getArtifactRes = new;

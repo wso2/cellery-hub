@@ -73,10 +73,21 @@ public function getImageVersions(string imageId, int offset, int resultLimit) re
     return res;
 }
 
-public function retrieveArtifact(string orgName, string imageName, string artifactVersion) returns json | error{    
+public function getPublicArtifact(string orgName, string imageName, string artifactVersion) returns json | error {
     log:printDebug(io:sprintf("Performing data retrieval for articat \'%s/%s:%s\'", orgName, imageName, artifactVersion));
-    table<record {}> res = check connection->select(GET_ARTIFACT, gen:ArtifactResponse, orgName, imageName, 
+    table<record {}> res = check connection->select(GET_ARTIFACT_FROM_IMG_NAME_N_VERSION, gen:ArtifactResponse, orgName, imageName,
                                                     artifactVersion, loadToMemory = true);
+    return buildJsonPayloadForGetArtifact(res, orgName, imageName, artifactVersion);
+}
+
+public function getUserArtifact(string userId, string orgName, string imageName, string artifactVersion) returns json | error {
+    log:printDebug(io:sprintf("Performing data retrieval for articat \'%s/%s:%s\'", orgName, imageName, artifactVersion));
+    table<record {}> res = check connection->select(GET_ARTIFACT_FOR_USER_FROM_IMG_NAME_N_VERSION, gen:ArtifactResponse, orgName, imageName,
+                                                    artifactVersion, userId, orgName, imageName, artifactVersion, loadToMemory = true);
+    return buildJsonPayloadForGetArtifact(res, orgName, imageName, artifactVersion);
+}
+
+function buildJsonPayloadForGetArtifact(table<record {}> res, string orgName, string imageName, string artifactVersion) returns json | error {
     if (res.count() == 1) {
         json resPayload = {};
         gen:ArtifactResponse artRes = check gen:ArtifactResponse.convert(res.getNext());
@@ -89,14 +100,14 @@ public function retrieveArtifact(string orgName, string imageName, string artifa
         resPayload["updatedTimestamp"] = artRes.updatedTimestamp;
         resPayload["metadata"] = metadataJson;
         return resPayload;      
-    } else {
+    } else if (res.count() == 0) {
         log:printDebug(io:sprintf("The requested artifact \'%s/%s:%s\' was not found in REGISTRY_ORGANIZATION",
                                     orgName, imageName, artifactVersion));
-        string errMsg = io:sprintf("The requested artifact \'%s/%s:%s\' was not found in REGISTRY_ORGANIZATION",
-                                    orgName, imageName, artifactVersion);
-        log:printDebug(errMsg);
         return null;
+    } else {
+        string errMsg = io:sprintf("Found more than one result for artifact GET: Number of results : %s", res.count());
+        log:printDebug(errMsg);
+        error er = error(errMsg);
+        return er;
     }
 }
-
-
