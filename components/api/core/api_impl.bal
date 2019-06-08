@@ -65,13 +65,13 @@ public function createOrg(http:Request createOrgReq, gen:OrgCreateRequest create
             if (isMatch) {
                 log:printDebug(io:sprintf("\'%s\' is a valid organization name", createOrgsBody.orgName));
                 string userId = createOrgReq.getHeader(constants:AUTHENTICATED_USER);
-                var res = db:insertOrganization(userId, createOrgsBody);
-                if (res is error) {
-                    log:printError("Unexpected error occured while inserting organization " + untaint createOrgsBody.orgName, err = res);
+                var orgRes = db:insertOrganization(userId, createOrgsBody);
+                if (orgRes is error) {
+                    log:printError("Unexpected error occured while inserting organization " + untaint createOrgsBody.orgName, err = orgRes);
                     return buildUnknownErrorResponse();
                 } else {
-                    log:printDebug(io:sprintf("Organization \'%s\' is created. Author : %s", createOrgsBody.orgName, userId));
-                    return buildSuccessResponse();
+                    log:printDebug(io:sprintf("New organization \'%s\' added to REGISTRY_ORGANIZATION. Author : %s", createOrgsBody.orgName, userId));
+                    return addOrgUserMapping(userId, createOrgsBody.orgName);
                 }
             } else {
                 log:printError(io:sprintf("Insertion denied : \'%s\' is an invalid organization name", createOrgsBody.orgName));
@@ -86,6 +86,18 @@ public function createOrg(http:Request createOrgReq, gen:OrgCreateRequest create
         log:printError("Unauthenticated request : Username is not found");
         return buildErrorResponse(http:UNAUTHORIZED_401, constants:API_ERROR_CODE, "Unable to create organization",
                                                             "Unauthenticated request. Auth token is not provided");
+    }
+}
+
+function addOrgUserMapping(string userId, string orgName) returns http:Response{
+    var orgUserRes = db:insertOrgUserMapping(userId, orgName);
+    if (orgUserRes is error) {
+        log:printError(io:sprintf("Unexpected error occured while inserting org-user mapping. user : %s, Organization : %s", userId, orgName),
+                                err = orgUserRes);
+        return buildUnknownErrorResponse();
+    } else {
+        log:printDebug(io:sprintf("New organization \'%s\' added to REGISTRY_ORG_USER_MAPPING. Author : %s", orgName, userId));
+        return buildSuccessResponse();
     }
 }
 

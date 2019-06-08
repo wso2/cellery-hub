@@ -43,6 +43,11 @@ public function insertOrganization (string author, gen:OrgCreateRequest createOr
                                             createOrgsBody.websiteUrl, createOrgsBody.defaultVisibility, author);
 }
 
+public function insertOrgUserMapping (string author, string orgName) returns error? {
+    log:printDebug (io:sprintf("Performing insertion on REGISTRY_ORG_USER_MAPPING table. User : %s, Org name : \'%s\'", author, orgName));
+    sql:UpdateResult res = check connection -> update (ADD_ORG_USER_MAPPING_QUERY, author, orgName);
+}
+
 public function getOrganizationCount(string userId) returns int | error {
     log:printDebug(io:sprintf("Retriving number organiations for user : \'%s\'", userId));
     table< record {}> selectRet = check connection->select(GET_ORG_COUNT_FOR_USER, (), userId);
