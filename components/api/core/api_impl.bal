@@ -60,21 +60,34 @@ public function getTokens (http:Request getTokensReq) returns http:Response {
 
 public function createOrg(http:Request createOrgReq, gen:OrgCreateRequest createOrgsBody) returns http:Response {
     if (createOrgReq.hasHeader(constants:AUTHENTICATED_USER)) {
-        string userId = createOrgReq.getHeader(constants:AUTHENTICATED_USER);
-        var res = db:insertOrganization(userId, createOrgsBody);
-        if (res is error) {
-            log:printError("Unexpected error occured while inserting organization " + untaint createOrgsBody.orgName, err = res);
-            return buildUnknownErrorResponse();
+        boolean | error isMatch = createOrgsBody.orgName.matches("^[a-z0-9]+(-[a-z0-9]+)*$");
+        if (isMatch is boolean){
+            if (isMatch) {
+                log:printDebug(io:sprintf("\'%s\' is a valid organization name", createOrgsBody.orgName));
+                string userId = createOrgReq.getHeader(constants:AUTHENTICATED_USER);
+                var res = db:insertOrganization(userId, createOrgsBody);
+                if (res is error) {
+                    log:printError("Unexpected error occured while inserting organization " + untaint createOrgsBody.orgName, err = res);
+                    return buildUnknownErrorResponse();
+                } else {
+                    http:Response createOrgRes = new;
+                    createOrgRes.statusCode = http:OK_200;
+                    log:printDebug(io:sprintf("Organization \'%s\' is created. Author : %s", createOrgsBody.orgName, userId));
+                    return createOrgRes;
+                }
+            } else {
+                log:printError(io:sprintf("Insertion denied : \'%s\' is an invalid organization name", createOrgsBody.orgName));
+                return buildErrorResponse(http:METHOD_NOT_ALLOWED_405, constants:API_ERROR_CODE, "Unable to create organization",
+                                                "Organization name is not valid");
+            }
         } else {
-            http:Response createOrgRes = new;
-            createOrgRes.statusCode = http:OK_200;
-            log:printDebug(io:sprintf("Organization \'%s\' is created. Author : %s", createOrgsBody.orgName, userId));
-            return createOrgRes;
+            log:printError("Unable to create organization", err = isMatch);
+            return buildUnknownErrorResponse();
         }
     } else {
-        log:printError("Unauthenticated request. Username is not found");
+        log:printError("Unauthenticated request : Username is not found");
         return buildErrorResponse(http:UNAUTHORIZED_401, constants:API_ERROR_CODE, "Unable to create organization",
-                                  "Unauthenticated request. Auth token is not provided");
+                                                            "Unauthenticated request. Auth token is not provided");
     }
 }
 
