@@ -22,12 +22,12 @@ import Close from "@material-ui/icons/Close";
 import Error from "@material-ui/icons/Error";
 import IconButton from "@material-ui/core/IconButton";
 import Info from "@material-ui/icons/Info";
-import NotificationUtils from "../utils/common/notificationUtils";
+import NotificationUtils from "../../utils/common/notificationUtils";
 import React from "react";
 import Snackbar from "@material-ui/core/Snackbar/Snackbar";
-import StateHolder from "./common/state/stateHolder";
+import StateHolder from "./state/stateHolder";
 import Warning from "@material-ui/icons/Warning";
-import withGlobalState from "./common/state";
+import withGlobalState from "./state";
 import {withStyles} from "@material-ui/core/styles";
 import * as PropTypes from "prop-types";
 
@@ -74,7 +74,7 @@ const styles = (theme) => ({
     }
 });
 
-class PortalExtras extends React.Component {
+class NotificationAdditions extends React.Component {
 
     constructor(props) {
         super(props);
@@ -187,9 +187,9 @@ class PortalExtras extends React.Component {
 
 }
 
-PortalExtras.propTypes = {
+NotificationAdditions.propTypes = {
     globalState: PropTypes.instanceOf(StateHolder),
     classes: PropTypes.object.isRequired
 };
 
-export default withStyles(styles)(withGlobalState(PortalExtras));
+export default withStyles(styles)(withGlobalState(NotificationAdditions));

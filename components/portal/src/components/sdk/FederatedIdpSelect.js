@@ -72,19 +72,19 @@ const FederatedIdpSelect = (props) => {
     }
     return (
         <div className={classes.content}>
-            <Grid container spacing={4} direction="row" justify="center" alignItems="center">
+            <Grid container spacing={4} direction={"row"} justify={"center"} alignItems={"center"}>
                 <Grid item xs={12} sm={4} md={4} className={classes.signInContainer}>
-                    <Typography component="div" variant="h5" className={classes.title}>
+                    <Typography component={"div"} variant={"h5"} className={classes.title}>
                         Sign in
                     </Typography>
                     <Divider className={classes.divider}/>
-                    <Button fullWidth variant="outlined" size="large" className={classes.signInBtn} onClick={() => {
+                    <Button fullWidth variant={"outlined"} size={"large"} className={classes.signInBtn} onClick={() => {
                         AuthUtils.initiateSdkLoginFlow(globalState, AuthUtils.FederatedIdP.GITHUB, redirectUrl);
                     }}>
                         <GithubLogo className={classes.leftIcon}/>
                         Sign in with Github
                     </Button>
-                    <Button fullWidth variant="outlined" size="large" className={classes.signInBtn} onClick={() => {
+                    <Button fullWidth variant={"outlined"} size={"large"} className={classes.signInBtn} onClick={() => {
                         AuthUtils.initiateSdkLoginFlow(globalState, AuthUtils.FederatedIdP.GOOGLE, redirectUrl);
                     }}>
                         <GoogleLogo className={classes.leftIcon}/>

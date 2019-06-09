@@ -48,7 +48,7 @@ const Explore = (props) => {
     ];
     return (
         <div className={classes.content}>
-            <Typography variant="h5" color="inherit">
+            <Typography variant={"h5"} color={"inherit"}>
                 Explore
             </Typography>
             <Divider className={classes.divider}/>

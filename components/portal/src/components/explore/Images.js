@@ -42,35 +42,32 @@ const styles = (theme) => ({
 
 const images = [
     {
-        name: "pet-fe",
+        orgName: "alpha",
+        imageName: "pet-fe",
         summary: "This contains the four components which involves with working with the Pet Store data and"
             + " business logic.",
-        organization: "alpha",
-        public: true,
-        pulls: 10,
-        stars: 3,
-        lastUpdated: "2 days",
-        lastUpdatedBy: "john"
+        visibility: "PUBLIC",
+        pullCount: 10,
+        updatedTimestamp: "2019-05-12T05:11:54-0500",
+        lastAuthor: "john"
     },
     {
-        name: "pet-be",
+        orgName: "alpha",
+        imageName: "pet-be",
         summary: "This contains of a single component which serves the portal.",
-        organization: "alpha",
-        public: true,
-        pulls: 15,
-        stars: 11,
-        lastUpdated: "20 hours",
-        lastUpdatedBy: "john"
+        visibility: "PUBLIC",
+        pullCount: 15,
+        updatedTimestamp: "2019-01-17T05:11:54-0500",
+        lastAuthor: "john"
     },
     {
-        name: "hello-world",
+        orgName: "beta",
+        imageName: "hello-world",
         summary: "Sample hello world cell.",
-        organization: "beta",
-        public: false,
-        pulls: 7,
-        stars: 4,
-        lastUpdated: "5 days",
-        lastUpdatedBy: "john"
+        visibility: "PRIVATE",
+        pullCount: 7,
+        updatedTimestamp: "2019-03-23T05:11:54-0500",
+        lastAuthor: "john"
     }
 ];
 
@@ -89,6 +86,10 @@ class Images extends React.Component {
         });
     };
 
+    handlePageChange = () => {
+        // TODO: Load new data for page
+    };
+
     render = () => {
         const {classes} = this.props;
         const {sort} = this.state;
@@ -97,42 +98,41 @@ class Images extends React.Component {
                 <Grid container>
                     <Grid item xs={12} sm={4} md={4}>
                         <FormControl className={classes.formControl}>
-                            <InputLabel shrink htmlFor="search-label-placeholder"/>
+                            <InputLabel shrink htmlFor={"search-label-placeholder"}/>
                             <Input
-                                id="search"
+                                id={"search"}
                                 startAdornment={
-                                    <InputAdornment position="start">
+                                    <InputAdornment position={"start"}>
                                         <SearchIcon className={classes.placeholderIcon}/>
                                     </InputAdornment>
                                 }
-                                placeholder="Search Image"
+                                placeholder={"Search Image"}
                             />
                         </FormControl>
                     </Grid>
-                    <Grid item sm={5} md={5}>
-                    </Grid>
+                    <Grid item sm={5} md={5} />
                     <Grid item xs={12} sm={3} md={3}>
-                        <form autoComplete="off">
+                        <form autoComplete={"off"}>
                             <FormControl className={classes.formControl}>
-                                <InputLabel shrink htmlFor="sort-label-placeholder">
+                                <InputLabel shrink htmlFor={"sort-label-placeholder"}>
                                     Sort
                                 </InputLabel>
                                 <Select
                                     value={sort}
                                     onChange={this.handleSortChange}
-                                    input={<Input name="sort" id="sort-label-placeholder"/>}
+                                    input={<Input name={"sort"} id={"sort-label-placeholder"}/>}
                                     displayEmpty
-                                    name="sort"
+                                    name={"sort"}
                                 >
-                                    <MenuItem value="most-popular">Most Popular</MenuItem>
-                                    <MenuItem value="a-z">A-Z</MenuItem>
-                                    <MenuItem value="updated">Recently Updated</MenuItem>
+                                    <MenuItem value={"most-popular"}>Most Popular</MenuItem>
+                                    <MenuItem value={"a-z"}>A-Z</MenuItem>
+                                    <MenuItem value={"updated"}>Recently Updated</MenuItem>
                                 </Select>
                             </FormControl>
                         </form>
                     </Grid>
                     <Grid item xs={12} sm={12} md={12}>
-                        <ImageList data={images}/>
+                        <ImageList pageData={images} onPageChange={this.handlePageChange}/>
                     </Grid>
                 </Grid>
             </React.Fragment>

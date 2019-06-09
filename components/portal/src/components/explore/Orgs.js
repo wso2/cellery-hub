@@ -43,47 +43,52 @@ const styles = (theme) => ({
 
 const orgs = [
     {
-        name: "Alpha",
-        value: "alpha",
-        members: 5,
-        images: 3,
-        description: "Sample description"
+        orgName: "alpha",
+        description: "Sample description",
+        membersCount: 5,
+        imagesCount: 3
 
     },
     {
-        name: "Beta",
-        value: "beta",
-        members: 10,
-        images: 6,
-        description: "Sample description"
+        orgName: "beta",
+        description: "Sample description",
+        membersCount: 10,
+        imagesCount: 6
     }
 ];
 
-const Orgs = (props) => {
-    const {classes} = props;
-    return (
-        <Grid container>
-            <Grid item xs={12} sm={4} md={4}>
-                <FormControl className={classes.formControl}>
-                    <InputLabel shrink htmlFor="search-label-placeholder"/>
-                    <Input
-                        id="search"
-                        startAdornment={
-                            <InputAdornment position="start">
-                                <SearchIcon className={classes.placeholderIcon}/>
-                            </InputAdornment>
-                        }
-                        placeholder="Search Organization"
-                    />
-                </FormControl>
-            </Grid>
-            <Grid item xs={12} sm={12} md={12}>
-                <OrgList data={orgs}/>
-            </Grid>
-        </Grid>
-    );
-};
+class Orgs extends React.Component {
 
+    handlePageChange = () => {
+        // TODO: Load new data for page
+    };
+
+    render() {
+        const {classes} = this.props;
+        return (
+            <Grid container>
+                <Grid item xs={12} sm={4} md={4}>
+                    <FormControl className={classes.formControl}>
+                        <InputLabel shrink htmlFor={"search-label-placeholder"}/>
+                        <Input
+                            id={"search"}
+                            startAdornment={
+                                <InputAdornment position={"start"}>
+                                    <SearchIcon className={classes.placeholderIcon}/>
+                                </InputAdornment>
+                            }
+                            placeholder={"Search Organization"}
+                        />
+                    </FormControl>
+                </Grid>
+                <Grid item xs={12} sm={12} md={12}>
+                    <OrgList pageData={orgs} onPageChange={this.handlePageChange}/>
+                </Grid>
+            </Grid>
+        );
+    }
+
+}
 
 Orgs.propTypes = {
     classes: PropTypes.object.isRequired

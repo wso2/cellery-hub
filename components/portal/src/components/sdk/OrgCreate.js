@@ -59,7 +59,7 @@ const styles = (theme) => ({
     }
 });
 
-class SDKOrgCreate extends React.Component {
+class OrgCreate extends React.Component {
 
     constructor(props) {
         super(props);
@@ -193,18 +193,18 @@ class SDKOrgCreate extends React.Component {
             <div className={classes.content}>
                 <Grid container spacing={4}>
                     <Grid item xs={12} sm={12} md={12}>
-                        <Typography component="div" variant="h6" className={classes.instructions}>
+                        <Typography component={"div"} variant={"h6"} className={classes.instructions}>
                             In order to push an Cell Image to Cellery Hub, you need to create an organization.
                         </Typography>
                     </Grid>
                     <Grid item xs={12} sm={6} md={6}>
                         <div className={classes.form}>
                             <FormControl fullWidth className={classes.orgTextField} error={errorMessage}>
-                                <InputLabel htmlFor="organization-name">Organization Name</InputLabel>
+                                <InputLabel htmlFor={"organization-name"}>Organization Name</InputLabel>
                                 <Input value={orgNameToBeCreated} type={"text"} fullWidth autoFocus
                                     onChange={this.handleOrgInputChange}
                                     endAdornment={
-                                        <InputAdornment position="end">
+                                        <InputAdornment position={"end"}>
                                             <IconButton aria-label={"Toggle password visibility"}
                                                 onClick={this.handleCheckAvailability}
                                                 disabled={!orgNameToBeCreated || errorMessage}>
@@ -215,11 +215,11 @@ class SDKOrgCreate extends React.Component {
                                 />
                                 {errorMessage ? <FormHelperText>{errorMessage}</FormHelperText> : null}
                             </FormControl>
-                            <Button variant="contained" color="primary" onClick={this.handleCreateOrg}
+                            <Button variant={"contained"} color={"primary"} onClick={this.handleCreateOrg}
                                 disabled={!isOrgVerified || !orgNameToBeCreated || errorMessage}>
                                 Create Organization
                             </Button>
-                            <Button variant="outlined" color="default" className={classes.skipBtn}
+                            <Button variant={"outlined"} color={"default"} className={classes.skipBtn}
                                 onClick={this.handleSkipConfirmDialogOpen}>Skip this step
                             </Button>
                             <Dialog open={isDialogOpen} onClose={this.handleSkipConfirmDialogClose}
@@ -229,16 +229,16 @@ class SDKOrgCreate extends React.Component {
                                     Do you want to skip creating an organization?
                                 </DialogTitle>
                                 <DialogContent>
-                                    <DialogContentText id="alert-dialog-description">
+                                    <DialogContentText id={"alert-dialog-description"}>
                                         If you skip this step you will have to go to Cellery Hub and create a
                                         organization before pushing an Cell Image.
                                     </DialogContentText>
                                 </DialogContent>
                                 <DialogActions>
-                                    <Button color="primary" onClick={this.handleSkipConfirmDialogClose}>
+                                    <Button color={"primary"} onClick={this.handleSkipConfirmDialogClose}>
                                         Cancel
                                     </Button>
-                                    <Button color="primary" autoFocus onClick={() => {
+                                    <Button color={"primary"} autoFocus onClick={() => {
                                         this.handleSkipConfirmDialogClose();
                                         this.handleContinue(true);
                                     }}>
@@ -255,7 +255,7 @@ class SDKOrgCreate extends React.Component {
 
 }
 
-SDKOrgCreate.propTypes = {
+OrgCreate.propTypes = {
     classes: PropTypes.object.isRequired,
     location: PropTypes.shape({
         search: PropTypes.string.isRequired
@@ -263,4 +263,4 @@ SDKOrgCreate.propTypes = {
     globalState: PropTypes.instanceOf(StateHolder).isRequired
 };
 
-export default withStyles(styles)(withGlobalState(SDKOrgCreate));
+export default withStyles(styles)(withGlobalState(OrgCreate));

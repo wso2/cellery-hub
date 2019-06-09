@@ -18,7 +18,7 @@
 
 import FormControl from "@material-ui/core/FormControl";
 import Grid from "@material-ui/core/Grid";
-import ImageList from "../../common/ImageList";
+import ImageList from "../common/ImageList";
 import Input from "@material-ui/core/Input";
 import InputAdornment from "@material-ui/core/InputAdornment";
 import React from "react";
@@ -37,55 +37,58 @@ const styles = (theme) => ({
     }
 });
 
-const data = [
+const images = [
     {
-        name: "pet-fe",
+        orgName: "alpha",
+        imageName: "pet-fe",
         summary: "This contains the four components which involves with working with the Pet Store data and"
             + " business logic.",
-        organization: "alpha",
-        public: true,
-        pulls: 10,
-        stars: 3,
-        lastUpdated: "2 days",
-        lastUpdatedBy: "john"
+        visibility: "PUBLIC",
+        pullCount: 10,
+        updatedTimestamp: "2019-05-07T05:11:54-0500",
+        lastAuthor: "john"
     },
     {
-        name: "pet-be",
+        orgName: "alpha",
+        imageName: "pet-be",
         summary: "This contains of a single component which serves the portal.",
-        organization: "alpha",
-        public: true,
-        pulls: 15,
-        stars: 11,
-        lastUpdated: "20 hours",
-        lastUpdatedBy: "john"
+        visibility: "PRIVATE",
+        pullCount: 15,
+        updatedTimestamp: "2019-04-10T05:11:54-0500",
+        lastAuthor: "john"
     }
 ];
 
-const OrgImageList = (props) => {
-    const {classes} = props;
-    return (
-        <React.Fragment>
-            <Grid container>
-                <Grid item xs={12} sm={4} md={4}>
-                    <FormControl className={classes.formControl}>
-                        <Input
-                            id="search"
-                            startAdornment={
-                                <InputAdornment position="start">
-                                    <SearchIcon className={classes.placeholderIcon}/>
-                                </InputAdornment>
-                            }
-                            placeholder="Search Image"
-                        />
-                    </FormControl>
+class OrgImageList extends React.Component {
+
+    handlePageChange = () => {
+        // TODO: Load new data for page
+    };
+
+    render() {
+        const {classes} = this.props;
+        return (
+            <React.Fragment>
+                <Grid container>
+                    <Grid item xs={12} sm={4} md={4}>
+                        <FormControl className={classes.formControl}>
+                            <Input id={"search"} placeholder={"Search Image"}
+                                startAdornment={
+                                    <InputAdornment position={"start"}>
+                                        <SearchIcon className={classes.placeholderIcon}/>
+                                    </InputAdornment>
+                                }/>
+                        </FormControl>
+                    </Grid>
+                    <Grid item xs={12} sm={12} md={12}>
+                        <ImageList pageData={images} onPageChange={this.handlePageChange}/>
+                    </Grid>
                 </Grid>
-                <Grid item xs={12} sm={12} md={12}>
-                    <ImageList data={data}/>
-                </Grid>
-            </Grid>
-        </React.Fragment>
-    );
-};
+            </React.Fragment>
+        );
+    }
+
+}
 
 OrgImageList.propTypes = {
     classes: PropTypes.object.isRequired,

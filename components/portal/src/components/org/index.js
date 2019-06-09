@@ -17,21 +17,21 @@
  */
 
 import ArrowBack from "@material-ui/icons/ArrowBack";
-import Constants from "../../../utils/constants";
-import CustomizedTabs from "../../common/CustomizedTabs";
+import Constants from "../../utils/constants";
+import CustomizedTabs from "../common/CustomizedTabs";
 import Divider from "@material-ui/core/Divider";
 import Grid from "@material-ui/core/Grid";
 import IconButton from "@material-ui/core/IconButton/IconButton";
-import NotFound from "../../common/error/NotFound";
-import NotificationUtils from "../../../utils/common/notificationUtils";
+import NotFound from "../common/error/NotFound";
+import NotificationUtils from "../../utils/common/notificationUtils";
 import OrgImageList from "./OrgImageList";
 import React from "react";
-import StateHolder from "../../common/state/stateHolder";
+import StateHolder from "../common/state/stateHolder";
 import Typography from "@material-ui/core/Typography";
-import withGlobalState from "../../common/state";
+import withGlobalState from "../common/state";
 import {withRouter} from "react-router-dom";
 import {withStyles} from "@material-ui/core/styles";
-import HttpUtils, {HubApiError} from "../../../utils/api/httpUtils";
+import HttpUtils, {HubApiError} from "../../utils/api/httpUtils";
 import * as PropTypes from "prop-types";
 import * as moment from "moment";
 
@@ -150,7 +150,6 @@ class Org extends React.Component {
             }
         ];
 
-        console.log(orgData);
         return (
             <React.Fragment>
                 <div className={classes.content}>
@@ -177,7 +176,8 @@ class Org extends React.Component {
                                         <Grid item xs={2} sm={2} md={2}>
                                             <Grid container justify={"center"} alignContent={"center"}
                                                 className={classes.imageContainer}>
-                                                <Typography variant="h2" color="inherit" className={classes.orgName}>
+                                                <Typography variant={"h2"} color={"inherit"}
+                                                    className={classes.orgName}>
                                                     {orgName.charAt(0)}
                                                 </Typography>
                                             </Grid>

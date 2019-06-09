@@ -53,15 +53,15 @@ const CustomTab = withStyles((theme) => ({
     selected: {}
 }))((props) => <Tab disableRipple {...props} />);
 
-const styles = (theme) => ({
+const styles = () => ({
     root: {
         flexGrow: 1
     }
 });
 
-const TabContainer = (props) => (
-    <Typography component="div" >
-        {props.children}
+const TabContainer = ({children}) => (
+    <Typography component={"div"} >
+        {children}
     </Typography>
 );
 

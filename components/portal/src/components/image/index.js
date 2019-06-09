@@ -17,9 +17,10 @@
  */
 
 import ArrowBack from "@material-ui/icons/ArrowBack";
-import CellImage from "../../../img/CellImage";
+import CellImage from "../../img/CellImage";
 import Chip from "@material-ui/core/Chip";
-import CustomizedTabs from "../../common/CustomizedTabs";
+import Constants from "../../utils/constants";
+import CustomizedTabs from "../common/CustomizedTabs";
 import Divider from "@material-ui/core/Divider";
 import FileCopy from "@material-ui/icons/FileCopyOutlined";
 import GetApp from "@material-ui/icons/GetApp";
@@ -126,13 +127,10 @@ const styles = (theme) => ({
 });
 
 const data = {
-    name: "pet-fe",
-    orgName: "alpha",
-    summary: "Sample Description",
+    summary: "Sample Summary",
     description: "Sample Description",
-    pulls: 10,
-    stars: 3,
-    public: true,
+    pullCount: 10,
+    visibility: "PUBLIC",
     keywords: ["Database", "Integration"]
 };
 
@@ -185,8 +183,10 @@ class Image extends React.Component {
     };
 
     render = () => {
-        const {classes, location, history} = this.props;
+        const {classes, location, match, history} = this.props;
         const {isPullCopiedTooltipOpen, isRunCopiedTooltipOpen} = this.state;
+        const orgName = match.params.orgName;
+        const imageName = match.params.imageName;
         const tabs = [
             {
                 label: "Versions",
@@ -201,14 +201,14 @@ class Image extends React.Component {
                         (history.length <= 2 || location.pathname === "/")
                             ? null
                             : (
-                                <IconButton color="inherit" aria-label="Back"
+                                <IconButton color={"inherit"} aria-label={"Back"}
                                     onClick={() => history.goBack()}>
                                     <ArrowBack/>
                                 </IconButton>
                             )
                     }
-                    <Typography variant="h5" color="inherit" className={classes.title}>
-                        {data.orgName}/{data.name}
+                    <Typography variant={"h5"} color={"inherit"} className={classes.title}>
+                        {orgName}/{imageName}
                     </Typography>
                     <Divider/>
                     <div className={classes.container}>
@@ -216,7 +216,7 @@ class Image extends React.Component {
                             <Grid item xs={12} sm={8} md={8}>
                                 <Grid container spacing={2}>
                                     <Grid item xs={2} sm={2} md={2}>
-                                        <Grid container justify="center">
+                                        <Grid container justify={"center"}>
                                             <div className={classes.imageContainer}>
                                                 <CellImage className={classes.cellImage}/>
                                             </div>
@@ -225,21 +225,21 @@ class Image extends React.Component {
                                     <Grid item xs={10} sm={10} md={10}>
                                         <div className={classes.stats}>
                                             <GetApp className={classes.elementIcon}/>
-                                            <Typography variant="subtitle2" color="inherit"
+                                            <Typography variant={"subtitle2"} color={"inherit"}
                                                 className={classes.elementText}>
-                                                {data.pulls}
+                                                {data.pullCount}
                                             </Typography>
                                             {
-                                                data.public
+                                                data.visibility.toUpperCase() === Constants.Visibility.PUBLIC
                                                     ? <React.Fragment>
                                                         <Language className={classNames(classes.elementIcon,
                                                             classes.spaceLeft)}/>
-                                                        <Typography variant="subtitle2" color="inherit"
+                                                        <Typography variant={"subtitle2"} color={"inherit"}
                                                             className={classes.elementText}>Public</Typography>
                                                     </React.Fragment>
                                                     : <React.Fragment>
                                                         <Lock className={classes.elementIcon}/>
-                                                        <Typography variant="subtitle2" color="inherit"
+                                                        <Typography variant={"subtitle2"} color={"inherit"}
                                                             className={classes.elementText}>
                                                             Private
                                                         </Typography>
@@ -254,56 +254,60 @@ class Image extends React.Component {
                                 </Grid>
                             </Grid>
                             <Grid item xs={12} sm={4} md={4} className={classes.rightPanel}>
-                                <Typography variant="subtitle2" color="inherit">
+                                <Typography variant={"subtitle2"} color={"inherit"}>
                                     Cellery Commands
                                 </Typography>
 
-                                <Typography variant="subtitle2" color="inherit" className={classes.rightPanelSubTitle}>
+                                <Typography variant={"subtitle2"} color={"inherit"}
+                                    className={classes.rightPanelSubTitle}>
                                     Pull
                                 </Typography>
                                 <div className={classes.copyContent}>
                                     <div className={classes.copyContainer}>
                                         <InputBase multiline className={classes.copyInput}
                                             inputProps={{spellCheck: false}}
-                                            value={`cellery pull ${data.orgName}/${data.name}`}
+                                            value={`cellery pull ${orgName}/${imageName}`}
                                             inputRef={this.pullCmdRef}/>
-                                        <Tooltip title="Copied!" disableFocusListener={false}
-                                            disableHoverListener={false} placement="top"
+                                        <Tooltip title={"Copied!"} disableFocusListener={false}
+                                            disableHoverListener={false} placement={"top"}
                                             disableTouchListener={false} open={isPullCopiedTooltipOpen}
                                             onClose={this.pullCmdCopiedTooltipClose}>
-                                            <IconButton color="inherit" className={classes.iconButton}
-                                                aria-label="Copy" onClick={this.copyPullCmdToClipboard}>
+                                            <IconButton color={"inherit"} className={classes.iconButton}
+                                                aria-label={"Copy"} onClick={this.copyPullCmdToClipboard}>
                                                 <FileCopy className={classes.copy}/>
                                             </IconButton>
                                         </Tooltip>
                                     </div>
                                 </div>
-                                <Typography variant="subtitle2" color="inherit" className={classes.rightPanelSubTitle}>
+                                <Typography variant={"subtitle2"} color={"inherit"}
+                                    className={classes.rightPanelSubTitle}>
                                     Run
                                 </Typography>
                                 <div className={classes.copyContent}>
                                     <div className={classes.copyContainer}>
                                         <InputBase multiline className={classes.copyInputMultiline}
-                                            value={`cellery run ${data.orgName}/${data.name}:<version> -n pet-fe -l
-petStoreBackend:pet-be -d`}
+                                            value={
+                                                `cellery run ${orgName}/${imageName}:<version> -n pet-fe -l
+                                                petStoreBackend:pet-be -d`
+                                            }
                                             inputProps={{spellCheck: false}}
                                             inputRef={this.runCmdRef}/>
-                                        <Tooltip title="Copied!" disableFocusListener={false}
-                                            disableHoverListener={false} placement="top"
+                                        <Tooltip title={"Copied!"} disableFocusListener={false}
+                                            disableHoverListener={false} placement={"top"}
                                             disableTouchListener={false} open={isRunCopiedTooltipOpen}
                                             onClose={this.runCmdCopiedTooltipClose}>
-                                            <IconButton color="inherit" className={classes.iconButton}
-                                                aria-label="Copy" onClick={this.copyRunCmdToClipboard}>
+                                            <IconButton color={"inherit"} className={classes.iconButton}
+                                                aria-label={"Copy"} onClick={this.copyRunCmdToClipboard}>
                                                 <FileCopy className={classes.copy}/>
                                             </IconButton>
                                         </Tooltip>
                                     </div>
                                 </div>
-                                <Typography variant="caption" display="block" gutterBottom color="inherit"
+                                <Typography variant={"caption"} display={"block"} gutterBottom color={"inherit"}
                                     className={classes.captionText}>
                                     help text for the command
                                 </Typography>
-                                <Typography variant="subtitle2" color="inherit" className={classes.rightPanelTitle}>
+                                <Typography variant={"subtitle2"} color={"inherit"} className={classes.rightPanelTitle}>
                                     Keywords
                                 </Typography>
                                 <div className={classes.keywordContent}>
@@ -328,7 +332,13 @@ Image.propTypes = {
     history: PropTypes.shape({
         goBack: PropTypes.func.isRequired
     }),
-    location: PropTypes.any.isRequired
+    location: PropTypes.any.isRequired,
+    match: PropTypes.shape({
+        params: PropTypes.shape({
+            orgName: PropTypes.string.isRequired,
+            imageName: PropTypes.string.isRequired
+        })
+    })
 };
 
 export default withStyles(styles)(withRouter(Image));

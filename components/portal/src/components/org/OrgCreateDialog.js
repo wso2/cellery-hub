@@ -32,21 +32,22 @@ const styles = (theme) => ({
     }
 });
 
-const OrgDialog = (props) => {
-    const {classes, open, handleClose} = props;
+const OrgCreateDialog = (props) => {
+    const {classes, open, onClose} = props;
 
     return (
         <div>
-            <Dialog open={open} onClose={handleClose} aria-labelledby="form-dialog-title" fullWidth>
-                <DialogTitle id="form-dialog-title">Create Organization</DialogTitle>
+            <Dialog open={open} onClose={onClose} aria-labelledby={"form-dialog-title"} fullWidth>
+                <DialogTitle id={"form-dialog-title"}>Create Organization</DialogTitle>
                 <DialogContent>
-                    <TextField autoFocus margin="dense" id="name" label="Organization Name" type="text" fullWidth/>
+                    <TextField autoFocus margin={"dense"} id={"name"} label={"Organization Name"} type={"text"}
+                        fullWidth/>
                 </DialogContent>
                 <DialogActions className={classes.dialogActions}>
-                    <Button onClick={handleClose} size="small">
+                    <Button onClick={onClose} size={"small"}>
                         Cancel
                     </Button>
-                    <Button onClick={handleClose} color="primary" size="small">
+                    <Button onClick={onClose} color={"primary"} size={"small"}>
                         Create
                     </Button>
                 </DialogActions>
@@ -55,10 +56,10 @@ const OrgDialog = (props) => {
     );
 };
 
-OrgDialog.propTypes = {
+OrgCreateDialog.propTypes = {
     classes: PropTypes.object.isRequired,
-    handleClose: PropTypes.func.isRequired,
-    open: PropTypes.bool.isRequired
+    open: PropTypes.bool.isRequired,
+    onClose: PropTypes.func.isRequired
 };
 
-export default withStyles(styles)(OrgDialog);
+export default withStyles(styles)(OrgCreateDialog);

@@ -16,6 +16,7 @@
  * under the License.
  */
 
+import Constants from "../../utils/constants";
 import FormControl from "@material-ui/core/FormControl";
 import Grid from "@material-ui/core/Grid";
 import Input from "@material-ui/core/Input";
@@ -27,6 +28,7 @@ import SearchIcon from "@material-ui/icons/Search";
 import {withRouter} from "react-router-dom";
 import {withStyles} from "@material-ui/core/styles";
 import * as PropTypes from "prop-types";
+import * as moment from "moment";
 
 const styles = (theme) => ({
     content: {
@@ -42,64 +44,62 @@ const styles = (theme) => ({
     }
 });
 
-const options = {
-    download: false,
-    search: false,
-    selectableRows: false,
-    print: false,
-    filter: false,
-    responsive: "scroll",
-    sort: true,
-    rowHover: false,
-    viewColumns: false
-};
-
 const data = [
     {
-        name: "1.0",
-        lastUpdated: "2 days ago",
-        pulls: "4"
+        version: "1.0.1",
+        updatedTimestamp: "2019-03-30T05:11:54-0500",
+        pullCount: 4
     },
     {
-        name: "2.0",
-        lastUpdated: "1 hour ago",
-        pulls: "2"
+        version: "2.0.1",
+        updatedTimestamp: "2018-05-12T05:11:54-0500",
+        pullCount: 2
     }
 ];
 
 class VersionList extends React.Component {
 
-
-    handleItemClick = (path) => {
-        const {history} = this.props;
-        history.push(path);
+    handleVersionClick = (version) => {
+        const {history, match} = this.props;
+        const orgName = match.params.orgName;
+        const imageName = match.params.imageName;
+        history.push(`/images/${orgName}/${imageName}/${version}`);
     };
 
     render = () => {
-        const {classes, match} = this.props;
+        const {classes} = this.props;
         const columns = [
             {
-                name: "name",
+                name: "version",
                 label: "Version",
                 options: {
-                    customBodyRender: (value) => <Link component="button"
-                        variant="subtitle2"
-                        onClick={(event) => {
-                            this.handleItemClick(
-                                `/images/${match.params.orgName}/${match.params.imageName}/${value}`,
-                                event);
-                        }}>{value}</Link>
+                    customBodyRender: (version) => <Link component={"button"} variant={"subtitle2"}
+                        onClick={() => this.handleVersionClick(version)}>{version}</Link>
                 }
             },
             {
-                name: "lastUpdated",
-                label: "Last Updated"
+                name: "updatedTimestamp",
+                label: "Last Updated",
+                options: {
+                    customBodyRender: (timestamp) => moment(timestamp).format(Constants.Format.DATE_TIME)
+                }
             },
             {
-                name: "pulls",
+                name: "pullCount",
                 label: "Pulls"
             }
         ];
+        const options = {
+            download: false,
+            search: false,
+            selectableRows: false,
+            print: false,
+            filter: false,
+            responsive: "scroll",
+            sort: true,
+            rowHover: false,
+            viewColumns: false
+        };
 
         return (
             <div className={classes.content}>
@@ -108,7 +108,7 @@ class VersionList extends React.Component {
                         <Grid item xs={12} sm={12} md={12}>
                             <FormControl className={classes.formControl}>
                                 <Input placeholder={"Search Version"} startAdornment={
-                                    <InputAdornment position="start">
+                                    <InputAdornment position={"start"}>
                                         <SearchIcon className={classes.placeholderIcon}/>
                                     </InputAdornment>
                                 }/>
@@ -129,7 +129,10 @@ VersionList.propTypes = {
         goBack: PropTypes.func.isRequired
     }),
     match: PropTypes.shape({
-        url: PropTypes.string.isRequired
+        params: PropTypes.shape({
+            orgName: PropTypes.string.isRequired,
+            imageName: PropTypes.string.isRequired
+        })
     }).isRequired
 };
 

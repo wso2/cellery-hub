@@ -142,12 +142,12 @@ class Header extends React.Component {
         return (
             <header>
                 <div className={classes.headerContent}>
-                    <Container maxWidth="md">
-                        <AppBar position="static" className={classes.appbar}>
+                    <Container maxWidth={"md"}>
+                        <AppBar position={"static"} className={classes.appbar}>
                             <Toolbar className={classes.toolbar}>
                                 <div className={classes.headerLogo}>
                                     <div className={classes.logo}>
-                                        <img src={CelleryLogo} className={classes.celleryLogo} alt="Cellery logo"/>
+                                        <img src={CelleryLogo} className={classes.celleryLogo} alt={"Cellery logo"}/>
                                         hub
                                     </div>
                                 </div>
@@ -155,30 +155,29 @@ class Header extends React.Component {
                                     user
                                         ? (
                                             <React.Fragment>
-                                                <Button disableTouchRipple={true} color="inherit"
-                                                    onClick={(event) => {
-                                                        this.handleNavItemClick(pages[0], event);
-                                                    }} className={classes.navButton}>
+                                                <Button disableTouchRipple={true} color={"inherit"}
+                                                    onClick={() => this.handleNavItemClick(pages[0])}
+                                                    className={classes.navButton}>
                                                     Images
                                                 </Button>
-                                                <Button disableTouchRipple={true} color="inherit"
-                                                    onClick={(event) => {
-                                                        this.handleNavItemClick(pages[1], event);
-                                                    }} className={classes.navButton}>
+                                                <Button disableTouchRipple={true} color={"inherit"}
+                                                    onClick={() => this.handleNavItemClick(pages[1])}
+                                                    className={classes.navButton}>
                                                     Organisations
                                                 </Button>
                                             </React.Fragment>
                                         )
                                         : null
                                 }
-                                <Button disableTouchRipple={true} color="inherit" onClick={(event) => {
-                                    this.handleNavItemClick(pages[2], event);
-                                }} className={classes.navButton}>Explore</Button>
+                                <Button disableTouchRipple={true} color={"inherit"} className={classes.navButton}
+                                    onClick={() => this.handleNavItemClick(pages[2])}>
+                                    Explore
+                                </Button>
                                 <div>
-                                    <Button disableTouchRipple={true} color="inherit"
-                                        className={classes.navButton} ria-haspopup="true"
+                                    <Button disableTouchRipple={true} color={"inherit"}
+                                        className={classes.navButton} ria-haspopup={"true"}
                                         onClick={this.handleDocsPopoverOpen}>Docs</Button>
-                                    <Menu id="user-info" anchorEl={docsPopoverElement}
+                                    <Menu id={"user-info"} anchorEl={docsPopoverElement}
                                         anchorOrigin={{
                                             vertical: "top",
                                             horizontal: "right"
@@ -201,9 +200,9 @@ class Header extends React.Component {
                                     {
                                         user
                                             ? (
-                                                <Button disableTouchRipple={true} color="inherit"
+                                                <Button disableTouchRipple={true} color={"inherit"}
                                                     className={classNames(classes.usernameBtn, classes.navButton)}
-                                                    aria-haspopup="true" onClick={this.handleAccountPopoverOpen}>
+                                                    aria-haspopup={"true"} onClick={this.handleAccountPopoverOpen}>
                                                     {
                                                         user.avatarUrl
                                                             ? (
@@ -217,7 +216,7 @@ class Header extends React.Component {
                                             )
                                             : null
                                     }
-                                    <Menu id="user-info" anchorEl={accountPopoverElement}
+                                    <Menu id={"user-info"} anchorEl={accountPopoverElement}
                                         anchorOrigin={{
                                             vertical: "top",
                                             horizontal: "right"

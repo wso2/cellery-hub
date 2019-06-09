@@ -62,19 +62,18 @@ const graphData = {
 };
 
 const DependencyDiagram = (props) => {
-    const {classes, cell} = props;
+    const {classes, data} = props;
 
     return (
         <div className={classes.content}>
-            <CellDiagram data={graphData} focusedCell={cell}/>
+            <CellDiagram data={graphData} focusedCell={`${data.org}/${data.name}:${data.ver}`}/>
         </div>
     );
 };
 
 DependencyDiagram.propTypes = {
     classes: PropTypes.object.isRequired,
-    data: PropTypes.object.isRequired,
-    cell: PropTypes.string.isRequired
+    data: PropTypes.object.isRequired
 };
 
 export default withStyles(styles)(DependencyDiagram);

@@ -26,6 +26,10 @@ const Constants = {
     },
     Format: {
         DATE_TIME: "DD MMM YYYY, hh:mm:ss A"
+    },
+    Visibility: {
+        PUBLIC: "PUBLIC",
+        PRIVATE: "PRIVATE"
     }
 };
 

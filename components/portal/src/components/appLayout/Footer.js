@@ -57,14 +57,14 @@ const Footer = (props) => {
     return (
         <footer>
             <div className={classes.footerContent}>
-                <Container maxWidth="md" className={classes.copyRightInfo}>
-                    <Typography variant="subtitle2" color="inherit" className={classes.title}>
+                <Container maxWidth={"md"} className={classes.copyRightInfo}>
+                    <Typography variant={"subtitle2"} color={"inherit"} className={classes.title}>
                         &copy; 2019
-                        <Link href="https://wso2.com" target="_blank"
+                        <Link href={"https://wso2.com"} target={"_blank"}
                             className={classes.footerLink}> WSO2</Link>
                     </Typography>
-                    <Link href="https://wso2-cellery.github.io/" target="_blank" className={classes.footerLink}>
-                        <img src={CelleryLogo} className={classes.celleryLogoFooter} alt="Cellery logo"/>
+                    <Link href={"https://wso2-cellery.github.io/"} target={"_blank"} className={classes.footerLink}>
+                        <img src={CelleryLogo} className={classes.celleryLogoFooter} alt={"Cellery logo"}/>
                     </Link>
                 </Container>
             </div>
