@@ -133,19 +133,7 @@ const data = {
     pulls: 10,
     stars: 3,
     public: true,
-    keywords: ["Database", "Integration"],
-    versions: [
-        {
-            name: "1.0",
-            lastUpdated: "2 days ago",
-            pulls: "4"
-        },
-        {
-            name: "2.0",
-            lastUpdated: "1 hour ago",
-            pulls: "2"
-        }
-    ]
+    keywords: ["Database", "Integration"]
 };
 
 class Image extends React.Component {
@@ -202,7 +190,7 @@ class Image extends React.Component {
         const tabs = [
             {
                 label: "Versions",
-                component: <VersionList data={data.versions}/>
+                render: () => <VersionList/>
             }
         ];
 
@@ -261,7 +249,7 @@ class Image extends React.Component {
 
                                     </Grid>
                                     <Grid item xs={12} sm={12} md={12}>
-                                        <CustomizedTabs data={tabs}/>
+                                        <CustomizedTabs tabs={tabs}/>
                                     </Grid>
                                 </Grid>
                             </Grid>

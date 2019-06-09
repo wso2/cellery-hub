@@ -202,7 +202,7 @@ class ImageVersion extends React.Component {
         const tabs = [
             {
                 label: "Dependencies",
-                component: <DependencyDiagram cell={data.name}/>
+                render: () => <DependencyDiagram cell={data.name}/>
             }
         ];
 
@@ -250,7 +250,7 @@ class ImageVersion extends React.Component {
 
                                     </Grid>
                                     <Grid item xs={12} sm={12} md={12}>
-                                        <CustomizedTabs data={tabs}/>
+                                        <CustomizedTabs tabs={tabs}/>
                                     </Grid>
                                 </Grid>
                             </Grid>

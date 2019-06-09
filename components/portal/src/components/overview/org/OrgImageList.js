@@ -37,10 +37,32 @@ const styles = (theme) => ({
     }
 });
 
+const data = [
+    {
+        name: "pet-fe",
+        summary: "This contains the four components which involves with working with the Pet Store data and"
+            + " business logic.",
+        organization: "alpha",
+        public: true,
+        pulls: 10,
+        stars: 3,
+        lastUpdated: "2 days",
+        lastUpdatedBy: "john"
+    },
+    {
+        name: "pet-be",
+        summary: "This contains of a single component which serves the portal.",
+        organization: "alpha",
+        public: true,
+        pulls: 15,
+        stars: 11,
+        lastUpdated: "20 hours",
+        lastUpdatedBy: "john"
+    }
+];
 
 const OrgImageList = (props) => {
-    const {classes, data} = props;
-
+    const {classes} = props;
     return (
         <React.Fragment>
             <Grid container>
@@ -67,7 +89,7 @@ const OrgImageList = (props) => {
 
 OrgImageList.propTypes = {
     classes: PropTypes.object.isRequired,
-    data: PropTypes.arrayOf(PropTypes.object).isRequired
+    organization: PropTypes.string.isRequired
 };
 
 export default withStyles(styles)(OrgImageList);

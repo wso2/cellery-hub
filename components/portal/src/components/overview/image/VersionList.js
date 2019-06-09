@@ -54,6 +54,19 @@ const options = {
     viewColumns: false
 };
 
+const data = [
+    {
+        name: "1.0",
+        lastUpdated: "2 days ago",
+        pulls: "4"
+    },
+    {
+        name: "2.0",
+        lastUpdated: "1 hour ago",
+        pulls: "2"
+    }
+];
+
 class VersionList extends React.Component {
 
 
@@ -63,7 +76,7 @@ class VersionList extends React.Component {
     };
 
     render = () => {
-        const {classes, data, match} = this.props;
+        const {classes, match} = this.props;
         const columns = [
             {
                 name: "name",
@@ -94,22 +107,13 @@ class VersionList extends React.Component {
                     <Grid container>
                         <Grid item xs={12} sm={12} md={12}>
                             <FormControl className={classes.formControl}>
-                                <Input
-                                    id="search"
-                                    startAdornment={
-                                        <InputAdornment position="start">
-                                            <SearchIcon className={classes.placeholderIcon}/>
-                                        </InputAdornment>
-                                    }
-                                    placeholder="Search Version"
-                                />
+                                <Input placeholder={"Search Version"} startAdornment={
+                                    <InputAdornment position="start">
+                                        <SearchIcon className={classes.placeholderIcon}/>
+                                    </InputAdornment>
+                                }/>
                             </FormControl>
-                            <MUIDataTable
-                                className={classes.table}
-                                data={data}
-                                columns={columns}
-                                options={options}
-                            />
+                            <MUIDataTable className={classes.table} data={data} columns={columns} options={options}/>
                         </Grid>
                     </Grid>
                 </div>
@@ -121,7 +125,6 @@ class VersionList extends React.Component {
 
 VersionList.propTypes = {
     classes: PropTypes.object.isRequired,
-    data: PropTypes.arrayOf(PropTypes.object).isRequired,
     history: PropTypes.shape({
         goBack: PropTypes.func.isRequired
     }),

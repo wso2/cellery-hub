@@ -56,6 +56,17 @@ const options = {
     viewColumns: false
 };
 
+const data = [
+    {
+        name: "John",
+        role: "admin"
+    },
+    {
+        name: "Mark",
+        role: "member"
+    }
+];
+
 class MemberList extends React.Component {
 
     constructor(props) {
@@ -73,7 +84,7 @@ class MemberList extends React.Component {
     };
 
     render = () => {
-        const {classes, data} = this.props;
+        const {classes} = this.props;
         const {isAdmin} = this.state;
         const columns = [
             {
@@ -135,10 +146,10 @@ class MemberList extends React.Component {
 
 MemberList.propTypes = {
     classes: PropTypes.object.isRequired,
-    data: PropTypes.arrayOf(PropTypes.object).isRequired,
     history: PropTypes.shape({
         goBack: PropTypes.func.isRequired
-    })
+    }),
+    organization: PropTypes.string.isRequired
 };
 
 export default withStyles(styles)(MemberList);

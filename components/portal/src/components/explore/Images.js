@@ -40,6 +40,39 @@ const styles = (theme) => ({
     }
 });
 
+const images = [
+    {
+        name: "pet-fe",
+        summary: "This contains the four components which involves with working with the Pet Store data and"
+            + " business logic.",
+        organization: "alpha",
+        public: true,
+        pulls: 10,
+        stars: 3,
+        lastUpdated: "2 days",
+        lastUpdatedBy: "john"
+    },
+    {
+        name: "pet-be",
+        summary: "This contains of a single component which serves the portal.",
+        organization: "alpha",
+        public: true,
+        pulls: 15,
+        stars: 11,
+        lastUpdated: "20 hours",
+        lastUpdatedBy: "john"
+    },
+    {
+        name: "hello-world",
+        summary: "Sample hello world cell.",
+        organization: "beta",
+        public: false,
+        pulls: 7,
+        stars: 4,
+        lastUpdated: "5 days",
+        lastUpdatedBy: "john"
+    }
+];
 
 class Images extends React.Component {
 
@@ -57,15 +90,14 @@ class Images extends React.Component {
     };
 
     render = () => {
-        const {classes, data} = this.props;
+        const {classes} = this.props;
         const {sort} = this.state;
-
         return (
             <React.Fragment>
                 <Grid container>
                     <Grid item xs={12} sm={4} md={4}>
                         <FormControl className={classes.formControl}>
-                            <InputLabel shrink htmlFor="search-label-placeholder"></InputLabel>
+                            <InputLabel shrink htmlFor="search-label-placeholder"/>
                             <Input
                                 id="search"
                                 startAdornment={
@@ -100,7 +132,7 @@ class Images extends React.Component {
                         </form>
                     </Grid>
                     <Grid item xs={12} sm={12} md={12}>
-                        <ImageList data={data}/>
+                        <ImageList data={images}/>
                     </Grid>
                 </Grid>
             </React.Fragment>
@@ -110,8 +142,7 @@ class Images extends React.Component {
 }
 
 Images.propTypes = {
-    classes: PropTypes.object.isRequired,
-    data: PropTypes.arrayOf(PropTypes.object).isRequired
+    classes: PropTypes.object.isRequired
 };
 
 export default withStyles(styles)(Images);

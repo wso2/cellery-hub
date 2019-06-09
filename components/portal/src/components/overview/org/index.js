@@ -79,40 +79,7 @@ const data = {
     description: "Sample Description",
     url: "http://alpha.com",
     createdBy: "john",
-    createdDate: "12/05/2019",
-    members: [
-        {
-            name: "John",
-            role: "admin"
-        },
-        {
-            name: "Mark",
-            role: "member"
-        }
-    ],
-    images: [
-        {
-            name: "pet-fe",
-            summary: "This contains the four components which involves with working with the Pet Store data and"
-            + " business logic.",
-            organization: "alpha",
-            public: true,
-            pulls: 10,
-            stars: 3,
-            lastUpdated: "2 days",
-            lastUpdatedBy: "john"
-        },
-        {
-            name: "pet-be",
-            summary: "This contains of a single component which serves the portal.",
-            organization: "alpha",
-            public: true,
-            pulls: 15,
-            stars: 11,
-            lastUpdated: "20 hours",
-            lastUpdatedBy: "john"
-        }
-    ]
+    createdDate: "12/05/2019"
 };
 
 const Org = (props) => {
@@ -120,7 +87,7 @@ const Org = (props) => {
     const tabs = [
         {
             label: "Images",
-            component: <OrgImageList data={data.images}/>
+            render: () => <OrgImageList organization={data.orgName}/>
         }
     ];
 
@@ -161,7 +128,7 @@ const Org = (props) => {
                             <Grid container>
                                 <Grid item xs={12} sm={12} md={12}>
                                     <div>
-                                        <CustomizedTabs data={tabs}/>
+                                        <CustomizedTabs tabs={tabs}/>
                                     </div>
                                 </Grid>
                             </Grid>

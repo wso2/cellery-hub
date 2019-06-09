@@ -74,32 +74,32 @@ class CustomizedTabs extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            value: 0
+            selectedIndex: 0
         };
     }
 
-    handleChange = (event, newValue) => {
+    handleChange = (event, newSelectedIndex) => {
         this.setState({
-            value: newValue
+            selectedIndex: newSelectedIndex
         });
     };
 
     render = () => {
-        const {data, classes} = this.props;
-        const {value} = this.state;
+        const {tabs, classes} = this.props;
+        const {selectedIndex} = this.state;
 
         return (
             <div className={classes.root}>
-                <CustomTabs value={value} onChange={this.handleChange}>
+                <CustomTabs value={selectedIndex} onChange={this.handleChange}>
                     {
-                        data.map((item) => (
+                        tabs.map((item) => (
                             <CustomTab key={item.label} label={item.label}/>
                         ))
                     }
                 </CustomTabs>
                 {
-                    data.map((item, index) => (
-                        value === index && <TabContainer key={index}>{item.component}</TabContainer>
+                    tabs.map((item, index) => (
+                        selectedIndex === index && <TabContainer key={index}>{item.render()}</TabContainer>
                     ))
                 }
             </div>
@@ -110,7 +110,10 @@ class CustomizedTabs extends React.Component {
 
 CustomizedTabs.propTypes = {
     classes: PropTypes.object.isRequired,
-    data: PropTypes.arrayOf(PropTypes.object).isRequired
+    tabs: PropTypes.arrayOf(PropTypes.shape({
+        label: PropTypes.string.isRequired,
+        render: PropTypes.func.isRequired
+    })).isRequired
 };
 
 export default withStyles(styles)(CustomizedTabs);

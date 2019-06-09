@@ -41,14 +41,31 @@ const styles = (theme) => ({
     }
 });
 
-const Orgs = (props) => {
-    const {classes, data} = props;
+const orgs = [
+    {
+        name: "Alpha",
+        value: "alpha",
+        members: 5,
+        images: 3,
+        description: "Sample description"
 
+    },
+    {
+        name: "Beta",
+        value: "beta",
+        members: 10,
+        images: 6,
+        description: "Sample description"
+    }
+];
+
+const Orgs = (props) => {
+    const {classes} = props;
     return (
         <Grid container>
             <Grid item xs={12} sm={4} md={4}>
                 <FormControl className={classes.formControl}>
-                    <InputLabel shrink htmlFor="search-label-placeholder"></InputLabel>
+                    <InputLabel shrink htmlFor="search-label-placeholder"/>
                     <Input
                         id="search"
                         startAdornment={
@@ -61,7 +78,7 @@ const Orgs = (props) => {
                 </FormControl>
             </Grid>
             <Grid item xs={12} sm={12} md={12}>
-                <OrgList data={data}/>
+                <OrgList data={orgs}/>
             </Grid>
         </Grid>
     );
@@ -69,8 +86,7 @@ const Orgs = (props) => {
 
 
 Orgs.propTypes = {
-    classes: PropTypes.object.isRequired,
-    data: PropTypes.arrayOf(PropTypes.object).isRequired
+    classes: PropTypes.object.isRequired
 };
 
 export default withStyles(styles)(Orgs);
