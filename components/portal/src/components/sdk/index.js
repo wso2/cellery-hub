@@ -18,6 +18,7 @@
 
 import ErrorBoundary from "../common/error/ErrorBoundary";
 import FederatedIdpSelect from "./FederatedIdpSelect";
+import NotFound from "../common/error/NotFound";
 import React from "react";
 import SDKAppLayout from "./sdkAppLayout";
 import SDKOrgCreate from "./SDKOrgCreate";
@@ -52,6 +53,7 @@ class StatelessProtectedSDKPortal extends React.Component {
                 <Switch>
                     <Route exact path={`${match.path}/org-create`} component={SDKOrgCreate}/>
                     <Route exact path={`${match.path}/auth-success`} component={SDKSignInSuccess}/>
+                    <Route render={(props) => <NotFound {...props} showNavigationButtons={true}/>}/>
                 </Switch>
             );
         } else {
@@ -76,7 +78,7 @@ const SDK = ({match}) => (
         <ErrorBoundary>
             <Switch>
                 <Route exact path={`${match.path}/fidp-select`} component={FederatedIdpSelect}/>
-                <Route path={`${match.path}*`} component={ProtectedSDKPortal}/>
+                <Route component={ProtectedSDKPortal}/>
             </Switch>
         </ErrorBoundary>
     </SDKAppLayout>

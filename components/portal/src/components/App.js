@@ -26,6 +26,7 @@ import Image from "./overview/image";
 import ImageVersion from "./overview/image/ImageVersion";
 import MyImages from "./myImages";
 import MyOrgs from "./myOrgs";
+import NotFound from "./common/error/NotFound";
 import Org from "./overview/org";
 import PortalExtras from "./PortalExtras";
 import React from "react";
@@ -36,43 +37,45 @@ import {MuiThemeProvider, createMuiTheme} from "@material-ui/core/styles";
 import withGlobalState, {StateHolder, StateProvider} from "./common/state";
 
 const HubPortal = withGlobalState(({globalState}) => {
-    const isLoggedIn = Boolean(globalState.get(StateHolder.USER));
-    return (
-        <Switch>
-            {
-                isLoggedIn
-                    ? null
-                    : (
-                        <React.Fragment>
-                            <Route exact path={"/"} component={Home}/>
-                            <Route exact path={"/sign-in"} render={() => <SignIn callbackRoute={"/"}/>}/>
-                        </React.Fragment>
-                    )
-            }
-            <Route path={"*"} render={() => (
-                <AppLayout>
-                    <ErrorBoundary showNavigationButtons={true}>
-                        <Switch>
-                            {
-                                isLoggedIn
-                                    ? (
-                                        <React.Fragment>
-                                            <Route exact path={["/", "/my-images"]} component={MyImages}/>
-                                            <Route exact path={"/my-orgs"} component={MyOrgs}/>
-                                        </React.Fragment>
-                                    )
-                                    : null
-                            }
-                            <Route exact path={"/explore"} component={Explore}/>
-                            <Route exact path={"/orgs/:orgName"} component={Org}/>
-                            <Route exact path={"/images/:orgName/:imageName"} component={Image}/>
-                            <Route exact path={"/images/:orgName/:imageName/:versionNo"} component={ImageVersion}/>
-                        </Switch>
-                    </ErrorBoundary>
-                </AppLayout>
-            )}/>
-        </Switch>
-    );
+    let view;
+    if (globalState.get(StateHolder.USER)) {
+        view = (
+            <AppLayout>
+                <ErrorBoundary showNavigationButtons={true}>
+                    <Switch>
+                        <Route exact path={["/", "/my-images"]} component={MyImages}/>
+                        <Route exact path={"/my-orgs"} component={MyOrgs}/>
+                        <Route exact path={"/explore"} component={Explore}/>
+                        <Route exact path={"/orgs/:orgName"} component={Org}/>
+                        <Route exact path={"/images/:orgName/:imageName"} component={Image}/>
+                        <Route exact path={"/images/:orgName/:imageName/:versionNo"} component={ImageVersion}/>
+                        <Route render={(props) => <NotFound {...props} showNavigationButtons={true}/>}/>
+                    </Switch>
+                </ErrorBoundary>
+            </AppLayout>
+        );
+    } else {
+        view = (
+            <Switch>
+                <Route exact path={"/"} component={Home}/>
+                <Route exact path={"/sign-in"} render={() => <SignIn callbackRoute={"/"}/>}/>
+                <Route render={() => (
+                    <AppLayout>
+                        <ErrorBoundary showNavigationButtons={true}>
+                            <Switch>
+                                <Route exact path={"/explore"} component={Explore}/>
+                                <Route exact path={"/orgs/:orgName"} component={Org}/>
+                                <Route exact path={"/images/:orgName/:imageName"} component={Image}/>
+                                <Route exact path={"/images/:orgName/:imageName/:versionNo"} component={ImageVersion}/>
+                                <Route render={(props) => <NotFound {...props} showNavigationButtons={true}/>}/>
+                            </Switch>
+                        </ErrorBoundary>
+                    </AppLayout>
+                )}/>
+            </Switch>
+        );
+    }
+    return view;
 });
 
 // Create the main theme of the App
@@ -106,7 +109,7 @@ const App = () => (
                     <PortalExtras/>
                     <Switch>
                         <Route path={"/sdk"} component={SDK}/>
-                        <Route path={"/"} component={HubPortal}/>
+                        <Route component={HubPortal}/>
                     </Switch>
                 </StateProvider>
             </ErrorBoundary>

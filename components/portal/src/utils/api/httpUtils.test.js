@@ -20,9 +20,9 @@
 /* eslint camelcase: ["off"] */
 
 import AuthUtils from "./authUtils";
-import HttpUtils, {HubApiError} from "./httpUtils";
 import {StateHolder} from "../../components/common/state";
 import axios from "axios";
+import HttpUtils, {HubApiError} from "./httpUtils";
 
 jest.mock("axios");
 
