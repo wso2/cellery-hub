@@ -22,10 +22,9 @@ import cellery_hub_api/db;
 import cellery_hub_api/constants;
 import ballerina/log;
 import ballerina/mysql;
-import cellery_hub_api/db;
 import cellery_hub_api/idp;
 
-# Get Auth Tokens
+# Get Auth Tokens.
 #
 # + getTokensReq - getTokensReq Parameter Description
 # + return - Return Value Description

@@ -19,6 +19,7 @@
 import ballerina/config;
 import ballerina/http;
 import ballerina/io;
+import ballerina/log;
 import celllery_hub/constants;
 import celllery_hub/gen;
 
@@ -29,9 +30,19 @@ public function getTokens(string authCode, string callbackUrl) returns (gen:Toke
     var response = check oidcProviderClientEP->post(config:getAsString("idp.oidc.tokenendpoint"), tokenReq);
 
     var responsePayload = check response.getJsonPayload();
-    gen:TokensResponse tokens = {
-        accessToken: <string>responsePayload.access_token,
-        idToken: <string>responsePayload.id_token
-    };
-    return tokens;
+    if (responsePayload["error"] != null) {
+        error err = error(io:sprintf("Failed to call IdP token endpoint with error \"%s\" due to \"%s\"", <string>responsePayload["error"],
+            <string>responsePayload.error_description));
+        return err;
+    } else if (response.statusCode >= 400) {
+        error err = error(io:sprintf("Failed to call IdP token endpoint with status code ", response.statusCode));
+        return err;
+    } else {
+        gen:TokensResponse tokens = {
+            accessToken: <string>responsePayload.access_token,
+            idToken: <string>responsePayload.id_token
+        };
+        log:printDebug("Successfully retrieved tokens from IdP");
+        return tokens;
+    }
 }

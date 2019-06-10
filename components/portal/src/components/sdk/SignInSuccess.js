@@ -47,7 +47,7 @@ const SignInSuccess = (props) => {
                 You are now authenticated with Cellery SDK!
             </Typography>
             <Typography component={"div"} className={classes.gotoHub}> You can go to&nbsp;
-                <Link target={"_blank"} href={"http://hub.cellery.io"}>Cellery Hub</Link> to manage your
+                <Link target={"_blank"} href={"https://hub.cellery.io"}>Cellery Hub</Link> to manage your
                 organizations and Cell images.
             </Typography>
         </div>
