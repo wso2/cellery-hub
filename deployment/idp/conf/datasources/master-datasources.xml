@@ -16,7 +16,7 @@
        </jndiConfig>
        <definition type="RDBMS">
            <configuration>
-               <url>jdbc:mysql://mysql.hub.internal:3306/CELLERY_HUB</url>
+               <url>jdbc:mysql://mysql.hub.internal:3306/CELLERY_HUB?useSSL=false</url>
                <username>celleryhub</username>
                <password>celleryhub</password>
                <driverClassName>com.mysql.jdbc.Driver</driverClassName>
