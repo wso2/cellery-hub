@@ -19,6 +19,7 @@
 import AccountCircle from "@material-ui/icons/AccountCircle";
 import AppBar from "@material-ui/core/AppBar";
 import AuthUtils from "../../../utils/api/authUtils";
+import Avatar from "@material-ui/core/Avatar";
 import Button from "@material-ui/core/Button";
 import CelleryLogo from "../../../img/celleryLogo.svg";
 import Container from "@material-ui/core/Container";
@@ -84,9 +85,17 @@ class Header extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            accountPopoverElement: null
+            accountPopoverElement: null,
+            user: props.globalState.get(StateHolder.USER)
         };
+        props.globalState.addListener(StateHolder.USER, this.handleUserChange);
     }
+
+    handleUserChange = (key, oldValue, newValue) => {
+        this.setState({
+            user: newValue
+        });
+    };
 
     handleAccountPopoverOpen = (event) => {
         this.setState({
@@ -102,10 +111,9 @@ class Header extends React.Component {
 
     render = () => {
         const {classes, globalState} = this.props;
-        const {accountPopoverElement} = this.state;
+        const {accountPopoverElement, user} = this.state;
 
         const isAccountPopoverOpen = Boolean(accountPopoverElement);
-        const loggedInUser = globalState.get(StateHolder.USER);
         return (
             <header>
                 <div className={classes.headerContent}>
@@ -122,15 +130,22 @@ class Header extends React.Component {
                                     </Typography>
                                 </div>
                                 {
-                                    loggedInUser
+                                    user
                                         ? (
                                             <div>
                                                 <Button disableTouchRipple={true} color="inherit"
                                                     className={classNames(classes.usernameBtn, classes.navButton)}
                                                     aria-haspopup="true"
                                                     onClick={this.handleAccountPopoverOpen}>
-                                                    <AccountCircle className={classes.leftIcon}/>
-                                                    {loggedInUser.username}
+                                                    {
+                                                        user.avatarUrl
+                                                            ? (
+                                                                <Avatar alt={user.username} src={user.avatarUrl}
+                                                                    className={classes.leftIcon} />
+                                                            )
+                                                            : <AccountCircle className={classes.leftIcon}/>
+                                                    }
+                                                    {user.username}
                                                 </Button>
                                                 <Menu id="user-info" anchorEl={accountPopoverElement}
                                                     anchorOrigin={{

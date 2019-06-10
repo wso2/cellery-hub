@@ -20,9 +20,9 @@
 /* eslint camelcase: ["off"] */
 
 import AuthUtils from "./authUtils";
-import HttpUtils from "./httpUtils";
 import {StateHolder} from "../../components/common/state";
 import axios from "axios";
+import HttpUtils, {HubApiError} from "./httpUtils";
 
 jest.mock("axios");
 
@@ -148,8 +148,10 @@ describe("HttpUtils", () => {
         let stateHolder;
         const loggedInUser = {
             username: "test-user",
-            accessToken: "12345",
-            idToken: "54321"
+            tokens: {
+                accessToken: "12345",
+                idToken: "54321"
+            }
         };
         const globalConfig = {
             hubApiUrl: "http://api.hub.cellery.io",
@@ -175,7 +177,7 @@ describe("HttpUtils", () => {
                 expect(Object.keys(config.headers)).toHaveLength(4);
                 expect(config.headers["X-Key"]).toBe("value");
                 expect(config.headers.Accept).toBe("application/json");
-                expect(config.headers.Authorization).toBe(`Bearer ${loggedInUser.accessToken}`);
+                expect(config.headers.Authorization).toBe(`Bearer ${loggedInUser.tokens.accessToken}`);
                 expect(config.headers["Content-Type"]).toBe("application/json");
 
                 return new Promise((resolve) => {
@@ -207,7 +209,7 @@ describe("HttpUtils", () => {
                 expect(config.url).toBe(globalConfig.hubApiUrl + endpoint);
                 expect(Object.keys(config.headers)).toHaveLength(3);
                 expect(config.headers.Accept).toBe("application/json");
-                expect(config.headers.Authorization).toBe(`Bearer ${loggedInUser.accessToken}`);
+                expect(config.headers.Authorization).toBe(`Bearer ${loggedInUser.tokens.accessToken}`);
                 expect(config.headers["Content-Type"]).toBe("application/json");
 
                 return new Promise((resolve) => {
@@ -236,7 +238,7 @@ describe("HttpUtils", () => {
                 expect(config.url).toBe(globalConfig.hubApiUrl + endpoint);
                 expect(Object.keys(config.headers)).toHaveLength(3);
                 expect(config.headers.Accept).toBe("application/xml");
-                expect(config.headers.Authorization).toBe(`Bearer ${loggedInUser.accessToken}`);
+                expect(config.headers.Authorization).toBe(`Bearer ${loggedInUser.tokens.accessToken}`);
                 expect(config.headers["Content-Type"]).toBe("application/json");
 
                 return new Promise((resolve) => {
@@ -268,7 +270,7 @@ describe("HttpUtils", () => {
                 expect(config.url).toBe(globalConfig.hubApiUrl + endpoint);
                 expect(Object.keys(config.headers)).toHaveLength(3);
                 expect(config.headers.Accept).toBe("application/json");
-                expect(config.headers.Authorization).toBe(`Bearer ${loggedInUser.accessToken}`);
+                expect(config.headers.Authorization).toBe(`Bearer ${loggedInUser.tokens.accessToken}`);
                 expect(config.headers["Content-Type"]).toBe("application/json");
 
                 return new Promise((resolve) => {
@@ -297,7 +299,7 @@ describe("HttpUtils", () => {
                 expect(config.url).toBe(globalConfig.hubApiUrl + endpoint);
                 expect(Object.keys(config.headers)).toHaveLength(3);
                 expect(config.headers.Accept).toBe("application/json");
-                expect(config.headers.Authorization).toBe(`Bearer ${loggedInUser.accessToken}`);
+                expect(config.headers.Authorization).toBe(`Bearer ${loggedInUser.tokens.accessToken}`);
                 expect(config.headers["Content-Type"]).toBe("application/xml");
 
                 return new Promise((resolve) => {
@@ -399,7 +401,7 @@ describe("HttpUtils", () => {
         rejectStatusCodes.filter((statusCode) => statusCode !== unauthorizedStatusCode).forEach((statusCode) => {
             it(`should reject with response data when axios rejects with a ${statusCode} status code`, () => {
                 expect.assertions(1);
-                return expect(mockReject(statusCode)).rejects.toEqual(new Error(ERROR_DATA));
+                return expect(mockReject(statusCode)).rejects.toEqual(new HubApiError(ERROR_DATA, statusCode));
             });
         });
 
@@ -417,7 +419,8 @@ describe("HttpUtils", () => {
                 const endpoint = `${globalConfig.idp.url}${AuthUtils.AUTHORIZATION_ENDPOINT}`;
                 expect(location).toEqual(`${endpoint}${HttpUtils.generateQueryParamString(params)}`);
             });
-            await expect(mockReject(unauthorizedStatusCode)).rejects.toEqual(new Error(ERROR_DATA));
+            await expect(mockReject(unauthorizedStatusCode)).rejects.toEqual(
+                new HubApiError(ERROR_DATA, unauthorizedStatusCode));
             expect(spy).toHaveBeenCalledTimes(1);
             window.location.assign.mockClear();
         });

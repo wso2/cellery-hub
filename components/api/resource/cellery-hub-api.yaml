@@ -14,6 +14,28 @@ schemes:
 - "https"
 
 paths:
+  /auth/token:
+    get:
+      operationId: "getTokens"
+      summary: "Get tokens"
+      produces:
+      - "application/json"
+      parameters:
+      - $ref: "#/parameters/authCodeQueryParam"
+      - $ref: "#/parameters/callbackUrlQueryParam"
+      responses:
+        200:
+          description: "OK"
+          schema:
+            $ref: "#/definitions/OrgResponse"
+        405:
+          description: "Invalid Input"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+        500:
+          description: "Internal Server Error"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
   /orgs:
     post:
       operationId: "createOrg"
@@ -58,6 +80,18 @@ paths:
             $ref: "#/definitions/ErrorResponse"
 
 parameters:
+  authCodeQueryParam:
+    name: "authCode"
+    in: "query"
+    description: "Auth code retrieved from a OIDC provider"
+    required: true
+    type: "string"
+  callbackUrlQueryParam:
+    name: "callbackUrl"
+    in: "query"
+    description: "callback Url used in the OIDC flow"
+    required: true
+    type: "string"
   orgCreateBody:
     name: "organization"
     in: "body"
@@ -101,8 +135,15 @@ parameters:
     description: "Offset of the result set returned for pagination"
     required: true
     type: "number"
-    
+
 definitions:
+  TokensResponse:
+    type: "object"
+    properties:
+      accessToken:
+        type: "string"
+      idToken:
+        type: "string"
   OrgCreateRequest:
     type: "object"
     properties:

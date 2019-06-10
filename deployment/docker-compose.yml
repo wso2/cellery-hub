@@ -12,6 +12,16 @@ services:
       - PORTAL_PORT=9000
       - PORTAL_PRIVATE_KEY=/portal/security/portal.key
       - PORTAL_CERT=/portal/security/portal.cert
+  api.hub.cellery.io:
+    image: wso2cellery/cellery-hub-api:latest
+    restart: always
+    ports:
+      - "11000:9090"
+    volumes:
+      - ./api/security:/security
+      - ./api/conf:/conf
+    environment:
+      - API_CONF=/conf/api.toml
   registry.hub.cellery.io:
     image: wso2cellery/cellery-hub-proxy:latest
     restart: always
@@ -30,24 +40,25 @@ services:
       - "5001:5001"
     volumes:
       - ./docker-auth/conf:/conf
-      - ./docker-registry/security:/security
+      - ./docker-auth/security:/security
       - ./docker-auth/extension-logs:/extension-logs
     environment:
       - IDP_CERT=/security/idp.crt
       - REGISTRY_AUTH_TOKEN_ROOTCERTBUNDLE=/security/docker-auth-sign.crt
       - REGISTRY_AUTH_TOKEN_ISSUER="auth.registry.hub.cellery.io"
       - IS_JWT=false
-      - IDP_HOST=idp.registry.hub.cellery.io
+      - IDP_HOST=idp.hub.cellery.io
       - IDP_PORT=9443
       - USERNAME=admin
       - PASSWORD=admin
-  idp.registry.hub.cellery.io:
+  idp.hub.cellery.io:
       image: wso2cellery/cellery-hub-idp:5.7.0
       restart: always
       ports:
         - "9443:9443"
       volumes:
         - ./idp/conf:/home/wso2carbon/wso2-config-volume/repository/conf
+        - ./idp/artifacts:/home/wso2carbon/wso2-artifact-volume/repository
       environment:
         - CREATE_ORG_ENDPOINT=https://hub.cellery.io:9000/sdk/org-create
   docker-registry.hub.internal:
@@ -62,8 +73,8 @@ services:
       - REGISTRY_AUTH_TOKEN_SERVICE="Docker registry"
       - REGISTRY_AUTH_TOKEN_ISSUER="auth.registry.hub.cellery.io"
       - REGISTRY_AUTH_TOKEN_ROOTCERTBUNDLE=/security/docker-auth-sign.crt
-      - REGISTRY_HTTP_TLS_CERTIFICATE=/security/docker-registry-TLS.crt
-      - REGISTRY_HTTP_TLS_KEY=/security/docker-registry-TLS.key
+      - REGISTRY_HTTP_TLS_CERTIFICATE=/security/docker-registry-tls.crt
+      - REGISTRY_HTTP_TLS_KEY=/security/docker-registry-tls.key
       - REGISTRY_COMPATIBILITY_SCHEMA1_ENABLED=true
       - REGISTRY_HTTP_HOST=https://registry.hub.cellery.io:9090
   mysql.hub.internal:
@@ -71,5 +82,6 @@ services:
     restart: always
     volumes:
       - ./mysql/dbscripts:/docker-entrypoint-initdb.d
+      - ./mysql/mnt:/var/lib/mysql
     environment:
       - MYSQL_ROOT_PASSWORD=root

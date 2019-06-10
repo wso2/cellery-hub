@@ -1,4 +1,3 @@
-#!/usr/bin/env bash
 # ------------------------------------------------------------------------
 #
 # Copyright 2019 WSO2, Inc. (http://wso2.com)
@@ -17,5 +16,30 @@
 #
 # ------------------------------------------------------------------------
 
-ballerina build
-cp ../../deployment/api/conf/api.toml target/ballerina.conf
+FROM ballerina/ballerina:0.991.0 as builder
+LABEL MAINTAINER="WSO2 Cellery Maintainers <dev@wso2.org>"
+
+ARG PROJECT_DIR="/workspace"
+WORKDIR ${PROJECT_DIR}
+USER root
+
+COPY ./components/api/ ./
+
+RUN chown -R ballerina ${PROJECT_DIR}
+USER ballerina
+
+RUN ballerina build
+
+FROM ballerina/ballerina:0.991.0
+
+ARG WORK_DIR="/home/ballerina"
+WORKDIR ${WORK_DIR}
+USER ballerina
+
+COPY --from=builder /workspace/target/core.balx ./
+
+RUN wget https://repo1.maven.org/maven2/mysql/mysql-connector-java/8.0.16/mysql-connector-java-8.0.16.jar -P ${BALLERINA_HOME}/bre/lib
+
+EXPOSE 9090
+
+ENTRYPOINT cp ${API_CONF} ./ballerina.conf && ballerina run core.balx 2>&1 | tee hub_api.log

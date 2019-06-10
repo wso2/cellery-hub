@@ -66,22 +66,28 @@ test: build
 docker:
 	docker build -t $(DOCKER_REPO)/cellery-hub-docker-auth:$(VERSION) -f ./docker/docker-auth/Dockerfile .
 	docker build -t $(DOCKER_REPO)/cellery-hub-proxy:$(VERSION) -f ./docker/proxy/Dockerfile .
+	docker build -t $(DOCKER_REPO)/cellery-hub-api:$(VERSION) -f ./docker/api/Dockerfile .
 	docker build -t $(DOCKER_REPO)/cellery-hub-portal:$(VERSION) -f ./docker/portal/Dockerfile .
 
 .PHONY: docker-push
 docker-push: docker
 	docker push $(DOCKER_REPO)/cellery-hub-docker-auth:$(VERSION)
 	docker push $(DOCKER_REPO)/cellery-hub-proxy:$(VERSION)
+	docker push $(DOCKER_REPO)/cellery-hub-api:$(VERSION)
 	docker push $(DOCKER_REPO)/cellery-hub-portal:$(VERSION)
 
 .PHONY: deploy
 deploy:
-	mkdir -p deployment/docker-auth/extension-logs
+	mkdir -p deployment/mysql/mnt
 	mkdir -p deployment/docker-registry/mnt
+	mkdir -p deployment/docker-auth/extension-logs
 	cd deployment; \
 	docker-compose up
 
 .PHONY: undeploy
 undeploy:
+	sudo rm -rf deployment/mysql/mnt
+	sudo rm -rf deployment/docker-registry/mnt
+	sudo rm -rf deployment/docker-auth/extension-logs
 	cd deployment; \
 	docker-compose down

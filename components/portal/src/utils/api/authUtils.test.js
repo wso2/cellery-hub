@@ -26,8 +26,10 @@ describe("AuthUtils", () => {
     const username = "User1";
     const loggedInUser = {
         username: username,
-        accessToken: "12345",
-        idToken: "54321"
+        tokens: {
+            accessToken: "12345",
+            idToken: "54321"
+        }
     };
     afterEach(() => {
         localStorage.removeItem(StateHolder.USER);
@@ -42,18 +44,6 @@ describe("AuthUtils", () => {
             expect(spy).toHaveBeenCalledTimes(1);
             expect(spy).toHaveBeenCalledWith(StateHolder.USER, loggedInUser);
             expect(localStorage.getItem(StateHolder.USER)).toBe(JSON.stringify(loggedInUser));
-        });
-
-        it("should not set a username and should throw and error", () => {
-            const stateHolder = new StateHolder();
-            const spy = jest.spyOn(stateHolder, "set");
-
-            expect(() => AuthUtils.updateUser(null, stateHolder)).toThrow();
-            expect(() => AuthUtils.updateUser(undefined, stateHolder)).toThrow();
-            expect(() => AuthUtils.updateUser("", stateHolder)).toThrow();
-            expect(spy).toHaveBeenCalledTimes(0);
-            expect(spy).not.toHaveBeenCalled();
-            expect(localStorage.getItem(StateHolder.USER)).toBeNull();
         });
     });
 

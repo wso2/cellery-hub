@@ -1,11 +1,29 @@
+[security]
+certfile="/security/api-tls.crt"
+keyfile="/security/api-tls.pem"
+truststore="/security/truststore.p12"
+truststorepass="ballerina"
+
+[idp.oidc]
+providerurl="https://idp.hub.cellery.io:9443"
+tokenendpoint="/oauth2/token"
+clientid="celleryhubapplication"
+clientsecret="celleryhubapplication"
+
+[portal]
+publicurl="https://hub.cellery.io:9000"
+
 [database]
-host="localhost"
+host="mysql.hub.internal"
 port=3306
 default="CELLERY_HUB"
-user="root"
-password="root"
+user="celleryhub"
+password="celleryhub"
 
 [filter.captcha]
 secret="someSecret"
 endpoint="https://www.google.com/recaptcha/api/siteverify"
 engaged.paths="[{\"path\" : \"/api/0.1.0/orgs/*\", \"method\": \"get\"}]"
+
+[b7a.log]
+level="DEBUG"

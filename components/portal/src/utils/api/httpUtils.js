@@ -20,6 +20,68 @@ import AuthUtils from "./authUtils";
 import {StateHolder} from "../../components/common/state";
 import axios from "axios";
 
+/**
+ * Error representing an error returned from Hub API.
+ */
+class HubApiError extends Error {
+
+    /**
+     * @private
+     * @type{{code: number, message: string, description: string}}
+     */
+    errorResponse;
+
+    /**
+     * @private
+     * @type{number}
+     */
+    statusCode;
+
+    constructor(errorResponse, statusCode) {
+        super(errorResponse.message);
+        this.errorResponse = errorResponse;
+        this.statusCode = statusCode;
+        Error.captureStackTrace(this, this.constructor);
+    }
+
+    /**
+     * Get the application error code returned from Hub API.
+     *
+     * @returns {number} The Application Error Code
+     */
+    getErrorCode() {
+        return this.errorResponse.code;
+    }
+
+    /**
+     * Get the error message returned from Hub API.
+     *
+     * @returns {string} The error message
+     */
+    getMessage() {
+        return this.errorResponse.message;
+    }
+
+    /**
+     * Get the error description returned from Hub API.
+     *
+     * @returns {string} The error description
+     */
+    getDescription() {
+        return this.errorResponse.description;
+    }
+
+    /**
+     * Get the HTTP status code returned from Hub API.
+     *
+     * @returns {number} The HTTP status code
+     */
+    getStatusCode() {
+        return this.statusCode;
+    }
+
+}
+
 class HttpUtils {
 
     /**
@@ -83,46 +145,7 @@ class HttpUtils {
     };
 
     /**
-     * Call the Cellery Hub open APIs.
-     *
-     * @param {Object} config Axios configuration object
-     * @param {StateHolder} [globalState] The global state provided to the current component
-     * @returns {Promise} A promise for the API call
-     */
-    static callOpenAPI = (config, globalState) => new Promise((resolve, reject) => {
-        config.url = `${globalState.get(StateHolder.CONFIG).hubApiUrl}${config.url}`;
-        config.withCredentials = true;
-        if (!config.headers) {
-            config.headers = {};
-        }
-        if (!config.headers.Accept) {
-            config.headers.Accept = "application/json";
-        }
-        if (!config.headers["Content-Type"]) {
-            config.headers["Content-Type"] = "application/json";
-        }
-        if (!config.data && (config.method === "POST" || config.method === "PUT" || config.method === "PATCH")) {
-            config.data = {};
-        }
-        axios(config)
-            .then((response) => {
-                if (response.status >= 200 && response.status < 400) {
-                    resolve(response.data);
-                } else {
-                    reject(response.data);
-                }
-            })
-            .catch((error) => {
-                if (error.response) {
-                    reject(new Error(error.response.data));
-                } else {
-                    reject(error);
-                }
-            });
-    });
-
-    /**
-     * Call the Cellery Hub authenticated APIs.
+     * Call the Cellery Hub API.
      *
      * @param {Object} config Axios configuration object
      * @param {StateHolder} [globalState] The global state provided to the current component
@@ -138,7 +161,7 @@ class HttpUtils {
             config.headers.Accept = "application/json";
         }
         if (globalState.get(StateHolder.USER) !== null) {
-            config.headers.Authorization = `Bearer ${globalState.get(StateHolder.USER).accessToken}`;
+            config.headers.Authorization = `Bearer ${globalState.get(StateHolder.USER).tokens.accessToken}`;
         }
         if (!config.headers["Content-Type"]) {
             config.headers["Content-Type"] = "application/json";
@@ -159,10 +182,10 @@ class HttpUtils {
                     const errorResponse = error.response;
                     if (errorResponse.status === 401) {
                         const fidp = AuthUtils.getDefaultFIdP();
-                        AuthUtils.removeUser(globalState);
+                        AuthUtils.removeUserFromStorageOnly(globalState);
                         AuthUtils.initiateHubLoginFlow(globalState, fidp);
                     }
-                    reject(new Error(errorResponse.data));
+                    reject(new HubApiError(errorResponse.data, errorResponse.status));
                 } else {
                     reject(error);
                 }
@@ -172,3 +195,4 @@ class HttpUtils {
 }
 
 export default HttpUtils;
+export {HubApiError};
