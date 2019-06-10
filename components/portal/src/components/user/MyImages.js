@@ -31,7 +31,6 @@ import Typography from "@material-ui/core/Typography";
 import {withStyles} from "@material-ui/core/styles";
 import * as PropTypes from "prop-types";
 
-
 const styles = (theme) => ({
     content: {
         paddingTop: theme.spacing(4)
@@ -51,15 +50,40 @@ const styles = (theme) => ({
     }
 });
 
-const orgData = [
+const images = [
     {
-        name: "Alpha",
-        value: "alpha"
+        orgName: "alpha",
+        imageName: "pet-fe",
+        summary: "This contains the four components which involves with working with the Pet Store data and"
+            + " business logic.",
+        visibility: "PUBLIC",
+        pullCount: 10,
+        updatedTimestamp: "2019-05-12T05:11:54-0500",
+        lastAuthor: "john"
     },
     {
-        name: "Beta",
-        value: "beta"
+        orgName: "alpha",
+        imageName: "pet-be",
+        summary: "This contains of a single component which serves the portal.",
+        visibility: "PUBLIC",
+        pullCount: 15,
+        updatedTimestamp: "2019-01-01T05:11:54-0500",
+        lastAuthor: "john"
+    },
+    {
+        orgName: "beta",
+        imageName: "hello-world",
+        summary: "Sample hello world cell.",
+        visibility: "PRIVATE",
+        pullCount: 7,
+        updatedTimestamp: "2019-01-02T05:11:54-0500",
+        lastAuthor: "john"
     }
+];
+
+const orgs = [
+    "alpha",
+    "beta"
 ];
 
 class MyImages extends React.Component {
@@ -84,79 +108,69 @@ class MyImages extends React.Component {
         });
     };
 
+    handlePageChange = () => {
+        // TODO: Load new data for page
+    };
+
     render = () => {
         const {classes} = this.props;
         const {organization, sort} = this.state;
 
         return (
             <div className={classes.content}>
-                <Typography variant="h5" color="inherit">
+                <Typography variant={"h5"} color={"inherit"}>
                     Images
                 </Typography>
                 <Divider/>
                 <div className={classes.container}>
                     <Grid container>
                         <Grid item xs={12} sm={3} md={3}>
-                            <form autoComplete="off">
+                            <form autoComplete={"off"}>
                                 <FormControl className={classes.formControl}>
-                                    <InputLabel shrink htmlFor="organization-label-placeholder">
+                                    <InputLabel shrink htmlFor={"organization-label-placeholder"}>
                                         Organization
                                     </InputLabel>
-                                    <Select
-                                        value={organization}
-                                        onChange={this.handleOrgChange}
-                                        input={<Input name="organization" id="organization-label-placeholder"/>}
-                                        displayEmpty
-                                        name="organization"
-                                        className={classes.orgSelect}
-                                    >
-                                        <MenuItem value="all">All</MenuItem>
-                                        {orgData.map((org) => (
-                                            <MenuItem key={org.value} value={org.value}>{org.name}</MenuItem>
-                                        ))}
+                                    <Select value={organization} displayEmpty name={"organization"}
+                                        onChange={this.handleOrgChange} className={classes.orgSelect}
+                                        input={
+                                            <Input name={"organization"} id={"organization-label-placeholder"}/>
+                                        }>
+                                        <MenuItem value={"all"}>All</MenuItem>
+                                        {orgs.map((org) => <MenuItem key={org} value={org}>{org}</MenuItem>)}
                                     </Select>
                                 </FormControl>
                             </form>
                         </Grid>
                         <Grid item xs={12} sm={4} md={4}>
                             <FormControl className={classes.formControl}>
-                                <InputLabel htmlFor="search">Image Name</InputLabel>
-                                <Input
-                                    id="search"
+                                <InputLabel htmlFor={"search"}>Image Name</InputLabel>
+                                <Input id={"search"} placeholder={"Search Image"}
                                     startAdornment={
-                                        <InputAdornment position="start">
+                                        <InputAdornment position={"start"}>
                                             <SearchIcon className={classes.placeholderIcon}/>
                                         </InputAdornment>
-                                    }
-                                    placeholder="Search Image"
-                                />
+                                    }/>
                             </FormControl>
                         </Grid>
-                        <Grid item sm={2} md={2}>
-                        </Grid>
+                        <Grid item sm={2} md={2} />
                         <Grid item xs={12} sm={3} md={3}>
-                            <form autoComplete="off">
+                            <form autoComplete={"off"}>
                                 <FormControl className={classes.formControl}>
-                                    <InputLabel shrink htmlFor="sort-label-placeholder">
+                                    <InputLabel shrink htmlFor={"sort-label-placeholder"}>
                                         Sort
                                     </InputLabel>
-                                    <Select
-                                        value={sort}
-                                        onChange={this.handleSortChange}
-                                        input={<Input name="sort" id="sort-label-placeholder"/>}
-                                        displayEmpty
-                                        name="sort"
-                                    >
-                                        <MenuItem value="most-popular">Most Popular</MenuItem>
-                                        <MenuItem value="a-z">A-Z</MenuItem>
-                                        <MenuItem value="updated">Recently Updated</MenuItem>
+                                    <Select value={sort} onChange={this.handleSortChange} name={"sort"} displayEmpty
+                                        input={<Input name={"sort"} id={"sort-label-placeholder"}/>}>
+                                        <MenuItem value={"most-popular"}>Most Popular</MenuItem>
+                                        <MenuItem value={"a-z"}>A-Z</MenuItem>
+                                        <MenuItem value={"updated"}>Recently Updated</MenuItem>
                                     </Select>
                                 </FormControl>
                             </form>
                         </Grid>
                     </Grid>
                 </div>
-                <ImageList />
+                <ImageList pageData={images} onPageChange={this.handlePageChange}/>
             </div>
         );
     }

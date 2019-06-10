@@ -56,24 +56,6 @@ const styles = (theme) => ({
     }
 });
 
-const data = [
-    {
-        name: "Alpha",
-        value: "alpha",
-        members: 5,
-        images: 3,
-        description: "Sample description"
-
-    },
-    {
-        name: "Beta",
-        value: "beta",
-        members: 10,
-        images: 6,
-        description: "Sample description"
-    }
-];
-
 class OrgList extends React.Component {
 
     constructor(props) {
@@ -84,65 +66,61 @@ class OrgList extends React.Component {
         };
     }
 
-    handleItemClick = (path) => {
+    handleOrgClick = (orgName) => {
         const {history} = this.props;
-        history.push(path);
+        history.push(`/orgs/${orgName}`);
     };
 
-    handleChangePage = (event, newValue) => {
-        // TODO: Load and set new data
+    handleChangePageNo = (newPageNo) => {
+        const {onPageChange} = this.props;
+        const {rowsPerPage} = this.state;
         this.setState({
-            pageNo: newValue
+            pageNo: newPageNo
         });
+        onPageChange(rowsPerPage, newPageNo);
     };
 
-    handleChangeRowsPerPage = (event) => {
-        // TODO: Load and set new data
+    handleChangeRowsPerPage = (newRowsPerPage) => {
+        const {onPageChange} = this.props;
+        const {pageNo} = this.state;
         this.setState({
-            rowsPerPage: event.target.value
+            rowsPerPage: newRowsPerPage
         });
+        onPageChange(newRowsPerPage, pageNo);
     };
 
     render = () => {
-        const {classes} = this.props;
+        const {classes, totalCount, pageData} = this.props;
         const {pageNo, rowsPerPage} = this.state;
 
         return (
             <React.Fragment>
-                <List component="nav">
-                    {data.map((org) => (
-                        <div key={org.name}>
-                            <ListItem button onClick={(event) => {
-                                this.handleItemClick(`/orgs/${org.name}`, event);
-                            }}>
+                <List component={"nav"}>
+                    {pageData.map((org) => (
+                        <div key={org.orgName}>
+                            <ListItem button onClick={() => this.handleOrgClick(org.orgName)}>
                                 <ListItemAvatar>
                                     <Avatar className={classes.avatar}>
-                                        {org.name.charAt(0)}
+                                        {org.orgName.charAt(0)}
                                     </Avatar>
                                 </ListItemAvatar>
-                                <ListItemText primary={org.name}
+                                <ListItemText primary={org.orgName}
                                     secondary={org.description}/>
                                 <People className={classes.elementIcon}/>
-                                <Typography variant="subtitle2" color="inherit" className={classes.elementText}>
-                                    {org.members}
+                                <Typography variant={"subtitle2"} color={"inherit"} className={classes.elementText}>
+                                    {org.membersCount}
                                 </Typography>
-                                <CellImage size="small" className={classes.svgElementIcon}/>
-                                <Typography variant="subtitle2" color="inherit" className={classes.elementText}>
-                                    {org.images}
+                                <CellImage size={"small"} className={classes.svgElementIcon}/>
+                                <Typography variant={"subtitle2"} color={"inherit"} className={classes.elementText}>
+                                    {org.imagesCount}
                                 </Typography>
                             </ListItem>
                             <Divider/>
                         </div>
                     ))}
                 </List>
-                <TablePagination
-                    component="nav"
-                    page={pageNo}
-                    rowsPerPage={rowsPerPage}
-                    count={data.length}
-                    onChangePage={this.handleChangePage}
-                    onChangeRowsPerPage={this.handleChangeRowsPerPage}
-                />
+                <TablePagination component={"nav"} page={pageNo} rowsPerPage={rowsPerPage} count={totalCount}
+                    onChangePage={this.handleChangePageNo} onChangeRowsPerPage={this.handleChangeRowsPerPage}/>
             </React.Fragment>
         );
     }
@@ -153,7 +131,15 @@ OrgList.propTypes = {
     classes: PropTypes.object.isRequired,
     history: PropTypes.shape({
         goBack: PropTypes.func.isRequired
-    })
+    }),
+    totalCount: PropTypes.number.isRequired,
+    pageData: PropTypes.arrayOf(PropTypes.shape({
+        orgName: PropTypes.string.isRequired,
+        description: PropTypes.string,
+        membersCount: PropTypes.number.isRequired,
+        imagesCount: PropTypes.number.isRequired
+    })).isRequired,
+    onPageChange: PropTypes.func.isRequired
 };
 
 export default withStyles(styles)(withRouter(OrgList));

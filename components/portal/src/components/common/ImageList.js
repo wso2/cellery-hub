@@ -19,6 +19,7 @@
 import AccessTime from "@material-ui/icons/AccessTime";
 import Avatar from "@material-ui/core/Avatar";
 import CellImage from "../../img/CellImage";
+import Constants from "../../utils/constants";
 import Divider from "@material-ui/core/Divider";
 import GetApp from "@material-ui/icons/GetApp";
 import Language from "@material-ui/icons/Language";
@@ -33,6 +34,7 @@ import Typography from "@material-ui/core/Typography";
 import {withRouter} from "react-router-dom";
 import {withStyles} from "@material-ui/core/styles";
 import * as PropTypes from "prop-types";
+import * as moment from "moment";
 
 const styles = (theme) => ({
     avatar: {
@@ -60,43 +62,8 @@ const styles = (theme) => ({
     updated: {
         fontSize: 14,
         verticalAlign: "text-bottom"
-
     }
 });
-
-const data = [
-    {
-        name: "pet-fe",
-        summary: "This contains the four components which involves with working with the Pet Store data and"
-        + " business logic.",
-        organization: "alpha",
-        public: true,
-        pulls: 10,
-        stars: 3,
-        lastUpdated: "2 days",
-        lastUpdatedBy: "john"
-    },
-    {
-        name: "pet-be",
-        summary: "This contains of a single component which serves the portal.",
-        organization: "alpha",
-        public: true,
-        pulls: 15,
-        stars: 11,
-        lastUpdated: "20 hours",
-        lastUpdatedBy: "john"
-    },
-    {
-        name: "hello-world",
-        summary: "Sample hello world cell.",
-        organization: "beta",
-        public: false,
-        pulls: 7,
-        stars: 4,
-        lastUpdated: "5 days",
-        lastUpdatedBy: "john"
-    }
-];
 
 class ImageList extends React.Component {
 
@@ -108,64 +75,61 @@ class ImageList extends React.Component {
         };
     }
 
-    handleItemClick = (path) => {
+    handleImageClick = (orgName, imageName) => {
         const {history} = this.props;
-        history.push(path);
+        history.push(`/images/${orgName}/${imageName}`);
     };
 
-
-    handleChangePage = (event, newValue) => {
-        // TODO: Load and set new data
+    handleChangePageNo = (newPageNo) => {
+        const {onPageChange} = this.props;
+        const {rowsPerPage} = this.state;
         this.setState({
-            pageNo: newValue
+            pageNo: newPageNo
         });
+        onPageChange(rowsPerPage, newPageNo);
     };
 
-    handleChangeRowsPerPage = (event) => {
-        // TODO: Load and set new data
+    handleChangeRowsPerPage = (newRowsPerPage) => {
+        const {onPageChange} = this.props;
+        const {pageNo} = this.state;
         this.setState({
-            rowsPerPage: event.target.value
+            rowsPerPage: newRowsPerPage
         });
+        onPageChange(newRowsPerPage, pageNo);
     };
 
     render = () => {
-        const {classes} = this.props;
+        const {classes, pageData, totalCount} = this.props;
         const {pageNo, rowsPerPage} = this.state;
-
         return (
             <React.Fragment>
-                <List component="nav">
-                    {data.map((image) => (
-                        <div key={image.name}>
-                            <ListItem button onClick={(event) => {
-                                this.handleItemClick(`/images/${image.organization}/${image.name}`, event);
-                            }}>
+                <List component={"nav"}>
+                    {pageData.map((image) => (
+                        <div key={`${image.orgName}/${image.imageName}`}>
+                            <ListItem button onClick={() => this.handleImageClick(image.orgName, image.imageName)}>
                                 <ListItemAvatar>
                                     <Avatar className={classes.avatar}>
                                         <CellImage/>
                                     </Avatar>
                                 </ListItemAvatar>
-                                <ListItemText primary={`${image.organization}/${image.name}`}
+                                <ListItemText primary={`${image.orgName}/${image.imageName}`}
                                     secondary={
                                         <React.Fragment>
                                             {image.summary}
-                                            <Typography
-                                                variant="caption"
-                                                className={classes.block}
-                                                color="textPrimary"
-                                            >
-                                                <AccessTime className={classes.updated}/> Last
-                                                          Updated {image.lastUpdated} ago by {image.lastUpdatedBy}
+                                            <Typography variant={"caption"} className={classes.block}
+                                                color={"textPrimary"}>
+                                                <AccessTime className={classes.updated}/> Last Updated on&nbsp;
+                                                {moment(image.updatedTimestamp).format(Constants.Format.DATE_TIME)}
+                                                &nbsp;by {image.lastAuthor}
                                             </Typography>
                                         </React.Fragment>
                                     }/>
-
                                 <GetApp className={classes.elementIcon}/>
-                                <Typography variant="subtitle2" color="inherit" className={classes.elementText}>
-                                    {image.pulls}
+                                <Typography variant={"subtitle2"} color={"inherit"} className={classes.elementText}>
+                                    {image.pullCount}
                                 </Typography>
                                 {
-                                    image.public
+                                    image.visibility.toUpperCase() === Constants.Visibility.PUBLIC
                                         ? <Language className={classes.elementIcon}/>
                                         : <Lock className={classes.elementIcon}/>
                                 }
@@ -174,14 +138,8 @@ class ImageList extends React.Component {
                         </div>
                     ))}
                 </List>
-                <TablePagination
-                    component="nav"
-                    page={pageNo}
-                    rowsPerPage={rowsPerPage}
-                    count={data.length}
-                    onChangePage={this.handleChangePage}
-                    onChangeRowsPerPage={this.handleChangeRowsPerPage}
-                />
+                <TablePagination component={"nav"} page={pageNo} rowsPerPage={rowsPerPage} count={totalCount}
+                    onChangePage={this.handleChangePageNo} onChangeRowsPerPage={this.handleChangeRowsPerPage}/>
             </React.Fragment>
         );
     }
@@ -192,7 +150,18 @@ ImageList.propTypes = {
     history: PropTypes.shape({
         goBack: PropTypes.func.isRequired
     }),
-    classes: PropTypes.object.isRequired
+    classes: PropTypes.object.isRequired,
+    totalCount: PropTypes.number.isRequired,
+    pageData: PropTypes.arrayOf(PropTypes.shape({
+        orgName: PropTypes.string.isRequired,
+        imageName: PropTypes.string.isRequired,
+        summary: PropTypes.string,
+        pullCount: PropTypes.number.isRequired,
+        lastAuthor: PropTypes.string.isRequired,
+        updatedTimestamp: PropTypes.number.isRequired,
+        visibility: PropTypes.string.isRequired
+    })).isRequired,
+    onPageChange: PropTypes.func.isRequired
 };
 
 export default withStyles(styles)(withRouter(ImageList));

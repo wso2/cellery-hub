@@ -90,7 +90,7 @@ class UnStyledStateProvider extends React.Component {
                 {
                     isLoading
                         ? (
-                            <Grid container justify="center" alignItems="center"
+                            <Grid container justify={"center"} alignItems={"center"}
                                 className={classes.container}>
                                 <Grid item>
                                     <CircularProgress size={60}/>

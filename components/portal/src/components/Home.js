@@ -1,32 +1,34 @@
 /*
  * Copyright (c) 2019, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
+ * WSO2 Inc. licenses this file to you under the Apache License,
+ * Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License.
  * You may obtain a copy of the License at
  *
  * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
 
 import AppBar from "@material-ui/core/AppBar";
-import AuthUtils from "../../utils/api/authUtils";
-import BgImg from "../../img/celleryOverviewBg.png";
+import AuthUtils from "../utils/api/authUtils";
+import BgImg from "../img/celleryOverviewBg.png";
 import Button from "@material-ui/core/Button";
-import CellImage from "../../img/CellImage";
-import CelleryLogo from "../../img/celleryLogo.svg";
-import CelleryOverview from "../../img/celleryOverview.jpg";
+import CellImage from "../img/CellImage";
+import CelleryLogo from "../img/celleryLogo.svg";
+import CelleryOverview from "../img/celleryOverview.jpg";
 import Container from "@material-ui/core/Container";
-import Footer from "../appLayout/Footer";
-import GithubLogo from "../../img/GithubLogo";
-import GoogleLogo from "../../img/GoogleLogo";
+import Footer from "./appLayout/Footer";
+import GithubLogo from "../img/GithubLogo";
+import GoogleLogo from "../img/GoogleLogo";
 import Grid from "@material-ui/core/Grid";
-import HttpUtils from "../../utils/api/httpUtils";
+import HttpUtils from "../utils/api/httpUtils";
 import Link from "@material-ui/core/Link";
 import Menu from "@material-ui/core/Menu";
 import MenuItem from "@material-ui/core/MenuItem";
@@ -199,13 +201,12 @@ class Home extends React.Component {
             <div className={classes.root}>
                 <div className={classes.mainContent}>
                     <Grid container>
-                        <Grid item xs={12} sm={6} md={6}>
-                        </Grid>
+                        <Grid item xs={12} sm={6} md={6} />
                         <Grid item xs={12} sm={6} md={6}>
                             <div className={classes.topHeaderLine}/>
                         </Grid>
                     </Grid>
-                    <Container maxWidth="md">
+                    <Container maxWidth={"md"}>
                         <Grid container>
                             <Grid item xs={12} sm={6} md={6}>
                                 <div className={classes.headerSubTitle}>
@@ -215,15 +216,15 @@ class Home extends React.Component {
                                 </div>
                             </Grid>
                             <Grid item xs={12} sm={6} md={6}>
-                                <AppBar position="static" className={classes.appbar}>
+                                <AppBar position={"static"} className={classes.appbar}>
                                     <Toolbar className={classes.toolbar}>
-                                        <Button disableTouchRipple={true} color="inherit" href="/explore"
+                                        <Button disableTouchRipple={true} color={"inherit"} href={"/explore"}
                                             className={classes.navButton}>EXPLORE</Button>
                                         <div>
-                                            <Button disableTouchRipple={true} color="inherit"
-                                                className={classes.navButton} aria-haspopup="true"
+                                            <Button disableTouchRipple={true} color={"inherit"}
+                                                className={classes.navButton} aria-haspopup={"true"}
                                                 onClick={this.handleAccountPopoverOpen}>SIGN IN/ SIGN UP</Button>
-                                            <Menu id="user-info-appbar" anchorEl={accountPopoverElement}
+                                            <Menu id={"user-info-appbar"} anchorEl={accountPopoverElement}
                                                 anchorOrigin={{
                                                     vertical: "top",
                                                     horizontal: "right"
@@ -253,10 +254,10 @@ class Home extends React.Component {
                             </Grid>
                         </Grid>
                         <div className={classes.logo}>
-                            <img src={CelleryLogo} className={classes.celleryLogo} alt="Cellery logo"/>
+                            <img src={CelleryLogo} className={classes.celleryLogo} alt={"Cellery logo"}/>
                             hub
                         </div>
-                        <Typography variant="h2" gutterBottom className={classes.summary}>
+                        <Typography variant={"h2"} gutterBottom className={classes.summary}>
                             Manage and share code-first composites on Kubernetes
                         </Typography>
                         <Grid container className={classes.desContainer}>
@@ -266,27 +267,27 @@ class Home extends React.Component {
                                     can be shared with other users. Users with neccessary permissions can pull, push
                                     images and manage users and organizations.
                                 </Typography>
-                                <Typography variant="h6" color="inherit" className={classes.loginText}>
+                                <Typography variant={"h6"} color={"inherit"} className={classes.loginText}>
                                     Sign In/ Sign Up with
                                 </Typography>
                                 <div className={classes.signInContent}>
-                                    <Button variant="outlined" color="inherit" className={classes.button}
+                                    <Button variant={"outlined"} color={"inherit"} className={classes.button}
                                         onClick={() => this.handleSignIn(AuthUtils.FederatedIdP.GITHUB)}>
                                         <GithubLogo className={classes.leftIcon}/>
                                         Github
                                     </Button>
-                                    <Typography variant="subtitle2" color="inherit" className={classes.connector}>
+                                    <Typography variant={"subtitle2"} color={"inherit"} className={classes.connector}>
                                         or
                                     </Typography>
-                                    <Button variant="outlined" color="inherit" className={classes.button}
+                                    <Button variant={"outlined"} color={"inherit"} className={classes.button}
                                         onClick={() => this.handleSignIn(AuthUtils.FederatedIdP.GOOGLE)}>
                                         <GoogleLogo className={classes.leftIcon}/>
                                         Google
                                     </Button>
                                 </div>
                                 <div>
-                                    <Typography variant="subtitle2">
-                                        <Link href={"/explore"} color="inherit" className={classes.link}>
+                                    <Typography variant={"subtitle2"}>
+                                        <Link href={"/explore"} color={"inherit"} className={classes.link}>
                                             <CellImage className={classes.imageIcon}/>Popular Cell Images
                                         </Link>
                                     </Typography>

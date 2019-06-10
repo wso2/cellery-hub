@@ -44,17 +44,16 @@ const styles = (theme) => ({
     }
 });
 
-const options = {
-    download: false,
-    search: false,
-    selectableRows: false,
-    print: false,
-    filter: false,
-    responsive: "scroll",
-    sort: true,
-    rowHover: false,
-    viewColumns: false
-};
+const data = [
+    {
+        name: "John",
+        role: "admin"
+    },
+    {
+        name: "Mark",
+        role: "member"
+    }
+];
 
 class MemberList extends React.Component {
 
@@ -73,7 +72,7 @@ class MemberList extends React.Component {
     };
 
     render = () => {
-        const {classes, data} = this.props;
+        const {classes} = this.props;
         const {isAdmin} = this.state;
         const columns = [
             {
@@ -87,11 +86,11 @@ class MemberList extends React.Component {
                     customBodyRender: (value) => {
                         if (isAdmin) {
                             return <Select value={value} onChange={this.handleRoleChange}
-                                input={<Input name="organization" id="member-label-placeholder"/>}
-                                displayEmpty name="member" className={classes.orgSelect}>
-                                <MenuItem value="member">Member</MenuItem>
-                                <MenuItem value="admin">Admin</MenuItem>
-                                <MenuItem value="contributor">Contributor</MenuItem>
+                                input={<Input name={"organization"} id={"member-label-placeholder"}/>}
+                                displayEmpty name={"member"} className={classes.orgSelect}>
+                                <MenuItem value={"member"}>Member</MenuItem>
+                                <MenuItem value={"admin"}>Admin</MenuItem>
+                                <MenuItem value={"contributor"}>Contributor</MenuItem>
                             </Select>;
                         }
                         return <td>{value}</td>;
@@ -99,6 +98,17 @@ class MemberList extends React.Component {
                 }
             }
         ];
+        const tableOptions = {
+            download: false,
+            search: false,
+            selectableRows: false,
+            print: false,
+            filter: false,
+            responsive: "scroll",
+            sort: true,
+            rowHover: false,
+            viewColumns: false
+        };
 
         return (
             <div className={classes.content}>
@@ -106,24 +116,17 @@ class MemberList extends React.Component {
                     <Grid container>
                         <Grid item xs={12} sm={4} md={4}>
                             <FormControl className={classes.formControl}>
-                                <Input
-                                    id="search"
+                                <Input id={"search"} placeholder={"Search Member"}
                                     startAdornment={
-                                        <InputAdornment position="start">
+                                        <InputAdornment position={"start"}>
                                             <SearchIcon className={classes.placeholderIcon}/>
                                         </InputAdornment>
-                                    }
-                                    placeholder="Search Member"
-                                />
+                                    }/>
                             </FormControl>
                         </Grid>
                         <Grid item xs={12} sm={12} md={12}>
-                            <MuiDataTable
-                                className={classes.table}
-                                data={data}
-                                columns={columns}
-                                options={options}
-                            />
+                            <MuiDataTable className={classes.table} data={data} columns={columns}
+                                options={tableOptions}/>
                         </Grid>
                     </Grid>
                 </div>
@@ -135,10 +138,10 @@ class MemberList extends React.Component {
 
 MemberList.propTypes = {
     classes: PropTypes.object.isRequired,
-    data: PropTypes.arrayOf(PropTypes.object).isRequired,
     history: PropTypes.shape({
         goBack: PropTypes.func.isRequired
-    })
+    }),
+    organization: PropTypes.string.isRequired
 };
 
 export default withStyles(styles)(MemberList);

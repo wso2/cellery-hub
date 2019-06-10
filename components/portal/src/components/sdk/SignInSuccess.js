@@ -38,24 +38,24 @@ const styles = (theme) => ({
 
 });
 
-const SDKSignInSuccess = (props) => {
+const SignInSuccess = (props) => {
     const {classes} = props;
 
     return (
         <div className={classes.content}>
-            <Typography component="div" variant="h5" className={classes.success}>
+            <Typography component={"div"} variant={"h5"} className={classes.success}>
                 You are now authenticated with Cellery SDK!
             </Typography>
-            <Typography component="div" className={classes.gotoHub}> You can go to&nbsp;
-                <Link target="_blank" href="http://hub.cellery.io">Cellery Hub</Link> to manage your organizations and
-                Cell images.
+            <Typography component={"div"} className={classes.gotoHub}> You can go to&nbsp;
+                <Link target={"_blank"} href={"http://hub.cellery.io"}>Cellery Hub</Link> to manage your
+                organizations and Cell images.
             </Typography>
         </div>
     );
 };
 
-SDKSignInSuccess.propTypes = {
+SignInSuccess.propTypes = {
     classes: PropTypes.object.isRequired
 };
 
-export default withStyles(styles)(SDKSignInSuccess);
+export default withStyles(styles)(SignInSuccess);

@@ -21,14 +21,14 @@ import AppLayout from "./appLayout";
 import CssBaseline from "@material-ui/core/CssBaseline/CssBaseline";
 import ErrorBoundary from "./common/error/ErrorBoundary";
 import Explore from "./explore";
-import Home from "./home";
-import Image from "./overview/image";
-import ImageVersion from "./overview/image/ImageVersion";
-import MyImages from "./myImages";
-import MyOrgs from "./myOrgs";
+import Home from "./Home";
+import Image from "./image";
+import ImageVersion from "./image/ImageVersion";
+import MyImages from "./user/MyImages";
+import MyOrgs from "./user/MyOrgs";
 import NotFound from "./common/error/NotFound";
-import Org from "./overview/org";
-import PortalExtras from "./PortalExtras";
+import NotificationAdditions from "./common/NotificationAdditions";
+import Org from "./org";
 import React from "react";
 import SDK from "./sdk";
 import SignIn from "./SignIn";
@@ -48,7 +48,7 @@ const HubPortal = withGlobalState(({globalState}) => {
                         <Route exact path={"/explore"} component={Explore}/>
                         <Route exact path={"/orgs/:orgName"} component={Org}/>
                         <Route exact path={"/images/:orgName/:imageName"} component={Image}/>
-                        <Route exact path={"/images/:orgName/:imageName/:versionNo"} component={ImageVersion}/>
+                        <Route exact path={"/images/:orgName/:imageName/:version"} component={ImageVersion}/>
                         <Route render={(props) => <NotFound {...props} showNavigationButtons={true}/>}/>
                     </Switch>
                 </ErrorBoundary>
@@ -66,7 +66,7 @@ const HubPortal = withGlobalState(({globalState}) => {
                                 <Route exact path={"/explore"} component={Explore}/>
                                 <Route exact path={"/orgs/:orgName"} component={Org}/>
                                 <Route exact path={"/images/:orgName/:imageName"} component={Image}/>
-                                <Route exact path={"/images/:orgName/:imageName/:versionNo"} component={ImageVersion}/>
+                                <Route exact path={"/images/:orgName/:imageName/:version"} component={ImageVersion}/>
                                 <Route render={(props) => <NotFound {...props} showNavigationButtons={true}/>}/>
                             </Switch>
                         </ErrorBoundary>
@@ -106,7 +106,7 @@ const App = () => (
         <BrowserRouter>
             <ErrorBoundary showNavigationButtons={true}>
                 <StateProvider>
-                    <PortalExtras/>
+                    <NotificationAdditions/>
                     <Switch>
                         <Route path={"/sdk"} component={SDK}/>
                         <Route component={HubPortal}/>

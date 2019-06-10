@@ -63,34 +63,34 @@ const styles = (theme) => ({
     }
 });
 
-const NotFound = (props) => (
-    <div className={props.classes.notFoundContainer}>
-        <div className={props.classes.notFound}>
-            <ErrorOutline className={props.classes.notFoundContentIndicator}/>
-            <div className={props.classes.notFoundTitle}>
-                {props.title ? props.title : "Unable to Find What You were Looking For"}
+const NotFound = ({classes, history, title, description, showNavigationButtons}) => (
+    <div className={classes.notFoundContainer}>
+        <div className={classes.notFound}>
+            <ErrorOutline className={classes.notFoundContentIndicator}/>
+            <div className={classes.notFoundTitle}>
+                {title ? title : "Unable to Find What You were Looking For"}
             </div>
             {
-                props.description
+                description
                     ? (
-                        <div className={props.classes.notFoundDescription}>
-                            {props.description}
+                        <div className={classes.notFoundDescription}>
+                            {description}
                         </div>
                     )
                     : null
             }
             {
-                props.showNavigationButtons
+                showNavigationButtons
                     ? (
                         <React.Fragment>
-                            <Button variant={"outlined"} size={"small"} className={props.classes.navigationButton}
-                                onClick={() => props.history.goBack()}>
-                                <ArrowBack className={props.classes.navigationButtonIcon}/>
+                            <Button variant={"outlined"} size={"small"} className={classes.navigationButton}
+                                onClick={() => history.goBack()}>
+                                <ArrowBack className={classes.navigationButtonIcon}/>
                                 Go Back
                             </Button>
-                            <Button variant={"outlined"} size={"small"} className={props.classes.navigationButton}
-                                onClick={() => props.history.push("/")}>
-                                <Home fontSize={"small"} className={props.classes.navigationButtonIcon}/>
+                            <Button variant={"outlined"} size={"small"} className={classes.navigationButton}
+                                onClick={() => history.push("/")}>
+                                <Home fontSize={"small"} className={classes.navigationButtonIcon}/>
                                 Home
                             </Button>
                         </React.Fragment>

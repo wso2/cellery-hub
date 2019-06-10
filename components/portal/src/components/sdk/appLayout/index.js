@@ -41,7 +41,7 @@ const SDKAppLayout = (props) => {
         <div className={classes.root}>
             <Header/>
             <main className={classes.mainContent}>
-                <Container maxWidth="md">
+                <Container maxWidth={"md"}>
                     {children}
                 </Container>
             </main>

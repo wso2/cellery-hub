@@ -481,7 +481,24 @@
         "jsx-a11y/anchor-is-valid": "error",
         "react/jsx-indent": ["error", 4],
         "react/jsx-indent-props": ["error", 4],
-        "react/destructuring-assignment": "off",
+        "react/jsx-curly-brace-presence": [
+            "error",
+            {
+                "props": "always",
+                "children": "ignore"
+            }
+        ],
+        "react/self-closing-comp": [
+            "error",
+            {
+                "component": true,
+                "html": true
+            }
+        ],
+        "react/destructuring-assignment": [
+            "error",
+            "always"
+        ],
         "react/boolean-prop-naming": "error",
         "react/button-has-type": "error",
         "react/default-props-match-prop-types": "error",

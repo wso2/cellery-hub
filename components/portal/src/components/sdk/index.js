@@ -16,14 +16,14 @@
  * under the License.
  */
 
+import AppLayout from "./appLayout";
 import ErrorBoundary from "../common/error/ErrorBoundary";
 import FederatedIdpSelect from "./FederatedIdpSelect";
 import NotFound from "../common/error/NotFound";
+import OrgCreate from "./OrgCreate";
 import React from "react";
-import SDKAppLayout from "./sdkAppLayout";
-import SDKOrgCreate from "./SDKOrgCreate";
-import SDKSignInSuccess from "./SDKSignInSuccess";
 import SignIn from "../SignIn";
+import SignInSuccess from "./SignInSuccess";
 import {Route, Switch} from "react-router-dom";
 import withGlobalState, {StateHolder} from "../common/state";
 import * as PropTypes from "prop-types";
@@ -51,8 +51,8 @@ class StatelessProtectedSDKPortal extends React.Component {
         if (user) {
             view = (
                 <Switch>
-                    <Route exact path={`${match.path}/org-create`} component={SDKOrgCreate}/>
-                    <Route exact path={`${match.path}/auth-success`} component={SDKSignInSuccess}/>
+                    <Route exact path={`${match.path}/org-create`} component={OrgCreate}/>
+                    <Route exact path={`${match.path}/auth-success`} component={SignInSuccess}/>
                     <Route render={(props) => <NotFound {...props} showNavigationButtons={true}/>}/>
                 </Switch>
             );
@@ -74,14 +74,14 @@ StatelessProtectedSDKPortal.propTypes = {
 const ProtectedSDKPortal = withGlobalState(StatelessProtectedSDKPortal);
 
 const SDK = ({match}) => (
-    <SDKAppLayout>
+    <AppLayout>
         <ErrorBoundary>
             <Switch>
                 <Route exact path={`${match.path}/fidp-select`} component={FederatedIdpSelect}/>
                 <Route component={ProtectedSDKPortal}/>
             </Switch>
         </ErrorBoundary>
-    </SDKAppLayout>
+    </AppLayout>
 );
 
 SDK.propTypes = {

@@ -117,11 +117,11 @@ class Header extends React.Component {
         return (
             <header>
                 <div className={classes.headerContent}>
-                    <Container maxWidth="md">
-                        <AppBar position="static" className={classes.appbar}>
+                    <Container maxWidth={"md"}>
+                        <AppBar position={"static"} className={classes.appbar}>
                             <Toolbar className={classes.toolbar}>
                                 <div className={classes.headerLogo}>
-                                    <img src={CelleryLogo} className={classes.celleryLogo} alt="Cellery logo"/>
+                                    <img src={CelleryLogo} className={classes.celleryLogo} alt={"Cellery logo"}/>
                                     <Typography className={classes.hubText}>
                                         hub
                                     </Typography>
@@ -133,9 +133,9 @@ class Header extends React.Component {
                                     user
                                         ? (
                                             <div>
-                                                <Button disableTouchRipple={true} color="inherit"
+                                                <Button disableTouchRipple={true} color={"inherit"}
                                                     className={classNames(classes.usernameBtn, classes.navButton)}
-                                                    aria-haspopup="true"
+                                                    aria-haspopup={"true"}
                                                     onClick={this.handleAccountPopoverOpen}>
                                                     {
                                                         user.avatarUrl
@@ -147,7 +147,7 @@ class Header extends React.Component {
                                                     }
                                                     {user.username}
                                                 </Button>
-                                                <Menu id="user-info" anchorEl={accountPopoverElement}
+                                                <Menu id={"user-info"} anchorEl={accountPopoverElement}
                                                     anchorOrigin={{
                                                         vertical: "top",
                                                         horizontal: "right"

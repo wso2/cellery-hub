@@ -22,6 +22,7 @@ import HttpUtils from "./httpUtils";
 import NotificationUtils from "../common/notificationUtils";
 import {StateHolder} from "../../components/common/state";
 import jwtDecode from "jwt-decode";
+import * as moment from "moment";
 
 /**
  * Authentication/Authorization related utilities.
@@ -170,7 +171,7 @@ class AuthUtils {
 
         const params = {
             id_token_hint: globalState.get(StateHolder.USER).tokens.idToken,
-            post_logout_redirect_uri: window.location.origin
+            post_logout_redirect_uri: `${window.location.origin}/`
         };
         const signOutEndpoint = `${globalState.get(StateHolder.CONFIG).idp.url}${AuthUtils.LOGOUT_ENDPOINT}`;
         window.location.assign(`${signOutEndpoint}${HttpUtils.generateQueryParamString(params)}`);
@@ -226,7 +227,7 @@ class AuthUtils {
         try {
             user = JSON.parse(localStorage.getItem(AuthUtils.USER_KEY));
             if (user && user.tokens && user.tokens.expirationTime
-                    && new Date().getTime() > user.tokens.expirationTime) {
+                    && moment().valueOf() > user.tokens.expirationTime) {
                 // Removing expired user login data
                 user = null;
                 localStorage.removeItem(AuthUtils.USER_KEY);

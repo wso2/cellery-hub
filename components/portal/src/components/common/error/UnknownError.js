@@ -66,34 +66,34 @@ const styles = (theme) => ({
     }
 });
 
-const UnknownError = (props) => (
-    <div className={props.classes.unknownErrorContainer}>
-        <div className={props.classes.unknownError}>
-            <ErrorOutline className={props.classes.unknownErrorContentIndicator}/>
-            <div className={props.classes.unknownErrorTitle}>
-                {props.title ? props.title : "Something Went Wrong"}
+const UnknownError = ({classes, history, title, description, showNavigationButtons}) => (
+    <div className={classes.unknownErrorContainer}>
+        <div className={classes.unknownError}>
+            <ErrorOutline className={classes.unknownErrorContentIndicator}/>
+            <div className={classes.unknownErrorTitle}>
+                {title ? title : "Something Went Wrong"}
             </div>
             {
-                props.description
+                description
                     ? (
-                        <div className={props.classes.unknownErrorDescription}>
-                            {props.description}
+                        <div className={classes.unknownErrorDescription}>
+                            {description}
                         </div>
                     )
                     : null
             }
             {
-                props.showNavigationButtons
+                showNavigationButtons
                     ? (
-                        <div className={props.classes.navigationButtonsContainer}>
-                            <Button variant={"outlined"} size={"small"} className={props.classes.navigationButton}
-                                onClick={() => props.history.goBack()}>
-                                <ArrowBack className={props.classes.navigationButtonIcon}/>
+                        <div className={classes.navigationButtonsContainer}>
+                            <Button variant={"outlined"} size={"small"} className={classes.navigationButton}
+                                onClick={() => history.goBack()}>
+                                <ArrowBack className={classes.navigationButtonIcon}/>
                                 Go Back
                             </Button>
-                            <Button variant={"outlined"} size={"small"} className={props.classes.navigationButton}
-                                onClick={() => props.history.push("/")}>
-                                <Home fontSize={"small"} className={props.classes.navigationButtonIcon}/>
+                            <Button variant={"outlined"} size={"small"} className={classes.navigationButton}
+                                onClick={() => history.push("/")}>
+                                <Home fontSize={"small"} className={classes.navigationButtonIcon}/>
                                 Home
                             </Button>
                         </div>

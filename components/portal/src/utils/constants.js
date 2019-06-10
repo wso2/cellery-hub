@@ -23,6 +23,13 @@ const Constants = {
     },
     Pattern: {
         CELLERY_ID: "[a-z0-9]+(-[a-z0-9]+)*"
+    },
+    Format: {
+        DATE_TIME: "DD MMM YYYY, hh:mm:ss A"
+    },
+    Visibility: {
+        PUBLIC: "PUBLIC",
+        PRIVATE: "PRIVATE"
     }
 };
 
