@@ -43,30 +43,51 @@ public type ArtifactResponse record {
     byte[] metadata;
 };
 
-public type Image record {
+
+public type Count record {
+    int count;
+};
+
+public type ArtifactListResponse record {
     string artifactImageId;
+    string artifactId;
+    string description;
+    int pullCount;
+    string lastAuthor;
+    string updatedTimestamp;
+    string artifactVersion;
+};
+
+public type ArtifactListArrayResponse record {
+   int count;
+   ArtifactListResponse [] artifacts;
+};
+
+public type Image record {
+    string imageId;
     string orgName;
     string imageName;
     string description;
     string firstAuthor;
     string visibility;
+    decimal pushCount;
+    decimal pullCount;
 };
 
 public type ImageResponse record {
-    string artifactImageId;
+    string imageId;
     string orgName;
     string imageName;
     string description;
     string firstAuthor;
     string visibility;
-    ImageVersion[] versions;
+    decimal pushCount;
+    decimal pullCount;
+    string[] keywords;
 };
 
-public type ImageVersion record {
-    string imageVersion;
-    int pushCount;
-    int pullCount;
-    string lastUpdated;
+public type StringRecord record {
+    string value;
 };
 
 public type ErrorResponse record {
