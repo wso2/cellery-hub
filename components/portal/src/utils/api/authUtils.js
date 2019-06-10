@@ -171,7 +171,7 @@ class AuthUtils {
 
         const params = {
             id_token_hint: globalState.get(StateHolder.USER).tokens.idToken,
-            post_logout_redirect_uri: window.location.origin
+            post_logout_redirect_uri: `${window.location.origin}/`
         };
         const signOutEndpoint = `${globalState.get(StateHolder.CONFIG).idp.url}${AuthUtils.LOGOUT_ENDPOINT}`;
         window.location.assign(`${signOutEndpoint}${HttpUtils.generateQueryParamString(params)}`);

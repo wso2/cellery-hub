@@ -136,7 +136,7 @@ class OrgCreate extends React.Component {
     handleContinue = (skipOrgCheck) => {
         const {globalState, location} = this.props;
         const params = HttpUtils.parseQueryParams(location.search);
-        AuthUtils.continueLoginFlow(globalState, params.session_state, skipOrgCheck);
+        AuthUtils.continueLoginFlow(globalState, params.sessionDataKey, skipOrgCheck);
     };
 
     handleCheckAvailability = () => {
