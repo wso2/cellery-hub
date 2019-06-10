@@ -166,4 +166,42 @@ service CelleryHubAPI on ep {
         http:Response _getImageRes = getImageByImageName(_getImageReq, untaint orgName, untaint imageName, offset, resultLimit);
         error? x = outboundEp->respond(_getImageRes);
     }
+
+    @openapi:ResourceInfo {
+        summary: "Get a specific artifact",
+        parameters: [
+            {
+                name: "orgName",
+                inInfo: "path",
+                paramType: "string",
+                description: "Name of the organization",
+                required: true,
+                allowEmptyValue: ""
+            },
+            {
+                name: "imageName",
+                inInfo: "path",
+                paramType: "string",
+                description: "Name of the image",
+                required: true,
+                allowEmptyValue: ""
+            },
+            {
+                name: "artifactVersion",
+                inInfo: "path",
+                paramType: "string",
+                description: "Version of the artifact",
+                required: true,
+                allowEmptyValue: ""
+            }
+        ]
+    }
+    @http:ResourceConfig {
+        methods:["GET"],
+        path:"/artifact/{orgName}/{imageName}/{artifactVersion}"
+    }
+    resource function getArtifact (http:Caller outboundEp, http:Request _getArtifactReq, string orgName, string imageName, string artifactVersion) returns error? {
+        http:Response _getArtifactRes = getArtifact(_getArtifactReq, untaint orgName, untaint imageName, untaint artifactVersion);
+        error? x = outboundEp->respond(_getArtifactRes);
+    }
 }
