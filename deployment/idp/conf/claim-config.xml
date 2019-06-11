@@ -1121,13 +1121,13 @@
             <Claim>
                 <ClaimURI>urn:scim:schemas:core:1.0:emails</ClaimURI>
                 <DisplayName>Emails</DisplayName>
-                <AttributeID>mail</AttributeID>
+                <AttributeID>idp-common-attribute</AttributeID>
                 <Description>Email Addresses</Description>
                 <DisplayOrder>3</DisplayOrder>
                 <Required/>
                 <SupportedByDefault/>
                 <RegEx>^([a-zA-Z0-9_\.\-])+\@(([a-zA-Z0-9\-])+\.)+([a-zA-Z0-9]{2,4})+$</RegEx>
-                <MappedLocalClaim>http://wso2.org/claims/emailaddress</MappedLocalClaim>
+                <MappedLocalClaim>http://wso2.org/claims/social/idp-common-attribute</MappedLocalClaim>
             </Claim>
             <Claim>
                 <ClaimURI>urn:scim:schemas:core:1.0:emails.work</ClaimURI>
@@ -1811,12 +1811,12 @@
             <Claim>
                 <ClaimURI>urn:ietf:params:scim:schemas:core:2.0:User:displayName</ClaimURI>
                 <DisplayName>Display Name</DisplayName>
-                <AttributeID>displayName</AttributeID>
+                <AttributeID>cn</AttributeID>
                 <Description>Display Name</Description>
                 <DisplayOrder>2</DisplayOrder>
                 <Required/>
                 <SupportedByDefault/>
-                <MappedLocalClaim>http://wso2.org/claims/displayName</MappedLocalClaim>
+                <MappedLocalClaim>http://wso2.org/claims/fullname</MappedLocalClaim>
             </Claim>
             <Claim>
                 <ClaimURI>urn:ietf:params:scim:schemas:core:2.0:User:nickName</ClaimURI>
@@ -1901,12 +1901,12 @@
             <Claim>
                 <ClaimURI>urn:ietf:params:scim:schemas:core:2.0:User:emails</ClaimURI>
                 <DisplayName>Emails</DisplayName>
-                <AttributeID>mail</AttributeID>
+                <AttributeID>idp-common-attribute</AttributeID>
                 <Description>Email Addresses</Description>
                 <DisplayOrder>5</DisplayOrder>
                 <SupportedByDefault/>
                 <RegEx>^([a-zA-Z0-9_\.\-])+\@(([a-zA-Z0-9\-])+\.)+([a-zA-Z0-9]{2,4})+$</RegEx>
-                <MappedLocalClaim>http://wso2.org/claims/emailaddress</MappedLocalClaim>
+                <MappedLocalClaim>http://wso2.org/claims/social/idp-common-attribute</MappedLocalClaim>
             </Claim>
             <Claim>
                 <ClaimURI>urn:ietf:params:scim:schemas:core:2.0:User:emails.work</ClaimURI>

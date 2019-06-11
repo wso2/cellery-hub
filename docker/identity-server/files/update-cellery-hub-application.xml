@@ -4,7 +4,7 @@
         <xsd:updateApplication>
             <!--Optional:-->
             <xsd:serviceProvider>
-                <xsd:applicationID>2</xsd:applicationID>
+                <xsd:applicationID>3</xsd:applicationID>
                 <xsd:applicationName>CelleryWebPortal</xsd:applicationName>
                 <xsd:claimConfig>
                     <xsd:alwaysSendMappedLocalSubjectId>true</xsd:alwaysSendMappedLocalSubjectId>

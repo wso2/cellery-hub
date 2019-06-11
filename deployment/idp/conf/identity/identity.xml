@@ -548,6 +548,7 @@
     </SCIM>
 
     <SCIM2>
+        <EnableFilteringEnhancements>true</EnableFilteringEnhancements>
         <!--
             Default value for UserEPUrl and GroupEPUrl are built in following format
             https://<HostName>:<MgtTrpProxyPort except 443>/<ProxyContextPath>/<context>/<path>
