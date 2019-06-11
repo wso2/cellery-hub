@@ -35,11 +35,18 @@ public function getTokens (http:Request getTokensReq) returns http:Response {
 
     var tokens = idp:getTokens(authCode, callbackUrl);
     if (tokens is gen:TokensResponse) {
+        var accessTokenLength = tokens.accessToken.length();
+        var accessTokenForCookie = tokens.accessToken.substring(0, accessTokenLength / 2);
+        var accessTokenForResponse = tokens.accessToken.substring(accessTokenLength / 2, accessTokenLength);
+        tokens.accessToken = accessTokenForResponse;
+
         var jsonPayload = json.convert(tokens);
         if (jsonPayload is json) {
             http:Response getTokensRes = new;
             getTokensRes.statusCode = http:OK_200;
             getTokensRes.setJsonPayload(untaint jsonPayload);
+            getTokensRes.setHeader(constants:SET_COOKIE_HEADER,
+                io:sprintf("chpat=%s; Secure; HttpOnly; Path=/", accessTokenForCookie));
             return getTokensRes;
         } else {
             log:printError("Failed to convert tokens response to JSON", err = jsonPayload);
@@ -184,7 +191,7 @@ int offset, int resultLimit) returns http:Response {
             log:printError("Found more than one result for artifact list: Number of results : " + artifactListResults.count());
             return buildUnknownErrorResponse();
         }
-        
+
         gen:ArtifactListResponse[] responseArray = [];
         int counter = 0;
         int listLength = 0;
