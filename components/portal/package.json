@@ -24,7 +24,7 @@
     "build": "react-scripts build",
     "lint": "eslint --color src/",
     "lint:fix": "eslint --color --fix src/",
-    "test": "CI=true react-scripts test --colors --testURL=http://hub.cellery.io --coverage",
+    "test": "react-scripts test --colors --testURL=http://hub.cellery.io --coverage --watchAll=false",
     "eject": "react-scripts eject"
   },
   "eslintConfig": {

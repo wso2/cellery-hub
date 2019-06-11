@@ -169,7 +169,7 @@ class MyOrgs extends React.Component {
                                             className={classes.secondaryTitle}>
                                             Get started by creating an organization
                                         </Typography>
-                                        <img src={CreateOrg} className={classes.createOrgImg}/>
+                                        <img src={CreateOrg} className={classes.createOrgImg} alt={"Create Org"}/>
                                         <Typography variant={"subtitle1"} color={"inherit"}
                                             className={classes.secondaryText}>
                                             Create your organisation to share your images with others

@@ -215,8 +215,11 @@ function handlePassThroughProxying(http:Caller caller, http:Request req) {
 # + jwtToken - The JWT token to be used
 # + return - The user who performed the action
 function getUserId(string jwtToken) returns (string|error) {
-    var jwtTokenSplit = jwtToken.split(".");
-    var jwtJson = check json.convert(encoding:decodeBase64(jwtTokenSplit[1]));
+    var jwtTokenSplit = jwtToken.split("\\.");
+    byte[] jwtByteArray = check encoding:decodeBase64(jwtTokenSplit[1]);
+    var jwtRbc = io:createReadableChannel(jwtByteArray);
+    io:ReadableCharacterChannel jwtRch = new(jwtRbc, "UTF8");
+    var jwtJson = check jwtRch.readJson();
     return <string>jwtJson.sub;
 }
 

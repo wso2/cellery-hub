@@ -17,8 +17,11 @@
 //
 
 public const string APPLICATION_URL_ENCODED_CONTENT_TYPE = "application/x-www-form-urlencoded";
+
 public const string AUTHENTICATED_USER = "x-cellery-hub-user";
 public const string G_CAPTCHA_RESPONSE = "g-recaptcha-response";
+public const string SET_COOKIE_HEADER = "Set-Cookie";
+
 public const int API_ERROR_CODE = 1;
 public const string OFFSET = "offset";
 public const string RESULT_LIMIT = "resultLimit";
