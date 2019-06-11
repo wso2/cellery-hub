@@ -18,6 +18,7 @@
 
 import AddCircleOutline from "@material-ui/icons/AddCircleOutline";
 import Button from "@material-ui/core/Button";
+import CreateOrg from "../../img/CreateOrg.jpg";
 import Divider from "@material-ui/core/Divider";
 import FormControl from "@material-ui/core/FormControl";
 import Grid from "@material-ui/core/Grid";
@@ -57,6 +58,11 @@ const styles = (theme) => ({
     },
     placeholderIcon: {
         color: "#999999"
+    },
+    createOrgImg: {
+        height: 170,
+        marginBottom: theme.spacing(3),
+        marginTop: theme.spacing(3)
     }
 });
 
@@ -163,6 +169,7 @@ class MyOrgs extends React.Component {
                                             className={classes.secondaryTitle}>
                                             Get started by creating an organization
                                         </Typography>
+                                        <img src={CreateOrg} className={classes.createOrgImg}/>
                                         <Typography variant={"subtitle1"} color={"inherit"}
                                             className={classes.secondaryText}>
                                             Create your organisation to share your images with others
