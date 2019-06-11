@@ -19,17 +19,17 @@
 package main
 
 import (
+	"crypto/tls"
 	"encoding/json"
-	"flag"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"os"
 	"strings"
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
-	"github.com/golang/glog"
 
 	"github.com/cellery-io/cellery-hub/components/docker-auth/pkg/extension"
 )
@@ -40,6 +40,7 @@ const (
 	authTokenIssuerEnvVar = "REGISTRY_AUTH_TOKEN_ISSUER"
 	idpCertEnvVar         = "IDP_CERT"
 	dockerAuthCertEnvVar  = "REGISTRY_AUTH_TOKEN_ROOTCERTBUNDLE"
+	logFile               = "/extension-logs/authentication.log"
 )
 
 func readCert(certPathEnv string) ([]byte, error) {
@@ -85,14 +86,28 @@ func validateToken(inToken string, cert []byte) (bool, error) {
 }
 
 func main() {
-	flag.Parse()
+	file, err := os.OpenFile(logFile, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
+	if err != nil {
+		log.Fatalf("Error opening file: %v", err)
+	}
+	defer func() {
+		err = file.Close()
+		if err != nil {
+			os.Exit(2)
+		}
+	}()
+	if err != nil {
+		log.Println("Error while closing the file :", err)
+		os.Exit(extension.ErrorExitCode)
+	}
+	log.SetOutput(file)
+	log.Println("Authorization extension reached and token will be validated")
 	text := extension.ReadStdIn()
-	glog.Infof("text received from CLI : %s", text)
+	log.Println("Payload received from CLI :")
 	credentials := strings.Split(text, " ")
-
 	if len(credentials) != 2 {
-		glog.Error("received more than two parameters")
-		extension.Exit(extension.ErrorExitCode)
+		log.Println("Received more than two parameters")
+		os.Exit(extension.ErrorExitCode)
 	}
 	uName := credentials[0]
 	token := credentials[1]
@@ -100,7 +115,8 @@ func main() {
 		validateJWT(token, uName)
 	} else {
 		if validateAccessToken(token, uName) {
-			glog.Info(extension.SuccessExitCode)
+			log.Println("User successfully authenticated")
+			os.Exit(extension.SuccessExitCode)
 		}
 	}
 }
@@ -110,12 +126,12 @@ func validateJWT(token string, username string) {
 	iss := getClaimValue(claim, issuerClaim)
 	sub := getClaimValue(claim, subjectClaim)
 
-	glog.Info("Token issuer :" + iss)
-	glog.Info("Subject :" + sub)
+	log.Println("Token issuer :", iss)
+	log.Println("Subject :", sub)
 
 	if sub != username {
-		glog.Error("username does not match with subject in JWT")
-		extension.Exit(extension.ErrorExitCode)
+		log.Println("Username does not match with subject in JWT")
+		os.Exit(extension.ErrorExitCode)
 	}
 
 	certificateInUse, err := readCert(idpCertEnvVar)
@@ -124,22 +140,22 @@ func validateJWT(token string, username string) {
 		certificateInUse, err = readCert(dockerAuthCertEnvVar)
 	}
 	if err != nil {
-		glog.Error("unable to load cert file")
+		log.Println("Unable to load cert file")
 	}
 
 	tokenValidity, err := validateToken(token, certificateInUse)
 	if err != nil {
-		glog.Errorf("Token is not valid - %s", err)
-		extension.Exit(extension.ErrorExitCode)
+		log.Println("Token is not valid - ", err)
+		os.Exit(extension.ErrorExitCode)
 	}
-	glog.Info("signature verified")
+	log.Println("Signature verified")
 
 	if tokenValidity {
-		glog.Info("user successfully authenticated")
-		extension.Exit(extension.SuccessExitCode)
+		log.Println("user successfully authenticated")
+		os.Exit(extension.SuccessExitCode)
 	} else {
-		glog.Error("authentication failed")
-		extension.Exit(extension.ErrorExitCode)
+		log.Println("Authentication failed")
+		os.Exit(extension.ErrorExitCode)
 	}
 }
 
@@ -148,16 +164,16 @@ func isJWT() bool {
 	isJWTEnv := os.Getenv("IS_JWT")
 	var isJWT bool
 	if len(isJWTEnv) == 0 {
-		glog.Error("Error: IS_JWT environment variable is empty")
-		extension.Exit(extension.ErrorExitCode)
+		log.Println("Error: IS_JWT environment variable is empty")
+		os.Exit(extension.ErrorExitCode)
 	} else {
 		if isJWTEnv == "true" {
 			isJWT = true
 		} else if isJWTEnv == "false" {
 			isJWT = false
 		} else {
-			glog.Error("Wrong environment value given. The value should be either true or false")
-			extension.Exit(extension.ErrorExitCode)
+			log.Println("[Wrong environment value given. The value should be either true or false")
+			os.Exit(extension.ErrorExitCode)
 		}
 	}
 	return isJWT
@@ -170,33 +186,34 @@ func validateAccessToken(token string, providedUsername string) bool {
 	payload := strings.NewReader("token=" + token)
 	req, err := http.NewRequest("POST", url, payload)
 	if err != nil {
-		glog.Error("Error creating new request to the introspection endpoint: ", err)
-		extension.Exit(extension.ErrorExitCode)
+		log.Println("Error creating new request to the introspection endpoint: ", err)
+		os.Exit(extension.ErrorExitCode)
 	}
-
 	username, password := resolveCredentials()
 	req.SetBasicAuth(username, password)
+	// todo Remove the the host verification turning off
+	http.DefaultTransport.(*http.Transport).TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
 	res, err := http.DefaultClient.Do(req)
 	if err != nil {
-		glog.Error("Error sending the request to the introspection endpoint: ", err)
-		extension.Exit(extension.ErrorExitCode)
+		log.Println("Error sending the request to the introspection endpoint: ", err)
+		os.Exit(extension.ErrorExitCode)
 	}
 	defer res.Body.Close()
 	body, err := ioutil.ReadAll(res.Body)
 	if err != nil {
-		glog.Error("Error reading the response from introspection endpoint: ", err)
-		extension.Exit(extension.ErrorExitCode)
+		log.Println("Error reading the response from introspection endpoint: ", err)
+		os.Exit(extension.ErrorExitCode)
 	}
 	var result map[string]interface{}
 	err = json.Unmarshal([]byte(string(body)), &result)
 	if err != nil {
-		glog.Error("Error un marshalling the json: ", err)
-		extension.Exit(extension.ErrorExitCode)
+		log.Println("Error un marshalling the json: ", err)
+		os.Exit(extension.ErrorExitCode)
 	}
 	isActive, ok := (result["active"]).(bool)
 	if !ok {
-		glog.Error("Error casting active to boolean. This may be due to a invalid token")
-		extension.Exit(extension.ErrorExitCode)
+		log.Println("Error casting active to boolean. This may be due to a invalid token")
+		os.Exit(extension.ErrorExitCode)
 	}
 	isExpired := isExpired(result["exp"])
 	isValidUser := isValidUser(result["username"], providedUsername)
@@ -208,13 +225,13 @@ func validateAccessToken(token string, providedUsername string) bool {
 func resolveIdpHostAndPort() (string, string) {
 	idpHost := os.Getenv("IDP_HOST")
 	if len(idpHost) == 0 {
-		glog.Error("Error: IDP_HOST environment variable is empty")
-		extension.Exit(extension.ErrorExitCode)
+		log.Println("Error: IDP_HOST environment variable is empty")
+		os.Exit(extension.ErrorExitCode)
 	}
 	isPort := os.Getenv("IDP_PORT")
 	if len(isPort) == 0 {
-		glog.Error("Error: IDP_PORT environment variable is empty")
-		extension.Exit(extension.ErrorExitCode)
+		log.Println("Error: IDP_PORT environment variable is empty")
+		os.Exit(extension.ErrorExitCode)
 	}
 	return idpHost, isPort
 }
@@ -223,13 +240,13 @@ func resolveIdpHostAndPort() (string, string) {
 func resolveCredentials() (string, string) {
 	username := os.Getenv("USERNAME")
 	if len(username) == 0 {
-		glog.Error("Error: USERNAME environment variable is empty")
-		extension.Exit(extension.ErrorExitCode)
+		log.Println("Error: USERNAME environment variable is empty")
+		os.Exit(extension.ErrorExitCode)
 	}
 	password := os.Getenv("PASSWORD")
 	if len(password) == 0 {
-		glog.Error("Error: PASSWORD environment variable is empty")
-		extension.Exit(extension.ErrorExitCode)
+		log.Println("Error: PASSWORD environment variable is empty")
+		os.Exit(extension.ErrorExitCode)
 	}
 	return username, password
 }
@@ -241,8 +258,8 @@ func isValidUser(tokenUsername interface{}, providedUsername string) bool {
 			return true
 		}
 	} else {
-		glog.Error("Error casting username to string. This may be due to a invalid token")
-		extension.Exit(extension.ErrorExitCode)
+		log.Println("Error casting username to string. This may be due to a invalid token")
+		os.Exit(extension.ErrorExitCode)
 	}
 	return false
 }
@@ -256,8 +273,8 @@ func isExpired(timestamp interface{}) bool {
 			return true
 		}
 	} else {
-		glog.Error("Error casting timestamp to string. This may be due to a invalid token")
-		extension.Exit(extension.ErrorExitCode)
+		log.Println("Error casting timestamp to string. This may be due to a invalid token")
+		os.Exit(extension.ErrorExitCode)
 	}
 	return false
 }

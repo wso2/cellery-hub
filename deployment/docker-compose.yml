@@ -51,6 +51,10 @@ services:
       - IDP_PORT=9443
       - USERNAME=admin
       - PASSWORD=admin
+      - MYSQL_USER=celleryhub
+      - MYSQL_PASSWORD=celleryhub
+      - MYSQL_HOST=localhost
+      - MYSQL_PORT=3306
   idp.hub.cellery.io:
       image: wso2cellery/cellery-hub-idp:5.7.0
       restart: always

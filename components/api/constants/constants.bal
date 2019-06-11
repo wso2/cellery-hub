@@ -26,3 +26,13 @@ public const int API_ERROR_CODE = 1;
 public const string OFFSET = "offset";
 public const string RESULT_LIMIT = "resultLimit";
 public const string ARTIFACT_VERSION = "artifactVersion";
+
+public const string IDP_INTROSPCET_VAR = "idp.introspection.endpoint";
+public const string IDP_USERNAME_VAR = "idp.username";
+public const string IDP_PASSWORD_VAR = "idp.password";
+
+public const string DEFAULT_IDP_ENDPOINT = "https://localhost:9443/oauth2/introspect";
+public const string IDP_DEFAULT_PASSWORD = "admin";
+public const string IDP_DEFAULT_USERNAME = "admin";
+
+public const string AUTHORIZATION_HEADER = "Authorization";

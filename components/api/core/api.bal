@@ -25,6 +25,7 @@ import cellery_hub_api/gen;
 import cellery_hub_api/filter;
 import cellery_hub_api/constants;
 
+
 http:ServiceEndpointConfiguration celleryHubAPIEPConfig = {
     secureSocket: {
         certFile: config:getAsString("security.certfile"),
@@ -35,7 +36,10 @@ http:ServiceEndpointConfiguration celleryHubAPIEPConfig = {
     ]
 };
 
-listener http:Listener ep = new(9090, config = celleryHubAPIEPConfig);
+filter:CaptchaRequestFilter catpchaFilter = new;
+filter:validateRequestFilter authenticationFilter = new;
+
+listener http:Listener ep = new(9090, config = { filters: [authenticationFilter, catpchaFilter]});
 
 @openapi:ServiceInfo {
     title: "Cellery Hub API",

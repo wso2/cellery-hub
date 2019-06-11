@@ -25,5 +25,10 @@ secret="someSecret"
 endpoint="https://www.google.com/recaptcha/api/siteverify"
 engaged.paths="[{\"path\" : \"/api/0.1.0/orgs/*\", \"method\": \"get\"}]"
 
+[idp]
+introspection.endpoint="https://localhost:9443/oauth2/introspect"
+username="admin"
+password="admin"
+
 [b7a.log]
 level="DEBUG"
