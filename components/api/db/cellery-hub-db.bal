@@ -66,10 +66,22 @@ public function getPublicImage(string orgName, string imageName) returns table<g
     return res;
 }
 
-public function getImageVersions(string imageId, int offset, int resultLimit) returns table<gen:ImageVersion> | error {
-    log:printDebug("Retriving images for ID :" + imageId);
-    table<gen:ImageVersion> res = check connection->select(GET_IMAGE_VERSIONS, gen:ImageVersion, imageId, resultLimit, offset,
-    loadToMemory = true);
+public function getArtifactsOfUserImage(string orgName, string imageName, string userId, string artifactVersion, int offset, int resultLimit)
+returns table<gen:ArtifactListResponse> | error {
+    log:printDebug(io:sprintf("Performing artifact retrival from DB for org: %s, image: %s , version: %s for user: %s", orgName,
+    imageName, artifactVersion, userId));
+    table<gen:ArtifactListResponse> res = check connection->select(GET_ARTIFACTS_OF_IMAGE_FOR_USER, gen:ArtifactListResponse,
+    orgName, imageName, artifactVersion, userId, orgName, imageName, artifactVersion,
+    resultLimit, offset,loadToMemory = true);
+    return res;
+}
+
+public function getArtifactsOfPublicImage(string orgName, string imageName, string artifactVersion, int offset, int resultLimit)
+returns table<gen:ArtifactListResponse> | error {
+    log:printDebug(io:sprintf("Performing artifact retrival from DB for org: %s, image: %s , version: %s for", orgName,
+    imageName, artifactVersion));
+    table<gen:ArtifactListResponse> res = check connection->select(GET_ARTIFACTS_OF_PUBLIC_IMAGE, gen:ArtifactListResponse, orgName, imageName,
+    artifactVersion, resultLimit, offset, loadToMemory = true);
     return res;
 }
 
@@ -78,6 +90,18 @@ public function getPublicArtifact(string orgName, string imageName, string artif
     table<record {}> res = check connection->select(GET_ARTIFACT_FROM_IMG_NAME_N_VERSION, gen:ArtifactResponse, orgName, imageName,
                                                     artifactVersion, loadToMemory = true);
     return buildJsonPayloadForGetArtifact(res, orgName, imageName, artifactVersion);
+}
+
+public function getArtifactListLength(string imageId, string artifactVersion) returns table<gen:Count> | error {
+    log:printDebug(io:sprintf("Retriving artifact count for image ID : %s and image version %s", imageId, artifactVersion));
+    table<gen:Count> res = check connection->select(GET_ARTIFACT_COUNT, gen:Count, imageId, artifactVersion, loadToMemory = true);
+    return res;
+}
+
+public function getImageKeywords(string imageId) returns table<gen:StringRecord> | error {
+    log:printDebug(io:sprintf("Retriving keywords of image with id : %s", imageId));
+    table<gen:StringRecord> res = check connection->select(GET_KEYWORDS_OF_IMAGE_BY_IMAGE_ID, gen:StringRecord, imageId, loadToMemory = true);
+    return res;
 }
 
 public function getUserArtifact(string userId, string orgName, string imageName, string artifactVersion) returns json | error {
