@@ -59,6 +59,31 @@ public function getTokens (http:Request getTokensReq) returns http:Response {
     }
 }
 
+public function listOrg (http:Request listOrgReq) returns http:Response {
+    if (listOrgReq.hasHeader(constants:ORG_NAME)) {
+        string orgName = listOrgReq.getHeader(constants:ORG_NAME);
+        json | error res = db:searchOrganizations(orgName);
+        if (res is json) {
+            if (res != null) {
+                log:printDebug(io:sprintf("Successfully retrieved organization(s) for org name \'%s\'", orgName));
+                return buildSuccessResponse(res);
+            } else {
+                string errMsg = "No matching organization found. ";
+                string errDes = io:sprintf("There are no organization(s) for org name \'%s\'", orgName);
+                log:printError(errMsg + errDes);
+                return buildErrorResponse(http:NOT_FOUND_404, constants:API_ERROR_CODE, errMsg, errDes);
+            }
+        } else {
+            log:printError("Unable to perform search on organizations", err = res);
+            return buildUnknownErrorResponse();
+        }
+    } else {
+        log:printError("Unacceptable request. Organization name is not found");
+        return buildErrorResponse(http:NOT_ACCEPTABLE_406, constants:API_ERROR_CODE, "Unable to retrieve organizations",
+                                 "Unacceptable request. Organization is not provided");
+    }
+}
+
 # Create a new organization
 #
 # + createOrgReq - received query parameters
@@ -83,7 +108,7 @@ public function createOrg(http:Request createOrgReq, gen:OrgCreateRequest create
                     } else {
                         log:printDebug(io:sprintf("New organization \'%s\' added to REGISTRY_ORGANIZATION. Author : %s", createOrgsBody.orgName, userId));
                         resp = addOrgUserMapping(userId, createOrgsBody.orgName, untaint constants:ROLE_ADMIN);
-                    } 
+                    }
                 } onretry {
                     log:printDebug("Retrying creating organization for transaction " + transactions:getCurrentTransactionId());
                 } committed {

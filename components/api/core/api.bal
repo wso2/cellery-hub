@@ -25,7 +25,6 @@ import cellery_hub_api/gen;
 import cellery_hub_api/filter;
 import cellery_hub_api/constants;
 
-
 http:ServiceEndpointConfiguration celleryHubAPIEPConfig = {
     secureSocket: {
         certFile: config:getAsString("security.certfile"),
@@ -69,6 +68,28 @@ service CelleryHubAPI on ep {
             status: "healthy"
         });
         error? x = outboundEp->respond(_getHealthRes);
+    }
+
+    @openapi:ResourceInfo {
+        summary: "Retrieve organizations",
+        description: "Retrieve organizations",
+        parameters: [
+            {
+                name: "orgName",
+                inInfo: "query",
+                paramType: "string",
+                description: "Name of the organization",
+                allowEmptyValue: ""
+            }
+        ]
+    }
+    @http:ResourceConfig {
+        methods:["GET"],
+        path:"/orgs"
+    }
+    resource function listOrg (http:Caller outboundEp, http:Request _listOrgReq) returns error? {
+        http:Response _listOrgRes = listOrg(_listOrgReq);
+        error? x = outboundEp->respond(_listOrgRes);
     }
 
     @openapi:ResourceInfo {
@@ -306,4 +327,3 @@ service CelleryHubAPI on ep {
         error? x = outboundEp->respond(_getArtifactRes);
     }
 }
-
