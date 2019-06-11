@@ -32,14 +32,12 @@ http:ServiceEndpointConfiguration celleryHubAPIEPConfig = {
         keyFile: config:getAsString("security.keyfile")
     },
     filters: [
-        new filter:CaptchaRequestFilter()
+        new filter:CaptchaRequestFilter(),
+        new filter:validateRequestFilter()
     ]
 };
 
-filter:CaptchaRequestFilter catpchaFilter = new;
-filter:validateRequestFilter authenticationFilter = new;
-
-listener http:Listener ep = new(9090, config = { filters: [authenticationFilter, catpchaFilter]});
+listener http:Listener ep = new(9090, config = celleryHubAPIEPConfig);
 
 @openapi:ServiceInfo {
     title: "Cellery Hub API",
@@ -199,7 +197,7 @@ service CelleryHubAPI on ep {
                 resultLimit = resultLimitQueryParam;
             }
         }
-        if (queryParams.hasKey(constants:ARTIFACT_VERSION)) {   
+        if (queryParams.hasKey(constants:ARTIFACT_VERSION)) {
             log:printDebug("artifactVersion is present");
             string | error artifactVersionQueryParam = queryParams.artifactVersion;
             if (artifactVersionQueryParam is string) {
