@@ -119,7 +119,7 @@ service CelleryHubAPI on ep {
     }
 
     @openapi:ResourceInfo {
-        summary: "Get a specific Image with versions",
+        summary: "Get a specific Image",
         parameters: [
         {
             name: "orgName",
@@ -145,9 +145,42 @@ service CelleryHubAPI on ep {
     }
     resource function getImage(http:Caller outboundEp, http:Request _getImageReq, string orgName, string imageName)
     returns error? {
+        http:Response _getImageRes = getImageByImageName(_getImageReq, untaint orgName, untaint imageName);
+        error? x = outboundEp->respond(_getImageRes);
+    }
+
+
+        @openapi:ResourceInfo {
+        summary: "Get a specific Image with versions",
+        parameters: [
+        {
+            name: "orgName",
+            inInfo: "path",
+            paramType: "string",
+            description: "Name of the organization which the image belogs to",
+            required: true,
+            allowEmptyValue: ""
+        },
+        {
+            name: "imageName",
+            inInfo: "path",
+            paramType: "string",
+            description: "Name of the image",
+            required: true,
+            allowEmptyValue: ""
+        }
+        ]
+    }
+    @http:ResourceConfig {
+        methods: ["GET"],
+        path: "/artifacts/{orgName}/{imageName}"
+    }
+    resource function listArtifacts(http:Caller outboundEp, http:Request _getImageReq, string orgName, string imageName)
+    returns error? {
         map<string> queryParams = _getImageReq.getQueryParams();
         int offset = 0;
         int resultLimit = 10;
+        string artifactVersion = "%";
         if (queryParams.hasKey(constants:OFFSET)) {
             int | error offsetQueryParam = int.convert(queryParams.offset);
             if (offsetQueryParam is int) {
@@ -162,8 +195,15 @@ service CelleryHubAPI on ep {
                 resultLimit = resultLimitQueryParam;
             }
         }
-
-        http:Response _getImageRes = getImageByImageName(_getImageReq, untaint orgName, untaint imageName, offset, resultLimit);
+        if (queryParams.hasKey(constants:ARTIFACT_VERSION)) {   
+            log:printDebug("artifactVersion is present");
+            string | error artifactVersionQueryParam = queryParams.artifactVersion;
+            if (artifactVersionQueryParam is string) {
+                artifactVersion = artifactVersionQueryParam;
+            }
+        }
+        http:Response _getImageRes = getArtifactsOfImage(_getImageReq, untaint orgName, untaint imageName, untaint artifactVersion,
+        untaint offset, resultLimit);
         error? x = outboundEp->respond(_getImageRes);
     }
 

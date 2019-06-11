@@ -88,8 +88,12 @@ public class CliOrganizationValidationPostAuthnHandler extends AbstractPostAuthn
             return SUCCESS_COMPLETED;
         }
 
-        if (authenticationContext.getAuthenticationStepHistory().get(0) != null) {
+        if (authenticationContext.getAuthenticationStepHistory().size() > 0 && authenticationContext
+                .getAuthenticationStepHistory().get(0) != null) {
+
             federatedIdp = authenticationContext.getAuthenticationStepHistory().get(0).getIdpName();
+        } else if (httpServletRequest.getParameter("fidp") != null) {
+            federatedIdp = httpServletRequest.getParameter("fidp");
         }
         if (log.isDebugEnabled()) {
             log.debug("Application contains \"cli\" in it's name. Hence proceeding : " + applicationName);

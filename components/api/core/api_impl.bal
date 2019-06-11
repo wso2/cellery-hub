@@ -93,66 +93,136 @@ public function getOrg(http:Request getOrgReq, string orgName) returns http:Resp
     }
 }
 
-public function getImageByImageName(http:Request getImageRequest, string orgName, string imageName, int offset, int resultLimit) returns http:Response {
-    log:printDebug("Searching images for organization \'" + orgName + "\' imageName : " + imageName + ". Search offset: "
-    + offset + ", limit: " + resultLimit);
-    table<gen:Image> | error results;
+public function getImageByImageName(http:Request getImageRequest, string orgName, string imageName) returns http:Response {
+    log:printDebug("Searching images for organization \'" + orgName + "\' imageName : " + imageName);
+    table<gen:Image> | error imageResults;
     if (getImageRequest.hasHeader(constants:AUTHENTICATED_USER)) {
         string userId = getImageRequest.getHeader(constants:AUTHENTICATED_USER);
         log:printDebug("get Image request with authenticated User : " + userId);
-        results = db:getUserImage(orgName, imageName, userId);
+        imageResults = db:getUserImage(orgName, imageName, userId);
     } else {
         log:printDebug("get Image request without an authenticated user");
-        results = db:getPublicImage(orgName, imageName);
+        imageResults = db:getPublicImage(orgName, imageName);
     }
 
-    if (results is table<gen:Image>) {
-        log:printDebug("Number of results found for search : " + results.count());
-        if (results.count() == 0) {
+    if (imageResults is table<gen:Image>) {
+        log:printDebug("Number of results found for search : " + imageResults.count());
+        if (imageResults.count() == 0) {
             string errMsg = "No image found with given image name and organization";
             log:printError(errMsg);
             return buildErrorResponse(http:NOT_FOUND_404, constants:API_ERROR_CODE, errMsg, errMsg);
-        } else if (results.count() > 1) {
-            log:printError("Found more than one result for image GET: Number of results : " + results.count());
+        } else if (imageResults.count() > 1) {
+            log:printError("Found more than one result for image GET: Number of results : " + imageResults.count());
             return buildUnknownErrorResponse();
         }
-        if (results.hasNext()) {
-            gen:Image image = <gen:Image>results.getNext();
-            log:printDebug("Found an image with Id: " + image.artifactImageId);
-            gen:ImageVersion[] versions = [];
-            table<gen:ImageVersion> | error versionsResult = db:getImageVersions(image.artifactImageId, offset, resultLimit);
-            if (versionsResult is table<gen:ImageVersion>) {
-                int versionResultCount = versionsResult.count();
-                log:printDebug("Versions found for image :" + imageName + ": " + versionResultCount);
-                int count = 0;
-                foreach var imageVersion in versionsResult {
-                    log:printDebug("Found version: " + imageVersion.imageVersion);
-                    versions[count] = imageVersion;
-                    count += 1;
-                }
-                gen:ImageResponse imageResponse = {
-                    artifactImageId: image.artifactImageId,
-                    orgName: image.orgName,
-                    imageName: image.imageName,
-                    description: image.description,
-                    firstAuthor: image.firstAuthor,
-                    visibility: image.visibility,
-                    versions: versions
-                };
-
-                json | error resPayload =  json.convert(imageResponse);
-                if (resPayload is json) {
-                    return buildSuccessResponse(resPayload);
-                } else {
-                    log:printError("Error while converting payload to json" + imageName, err = resPayload);
+        if (imageResults.hasNext()) {
+            gen:Image image = <gen:Image>imageResults.getNext();
+            table<gen:StringRecord> | error keywordsResult = db:getImageKeywords(image.imageId);
+            string[] keywords = [];
+            if (keywordsResult is table<gen:StringRecord>) {
+                log:printDebug("Recieved results for keywords for image size: " + keywordsResult.count());
+                int keyWorkdsCount = 0;
+                while (keywordsResult.hasNext()) {
+                    io:println(keyWorkdsCount);
+                    gen:StringRecord keyword = <gen:StringRecord>keywordsResult.getNext();
+                    keywords[keyWorkdsCount] = keyword.value;
+                    keyWorkdsCount += 1;
                 }
             } else {
-                log:printError("Error while converting payload to json" + imageName, err = versionsResult);
+                log:printError("Error while converting payload to json. Labels will be empty : image ID :" + imageName, err = keywordsResult);
+            }
+            gen:ImageResponse imageResponse = {
+                imageId: image.imageId,
+                orgName: image.orgName,
+                imageName: image.imageName,
+                description: image.description,
+                firstAuthor: image.firstAuthor,
+                visibility: image.visibility,
+                pushCount: image.pushCount,
+                pullCount: image.pullCount,
+                keywords: keywords
+            };
+            json | error resPayload =  json.convert(imageResponse);
+            if (resPayload is json) {
+                return buildSuccessResponse(resPayload);
+
+            } else {
+                log:printError("Error while retriving image keywords" + imageName, err = resPayload);
             }
 
         }
     } else {
-        log:printError("Error while retriving image" + imageName, err = results);
+        log:printError("Error while retriving image" + imageName, err = imageResults);
+    }
+    return buildUnknownErrorResponse();
+}
+
+public function getArtifactsOfImage(http:Request getImageRequest, string orgName, string imageName, string artifactVersion,
+int offset, int resultLimit) returns http:Response {
+
+    log:printDebug("Listing artifacts for organization \'" + orgName + "\' imageName : " + imageName + ", version: " + artifactVersion
+    + ", offset: " + offset + ", limit: " + resultLimit);
+
+    table<gen:ArtifactListResponse> | error artifactListResults;
+
+    if (getImageRequest.hasHeader(constants:AUTHENTICATED_USER)) {
+        string userId = getImageRequest.getHeader(constants:AUTHENTICATED_USER);
+        log:printDebug("List artifacts of image request with authenticated User : " + userId);
+        artifactListResults = db:getArtifactsOfUserImage(orgName, imageName, userId, artifactVersion, offset, resultLimit);
+    } else {
+        log:printDebug("List artifacts of image request without an authenticated user");
+        artifactListResults = db:getArtifactsOfPublicImage(orgName, imageName, artifactVersion, offset, resultLimit);
+    }
+
+    if (artifactListResults is table<gen:ArtifactListResponse>) {
+        log:printDebug("Number of results found for list image ======== : " + artifactListResults.count());
+
+        if(artifactListResults.count() == 0) {
+            string errMsg = "No image found with given image name and organization";
+            log:printError(errMsg);
+            return buildErrorResponse(http:NOT_FOUND_404, constants:API_ERROR_CODE, errMsg, errMsg);
+        } else if (artifactListResults.count() > 1) {
+            log:printError("Found more than one result for artifact list: Number of results : " + artifactListResults.count());
+            return buildUnknownErrorResponse();
+        }
+        
+        gen:ArtifactListResponse[] responseArray = [];
+        int counter = 0;
+        int listLength = 0;
+        string artifactImageId = "";
+        while (artifactListResults.hasNext()) {
+            gen:ArtifactListResponse result = <gen:ArtifactListResponse> artifactListResults.getNext();
+            if (artifactImageId == "") {
+                artifactImageId = result.artifactImageId;
+            }
+            responseArray[counter] = result;
+            counter += 1;
+        }
+        if (counter > 0) {
+            table<gen:Count> | error countResult = db:getArtifactListLength(artifactImageId, artifactVersion);
+            if (countResult is table<gen:Count>) {
+                log:printDebug("Successfully fetched length of the list");
+                gen:Count countObj = <gen:Count>countResult.getNext();
+                listLength = countObj.count;
+            } else {
+                log:printError("Error while counting number of artifacts for image " + imageName, err = countResult);
+            }
+        }
+
+        gen:ArtifactListArrayResponse response = {
+            count: listLength,
+            artifacts: responseArray
+        };
+        json | error resPayload =  json.convert(response);
+        if (resPayload is json) {
+            log:printInfo(resPayload.toString());
+            return buildSuccessResponse(resPayload);
+        } else {
+            log:printError("Error while converting payload to json" + imageName, err = resPayload);
+        }
+
+    } else {
+        log:printError("Error while retriving image" + imageName, err = artifactListResults);
     }
     return buildUnknownErrorResponse();
 }
