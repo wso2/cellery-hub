@@ -26,7 +26,7 @@ import FileCopy from "@material-ui/icons/FileCopyOutlined";
 import GetApp from "@material-ui/icons/GetApp";
 import Grid from "@material-ui/core/Grid";
 import IconButton from "@material-ui/core/IconButton/IconButton";
-import InputBase from "@material-ui/core/InputBase/InputBase";
+import InputBase from "@material-ui/core/InputBase";
 import Language from "@material-ui/icons/Language";
 import Lock from "@material-ui/icons/Lock";
 import React from "react";
@@ -265,8 +265,8 @@ class Image extends React.Component {
                                 <div className={classes.copyContent}>
                                     <div className={classes.copyContainer}>
                                         <InputBase multiline className={classes.copyInput}
-                                            inputProps={{spellCheck: false}}
-                                            value={`cellery pull ${orgName}/${imageName}`}
+                                            defaultValue={`cellery pull ${orgName}/${imageName}`}
+                                            inputProps={{"aria-label": "naked", spellCheck: "false"}}
                                             inputRef={this.pullCmdRef}/>
                                         <Tooltip title={"Copied!"} disableFocusListener={false}
                                             disableHoverListener={false} placement={"top"}
@@ -286,11 +286,11 @@ class Image extends React.Component {
                                 <div className={classes.copyContent}>
                                     <div className={classes.copyContainer}>
                                         <InputBase multiline className={classes.copyInputMultiline}
-                                            value={
+                                            defaultValue={
                                                 `cellery run ${orgName}/${imageName}:<version> -n pet-fe -l
                                                 petStoreBackend:pet-be -d`
                                             }
-                                            inputProps={{spellCheck: false}}
+                                            inputProps={{"aria-label": "naked", spellCheck: "false"}}
                                             inputRef={this.runCmdRef}/>
                                         <Tooltip title={"Copied!"} disableFocusListener={false}
                                             disableHoverListener={false} placement={"top"}

@@ -89,7 +89,7 @@ class MyOrgs extends React.Component {
         this.state = {
             organization: "all",
             sort: "most-popular",
-            isOrgsAvailable: false,
+            isOrgsAvailable: true,
             isDialogOpen: false
         };
     }
