@@ -29,6 +29,7 @@ public type CellImageMetadata record {|
 	map<string> labels;
 	string[] dockerImages;
 	int buildTimestamp;
+	string buildCelleryVersion;
 	string[] ingresses;
 	string[] components;
 	map<CellImageMetadata> dependencies;
