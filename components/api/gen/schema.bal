@@ -95,3 +95,22 @@ public type ErrorResponse record {
     string message;
     string description;
 };
+
+public type User record {
+    string userId;
+    string roles;
+};
+
+public type UserResponse record {
+    string userId;
+    string displayName;
+    string firstName;
+    string lastName;
+    string email;
+    string roles;
+};
+
+public type UserListResponse record {
+    int count;
+    UserResponse[] users;
+};

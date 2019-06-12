@@ -261,3 +261,73 @@ public function getArtifact (http:Request getArtifactReq, string orgName, string
         return buildUnknownErrorResponse();
     }
 }
+
+
+public function getOrganizationUsers(http:Request _orgUserRequest, string orgName, int offset, int resultLimit)
+returns http:Response {
+
+    table<gen:User> | error userResults;
+
+    if (_orgUserRequest.hasHeader(constants:AUTHENTICATED_USER)) {
+        gen:UserResponse[] users = [];
+        int userCount = 0;
+        string userId = _orgUserRequest.getHeader(constants:AUTHENTICATED_USER);
+        log:printDebug(io:sprintf("get organization request with authenticated User : %s, for organization : ",
+        userId, orgName));
+        userResults = db:getMemberOrgsUsers(userId, orgName, offset, resultLimit);
+        if (userResults is table<gen:User>) {
+            log:printDebug(io:sprintf("Number of users in the organization : %d", userResults.count()));
+            int counter = 0;
+            while (userResults.hasNext()) {
+                // TODO: do this parallelly when there are multiple users in an organization.
+                gen:User user = <gen:User> userResults.getNext();
+                log:printDebug(io:sprintf("Retriving user info for org, user: %s" , user.userId));
+                idp:UserInfo? | error userinfoResponse = idp:getUserInfo(untaint user.userId);
+
+                if (userinfoResponse is idp:UserInfo) {
+                    gen:UserResponse userResponse = {
+                        userId: user.userId,
+                        displayName: userinfoResponse.displayName,
+                        firstName: userinfoResponse.firstName,
+                        lastName: userinfoResponse.lastName,
+                        email: userinfoResponse.email,
+                        roles: user.roles
+                    };
+                    users[counter] = userResponse;
+                    counter += 1;
+                } else {
+                    log:printError(io:sprintf("Error while retriving user info for user %s", user.userId), 
+                    err = userinfoResponse);
+                }
+            }
+            table<gen:Count> | error countResults = db:getMemberCountOfOrg(orgName);
+            if (countResults is table<gen:Count>) {
+                if (countResults.hasNext()) {
+                    gen:Count countFromDB = <gen:Count> countResults.getNext();
+                    userCount = countFromDB.count;
+                }
+            }
+            gen:UserListResponse userInfoListResponse = {
+                count: userCount,
+                users: users
+            };
+            json | error resPayload =  json.convert(userInfoListResponse);
+            if (resPayload is json) {
+                log:printInfo(resPayload.toString());
+                return buildSuccessResponse(resPayload);
+            } else {
+                log:printError("Error while converting payload to json for organization's user request", err = resPayload);
+                return buildUnknownErrorResponse();
+            }
+        } else {
+
+            log:printError(io:sprintf("Error occured while retriving users from DB for organization %s : user %s", 
+            orgName, userId));
+            return buildUnknownErrorResponse();
+        }
+    } else {
+        log:printError("get org user request without an authenticated user");
+        return buildErrorResponse(http:UNAUTHORIZED_401, constants:API_ERROR_CODE, "Unable to fetch organization users",
+        "Unauthenticated request. No valid token is not provided");
+    }
+}

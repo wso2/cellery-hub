@@ -248,4 +248,48 @@ service CelleryHubAPI on ep {
         http:Response _getArtifactRes = getArtifact(_getArtifactReq, untaint orgName, untaint imageName, untaint artifactVersion);
         error? x = outboundEp->respond(_getArtifactRes);
     }
+
+    @openapi:ResourceInfo {
+        summary: "Get a specific artifact",
+        parameters: [
+        {
+            name: "orgName",
+            inInfo: "path",
+            paramType: "string",
+            description: "Name of the organization",
+            required: true,
+            allowEmptyValue: ""
+        }
+        ]
+    }
+    @http:ResourceConfig {
+        methods: ["GET"],
+        path: "/users/{orgName}"
+    }
+    resource function getOrgUsers(http:Caller outboundEp, http:Request _orgUserRequest, string orgName) returns error? {
+
+        map<string> queryParams = _orgUserRequest.getQueryParams();
+        int offset = 0;
+        int resultLimit = 10;
+        if (queryParams.hasKey(constants:OFFSET)) {
+            int | error offsetQueryParam = int.convert(queryParams.offset);
+            if (offsetQueryParam is int) {
+                offset = offsetQueryParam;
+            }
+        }
+        if (queryParams.hasKey(constants:RESULT_LIMIT)) {
+
+            int | error resultLimitQueryParam = int.convert(queryParams.resultLimit);
+            if (resultLimitQueryParam is int) {
+                if (resultLimit < 50) {
+                    resultLimit = resultLimitQueryParam;
+                } else {
+                    log:printError("Limit exeeds maximum limit allowed for results: " + resultLimit);
+                }
+            }
+        }
+        http:Response _getArtifactRes = getOrganizationUsers(_orgUserRequest, untaint orgName, offset, resultLimit);
+        error? x = outboundEp->respond(_getArtifactRes);
+    }
 }
+
