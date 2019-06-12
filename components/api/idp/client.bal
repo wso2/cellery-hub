@@ -34,3 +34,21 @@ http:Client oidcProviderClientEP = new(config:getAsString("idp.oidc.providerurl"
         }
     }
 });
+
+
+http:Client scimProviderClient = new(config:getAsString("idp.oidc.providerurl"), config = {
+    secureSocket: {
+        trustStore: {
+            path: config:getAsString("security.truststore"),
+            password: config:getAsString("security.truststorepass")
+        },
+        verifyHostname: false
+    },
+    auth: {
+        scheme: http:BASIC_AUTH,
+        config: {
+            username: config:getAsString("idp.username"),
+            password: config:getAsString("idp.password")
+        }
+    }
+});
