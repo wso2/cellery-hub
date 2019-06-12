@@ -32,8 +32,8 @@ http:ServiceEndpointConfiguration celleryHubAPIEPConfig = {
         keyFile: config:getAsString("security.keyfile")
     },
     filters: [
-        new filter:CaptchaRequestFilter(),
-        new filter:validateRequestFilter()
+        new filter:validateRequestFilter(),
+        new filter:CaptchaRequestFilter()
     ]
 };
 
