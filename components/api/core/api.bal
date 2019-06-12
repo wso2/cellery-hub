@@ -56,6 +56,22 @@ listener http:Listener ep = new(9090, config = celleryHubAPIEPConfig);
 service CelleryHubAPI on ep {
 
     @openapi:ResourceInfo {
+        summary: "Health Check"
+    }
+    @http:ResourceConfig {
+        methods:["GET"],
+        path:"/health"
+    }
+    resource function getHealth (http:Caller outboundEp, http:Request _getHealthReq) returns error? {
+        http:Response _getHealthRes = new;
+        _getHealthRes.statusCode = http:OK_200;
+        _getHealthRes.setJsonPayload({
+            status: "healthy"
+        });
+        error? x = outboundEp->respond(_getHealthRes);
+    }
+
+    @openapi:ResourceInfo {
         summary: "Get tokens",
         parameters: [
             {

@@ -39,6 +39,21 @@ http:ServiceEndpointConfiguration registryProxyServiceEPConfig = {
 }
 service registryProxy on new http:Listener(9090, config = registryProxyServiceEPConfig) {
     @http:ResourceConfig {
+        path: "/health"
+    }
+    resource function health(http:Caller caller, http:Request req) {
+        http:Response response = new;
+        response.statusCode = http:OK_200;
+        response.setJsonPayload({
+            status: "healthy"
+        });
+        error? result = caller->respond(response);
+        if (result is error) {
+            log:printError("Error sending health response", err = result);
+        }
+    }
+
+    @http:ResourceConfig {
         path: "/*"
     }
     resource function proxyToDockerRegistry(http:Caller caller, http:Request req) {

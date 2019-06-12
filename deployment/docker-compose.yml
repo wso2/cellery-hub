@@ -56,15 +56,15 @@ services:
       - MYSQL_HOST=localhost
       - MYSQL_PORT=3306
   idp.hub.cellery.io:
-      image: wso2cellery/cellery-hub-idp:5.7.0
-      restart: always
-      ports:
-        - "9443:9443"
-      volumes:
-        - ./idp/conf:/home/wso2carbon/wso2-config-volume/repository/conf
-        - ./idp/artifacts:/home/wso2carbon/wso2-artifact-volume/repository
-      environment:
-        - CREATE_ORG_ENDPOINT=https://hub.cellery.io:9000/sdk/org-create
+    image: wso2cellery/cellery-hub-idp:5.7.0
+    restart: always
+    ports:
+      - "9443:9443"
+    volumes:
+      - ./idp/conf:/home/wso2carbon/wso2-config-volume/repository/conf
+      - ./idp/artifacts:/home/wso2carbon/wso2-artifact-volume/repository
+    environment:
+      - CREATE_ORG_ENDPOINT=https://hub.cellery.io:9000/sdk/org-create
   docker-registry.hub.internal:
     image: registry:2
     restart: always
