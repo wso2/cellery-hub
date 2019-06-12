@@ -80,6 +80,20 @@ service CelleryHubAPI on ep {
                 paramType: "string",
                 description: "Name of the organization",
                 allowEmptyValue: ""
+            },
+            {
+                name: "offset",
+                inInfo: "query",
+                paramType: "integer",
+                description: "offset value",
+                allowEmptyValue: ""
+            },            
+            {
+                name: "resultLimit",
+                inInfo: "query",
+                paramType: "integer",
+                description: "limit value",
+                allowEmptyValue: ""
             }
         ]
     }
@@ -87,9 +101,9 @@ service CelleryHubAPI on ep {
         methods:["GET"],
         path:"/orgs"
     }
-    resource function listOrg (http:Caller outboundEp, http:Request _listOrgReq) returns error? {
-        http:Response _listOrgRes = listOrg(_listOrgReq);
-        error? x = outboundEp->respond(_listOrgRes);
+    resource function listOrgs(http:Caller outboundEp, http:Request _listOrgsReq) returns error? {
+        http:Response _listOrgsRes = listOrgs(_listOrgsReq);
+        error? x = outboundEp->respond(_listOrgsRes);
     }
 
     @openapi:ResourceInfo {

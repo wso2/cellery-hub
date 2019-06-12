@@ -157,20 +157,20 @@ returns table<gen:Count> | error {
     return res;
 }
 
-public function searchOrganizations (string orgName) returns json | error {
+public function searchOrganizations(string orgName, int offset, int resultLimit) returns json | error {
     log:printDebug(io:sprintf("Performing data retreival on REGISTRY_ORGANIZATION table, Org name : \'%s\': ", orgName));
-    table<record {}> resTotal =  check connection -> select (SEARCH_ORGS_TOTAL_COUNT, SearchOrgsTotal, orgName);
+    table<record {}> resTotal = check connection->select(SEARCH_ORGS_TOTAL_COUNT, SearchOrgsTotal, orgName);
     json resTotalJson = check json.convert(resTotal);
     int totalOrgs = check int.convert(resTotalJson[0]["total"]);
     if (totalOrgs > 0){
         log:printDebug(io:sprintf("%d organization(s) found with the name \'%s\'", totalOrgs, orgName));
         map<any> imageCountMap = {};
-        table<OrgListResponseIC> resImgCount =  check connection -> select (SEARCH_ORGS_QUERY_IC, OrgListResponseIC, orgName);
+        table<OrgListResponseIC> resImgCount = check connection->select(SEARCH_ORGS_QUERY_IC, OrgListResponseIC, orgName, resultLimit, offset);
         foreach var fd in resImgCount{
             imageCountMap[fd.orgName] = fd.imageCount;
         }
-
-        table<gen:OrgListResponseAtom> res =  check connection -> select (SEARCH_ORGS_QUERY, gen:OrgListResponseAtom, orgName, loadToMemory = true);
+        table<gen:OrgListResponseAtom> res = check connection->select(SEARCH_ORGS_QUERY, gen:OrgListResponseAtom, orgName, resultLimit, offset,
+                                                                         loadToMemory = true);
         gen:OrgListResponse olr = {totalCount:totalOrgs , data:[]};
         foreach int i in 0...res.count()-1{
             gen:OrgListResponseAtom olra = check gen:OrgListResponseAtom.convert(res.getNext());
@@ -183,4 +183,3 @@ public function searchOrganizations (string orgName) returns json | error {
         return null;
     }
 }
-

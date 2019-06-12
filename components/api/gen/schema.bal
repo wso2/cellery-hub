@@ -99,7 +99,6 @@ public type OrgListResponseAtom record {
     string orgName;
     string description;
     int membersCount;
-    // int imageCount;
 };
 
 public type ErrorResponse record {

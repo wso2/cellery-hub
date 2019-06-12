@@ -59,24 +59,43 @@ public function getTokens (http:Request getTokensReq) returns http:Response {
     }
 }
 
-public function listOrg (http:Request listOrgReq) returns http:Response {
-    if (listOrgReq.hasHeader(constants:ORG_NAME)) {
-        string orgName = listOrgReq.getHeader(constants:ORG_NAME);
-        json | error res = db:searchOrganizations(orgName);
-        if (res is json) {
-            if (res != null) {
-                log:printDebug(io:sprintf("Successfully retrieved organization(s) for org name \'%s\'", orgName));
-                return buildSuccessResponse(res);
+# Search based on organization name
+#
+# + listOrgsReq - Received query parameters
+# + return - http response which cater to the request
+public function listOrgs(http:Request listOrgsReq) returns http:Response {
+    if (listOrgsReq.hasHeader(constants:ORG_NAME)) {      
+        if (listOrgsReq.hasHeader(constants:RESULT_LIMIT) && listOrgsReq.hasHeader(constants:OFFSET)) {
+            int|error cnvOffset = int.convert(listOrgsReq.getHeader(constants:OFFSET));
+            int|error cnvResultLimit = int.convert(listOrgsReq.getHeader(constants:RESULT_LIMIT));
+            if (cnvOffset is int && cnvResultLimit is int){
+                int offset = cnvOffset;
+                int resultLimit = cnvResultLimit;
+                string orgName = listOrgsReq.getHeader(constants:ORG_NAME);
+                json | error res = db:searchOrganizations(orgName, offset, resultLimit);
+                if (res is json) {
+                    if (res != null) {
+                        log:printDebug(io:sprintf("Successfully retrieved organization(s) for org name \'%s\'", orgName));
+                        return buildSuccessResponse(jsonResponse = res);
+                    } else {
+                        string errMsg = "No matching organization found. ";
+                        string errDes = io:sprintf("There are no organization(s) for org name \'%s\'", orgName);
+                        log:printError(errMsg + errDes);
+                        return buildErrorResponse(http:NOT_FOUND_404, constants:API_ERROR_CODE, errMsg, errDes);
+                    }
+                } else {
+                    log:printError("Unable to perform search on organizations", err = res);
+                    return buildUnknownErrorResponse();
+                }
             } else {
-                string errMsg = "No matching organization found. ";
-                string errDes = io:sprintf("There are no organization(s) for org name \'%s\'", orgName);
-                log:printError(errMsg + errDes);
-                return buildErrorResponse(http:NOT_FOUND_404, constants:API_ERROR_CODE, errMsg, errDes);
+                log:printError("Error occured while converting string parameters to integer");
+                return buildUnknownErrorResponse();
             }
         } else {
-            log:printError("Unable to perform search on organizations", err = res);
-            return buildUnknownErrorResponse();
-        }
+            log:printError("Incomplete request. Offset and Limit not found");
+            return buildErrorResponse(http:EXPECTATION_FAILED_417, constants:API_ERROR_CODE, "Unable to retrieve organizations",
+                                     "Incomplete request");
+        }        
     } else {
         log:printError("Unacceptable request. Organization name is not found");
         return buildErrorResponse(http:NOT_ACCEPTABLE_406, constants:API_ERROR_CODE, "Unable to retrieve organizations",
