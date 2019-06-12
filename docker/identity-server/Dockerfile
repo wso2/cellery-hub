@@ -23,3 +23,18 @@ ARG FILES=./target/files
 
 # Copy the jar files
 COPY --chown=wso2carbon:wso2 ${FILES}/dropins/** ${USER_HOME}/wso2is-5.7.0/repository/components/dropins/
+
+RUN mkdir ${USER_HOME}/wso2is-5.7.0/repository/deployment/server/webapps/authenticationendpoint
+
+RUN cd ${USER_HOME}/wso2is-5.7.0/repository/deployment/server/webapps/authenticationendpoint ; \
+jar -xvf ${USER_HOME}/wso2is-5.7.0/repository/deployment/server/webapps/authenticationendpoint.war
+
+COPY --chown=wso2carbon:wso2 ${FILES}/authenticationendpoint/css/custom-common.css ${USER_HOME}/wso2is-5.7.0/repository/deployment/server/webapps/authenticationendpoint/css/custom-common.css
+
+COPY --chown=wso2carbon:wso2 ${FILES}/authenticationendpoint/images/ ${USER_HOME}/wso2is-5.7.0/repository/deployment/server/webapps/authenticationendpoint/images/
+
+COPY --chown=wso2carbon:wso2 ${FILES}/authenticationendpoint/cellery_error.jsp ${USER_HOME}/wso2is-5.7.0/repository/deployment/server/webapps/authenticationendpoint/oauth2_error.jsp
+
+COPY --chown=wso2carbon:wso2 ${FILES}/authenticationendpoint/cellery_error.jsp ${USER_HOME}/wso2is-5.7.0/repository/deployment/server/webapps/authenticationendpoint/retry.jsp
+
+COPY --chown=wso2carbon:wso2 ${FILES}/authenticationendpoint/localize/* ${USER_HOME}/wso2is-5.7.0/repository/deployment/server/webapps/authenticationendpoint/WEB-INF/classes/org/wso2/carbon/identity/application/authentication/endpoint/i18n/
