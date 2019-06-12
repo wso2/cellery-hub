@@ -27,6 +27,7 @@ public const string OFFSET = "offset";
 public const string RESULT_LIMIT = "resultLimit";
 public const string ARTIFACT_VERSION = "artifactVersion";
 
+public const string IDP_ENDPOINT_VAR = "idp.endpoint";
 public const string IDP_INTROSPCET_VAR = "idp.introspection.endpoint";
 public const string IDP_USERNAME_VAR = "idp.username";
 public const string IDP_PASSWORD_VAR = "idp.password";

@@ -5,8 +5,6 @@ truststore="/security/truststore.p12"
 truststorepass="ballerina"
 
 [idp.oidc]
-providerurl="https://idp.hub.cellery.io:9443"
-tokenendpoint="/oauth2/token"
 clientid="celleryhubapplication"
 clientsecret="celleryhubapplication"
 
@@ -26,7 +24,10 @@ endpoint="https://www.google.com/recaptcha/api/siteverify"
 engaged.paths="[{\"path\" : \"/api/0.1.0/orgs/*\", \"method\": \"get\"}]"
 
 [idp]
-introspection.endpoint="https://localhost:9443/oauth2/introspect"
+endpoint="https://idp.hub.cellery.io:9443"
+token.endpoint="/oauth2/token"
+introspection.endpoint="/oauth2/introspect"
+scim2.user.endpoint="/scim2/Users"
 username="admin"
 password="admin"
 
