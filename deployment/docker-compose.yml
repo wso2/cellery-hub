@@ -89,3 +89,8 @@ services:
       - ./mysql/mnt:/var/lib/mysql
     environment:
       - MYSQL_ROOT_PASSWORD=root
+  deployment-init:
+    image: wso2cellery/cellery-hub-deployment-init:latest
+    restart: "no"
+    environment:
+      - CELLERY_HUB_IDP_URL=https://idp.hub.cellery.io:9443

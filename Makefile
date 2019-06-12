@@ -73,6 +73,7 @@ docker:
 	docker build -t $(DOCKER_REPO)/cellery-hub-api:$(VERSION) -f ./docker/api/Dockerfile .
 	docker build -t $(DOCKER_REPO)/cellery-hub-portal:$(VERSION) -f ./docker/portal/Dockerfile .
 	mvn clean install -f docker/identity-server/pom.xml
+	docker build -t $(DOCKER_REPO)/cellery-hub-deployment-init:$(VERSION) -f ./docker/deployment-init/Dockerfile .
 
 .PHONY: docker-push
 docker-push: docker
@@ -81,6 +82,7 @@ docker-push: docker
 	docker push $(DOCKER_REPO)/cellery-hub-api:$(VERSION)
 	docker push $(DOCKER_REPO)/cellery-hub-portal:$(VERSION)
 	docker push $(DOCKER_REPO)/cellery-hub-idp:$(VERSION)
+	docker push $(DOCKER_REPO)/cellery-hub-deployment-init:$(VERSION)
 
 .PHONY: deploy
 deploy:
@@ -89,8 +91,6 @@ deploy:
 	mkdir -p deployment/docker-auth/extension-logs
 	cd deployment; \
 	docker-compose up -d
-	cd docker/identity-server/files; \
-	bash setup-is.sh
 
 .PHONY: undeploy
 undeploy:
