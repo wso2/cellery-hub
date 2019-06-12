@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 
+export CELLERY_HUB_IDP_URL=${CELLERY_HUB_IDP_URL:-https://localhost:9443}
 export CELLERY_HUB_GOOGLE_CLIENT_ID=fillMe
 export CELLERY_HUB_GOOGLE_CLIENT_SECRET=fillMe
 export CELLERY_HUB_GITHUB_CLIENT_ID=fillMe

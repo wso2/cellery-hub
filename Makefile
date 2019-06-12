@@ -56,6 +56,7 @@ build: clean init
 	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o ./components/docker-auth/target/authorization ./components/docker-auth/cmd/authz/authorization.go
 	cd ./components/portal; \
 	npm run build
+	mvn clean install -f components/identity-server-customization/provisioning-post-auth-handler/pom.xml
 
 .PHONY: test
 test: build
@@ -70,6 +71,7 @@ docker:
 	docker build -t $(DOCKER_REPO)/cellery-hub-proxy:$(VERSION) -f ./docker/proxy/Dockerfile .
 	docker build -t $(DOCKER_REPO)/cellery-hub-api:$(VERSION) -f ./docker/api/Dockerfile .
 	docker build -t $(DOCKER_REPO)/cellery-hub-portal:$(VERSION) -f ./docker/portal/Dockerfile .
+	mvn clean install -f docker/identity-server/pom.xml
 
 .PHONY: docker-push
 docker-push: docker
@@ -77,6 +79,7 @@ docker-push: docker
 	docker push $(DOCKER_REPO)/cellery-hub-proxy:$(VERSION)
 	docker push $(DOCKER_REPO)/cellery-hub-api:$(VERSION)
 	docker push $(DOCKER_REPO)/cellery-hub-portal:$(VERSION)
+	docker push $(DOCKER_REPO)/cellery-hub-idp:$(VERSION)
 
 .PHONY: deploy
 deploy:
@@ -84,7 +87,9 @@ deploy:
 	mkdir -p deployment/docker-registry/mnt
 	mkdir -p deployment/docker-auth/extension-logs
 	cd deployment; \
-	docker-compose up
+	docker-compose up -d
+	cd docker/identity-server/files; \
+	bash setup-is.sh
 
 .PHONY: undeploy
 undeploy:
