@@ -58,6 +58,11 @@ public function getTokens (http:Request getTokensReq) returns http:Response {
     }
 }
 
+# Create a new organization
+#
+# + createOrgReq - received query parameters
+# + createOrgsBody - received request body
+# + return - http response which cater to the request
 public function createOrg(http:Request createOrgReq, gen:OrgCreateRequest createOrgsBody) returns http:Response {
     if (createOrgReq.hasHeader(constants:AUTHENTICATED_USER)) {
         boolean | error isMatch = createOrgsBody.orgName.matches("^[a-z0-9]+(-[a-z0-9]+)*$");
@@ -65,14 +70,46 @@ public function createOrg(http:Request createOrgReq, gen:OrgCreateRequest create
             if (isMatch) {
                 log:printDebug(io:sprintf("\'%s\' is a valid organization name", createOrgsBody.orgName));
                 string userId = createOrgReq.getHeader(constants:AUTHENTICATED_USER);
-                var orgRes = db:insertOrganization(userId, createOrgsBody);
-                if (orgRes is error) {
-                    log:printError("Unexpected error occured while inserting organization " + untaint createOrgsBody.orgName, err = orgRes);
-                    return buildUnknownErrorResponse();
-                } else {
-                    log:printDebug(io:sprintf("New organization \'%s\' added to REGISTRY_ORGANIZATION. Author : %s", createOrgsBody.orgName, userId));
-                    return addOrgUserMapping(userId, createOrgsBody.orgName);
+                json|error orgRes;
+                boolean hasError = true;
+                http:Response errRes = buildUnknownErrorResponse();
+                http:Response orgUsrRes = buildUnknownErrorResponse();
+
+                transaction {
+                    orgRes = db:insertOrganization(userId, createOrgsBody);
+                    if (orgRes is error) {
+                        log:printError("Unexpected error occured while inserting organization " + untaint createOrgsBody.orgName, err = orgRes);
+                        errRes = buildUnknownErrorResponse();
+                    } else {
+                        hasError = false;
+                        log:printDebug(io:sprintf("New organization \'%s\' added to REGISTRY_ORGANIZATION. Author : %s", createOrgsBody.orgName, userId));
+                        orgUsrRes = addOrgUserMapping(userId, createOrgsBody.orgName);
+                    } 
+                } onretry {
+                    io:println("Retrying transaction");
+                } committed {
+                    io:println("Transaction committed");                                         
+                } aborted {
+                    io:println("Transaction aborted");
                 }
+
+                if (!hasError) {
+                    return orgUsrRes;
+                }
+                else {
+                    return errRes;
+                }
+
+                // var orgRes = db:insertOrganization(userId, createOrgsBody);
+                // if (orgRes is error) {
+                //     log:printError("Unexpected error occured while inserting organization " + untaint createOrgsBody.orgName, err = orgRes);
+                //     return buildUnknownErrorResponse();
+                // } else {
+                //     log:printDebug(io:sprintf("New organization \'%s\' added to REGISTRY_ORGANIZATION. Author : %s", createOrgsBody.orgName, userId));
+                //     return addOrgUserMapping(userId, createOrgsBody.orgName);
+                // }
+
+
             } else {
                 log:printError(io:sprintf("Insertion denied : \'%s\' is an invalid organization name", createOrgsBody.orgName));
                 return buildErrorResponse(http:METHOD_NOT_ALLOWED_405, constants:API_ERROR_CODE, "Unable to create organization",
@@ -170,7 +207,7 @@ public function getImageByImageName(http:Request getImageRequest, string orgName
             };
             json | error resPayload =  json.convert(imageResponse);
             if (resPayload is json) {
-                return buildSuccessResponse(resPayload);
+                return buildSuccessResponse(jsonResponse = resPayload);
 
             } else {
                 log:printError("Error while retriving image keywords" + imageName, err = resPayload);
@@ -242,7 +279,7 @@ int offset, int resultLimit) returns http:Response {
         json | error resPayload =  json.convert(response);
         if (resPayload is json) {
             log:printInfo(resPayload.toString());
-            return buildSuccessResponse(resPayload);
+            return buildSuccessResponse(jsonResponse = resPayload);
         } else {
             log:printError("Error while converting payload to json" + imageName, err = resPayload);
         }
