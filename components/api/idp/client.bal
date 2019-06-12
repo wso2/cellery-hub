@@ -19,7 +19,7 @@
 import ballerina/config;
 import ballerina/http;
 
-http:Client oidcProviderClientEP = new(config:getAsString("idp.oidc.providerurl"), config = {
+http:Client oidcProviderClientEP = new(config:getAsString("idp.endpoint"), config = {
     secureSocket: {
         trustStore: {
             path: config:getAsString("security.truststore"),
@@ -36,7 +36,7 @@ http:Client oidcProviderClientEP = new(config:getAsString("idp.oidc.providerurl"
 });
 
 
-http:Client scimProviderClient = new(config:getAsString("idp.oidc.providerurl"), config = {
+http:Client scimProviderClient = new(config:getAsString("idp.endpoint"), config = {
     secureSocket: {
         trustStore: {
             path: config:getAsString("security.truststore"),

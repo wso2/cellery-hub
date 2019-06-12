@@ -39,7 +39,8 @@ public function getAuthConfig() returns (Conf)|error {
     if (config:getAsString(constants:IDP_INTROSPCET_VAR) != "" && config:getAsString(constants:IDP_USERNAME_VAR) != "" && 
         config:getAsString(constants:IDP_PASSWORD_VAR) != "") {
         config = {
-            introspectionEp:config:getAsString(constants:IDP_INTROSPCET_VAR),
+            introspectionEp:config:getAsString(constants:IDP_ENDPOINT_VAR) + config:getAsString
+            (constants:IDP_INTROSPCET_VAR),
             username:config:getAsString(constants:IDP_USERNAME_VAR),
             password:config:getAsString(constants:IDP_PASSWORD_VAR)
         };

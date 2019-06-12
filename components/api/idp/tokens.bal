@@ -27,7 +27,7 @@ public function getTokens(string authCode, string callbackUrl) returns (gen:Toke
     http:Request tokenReq = new;
     var reqBody = io:sprintf("grant_type=authorization_code&code=%s&redirect_uri=%s", authCode, callbackUrl);
     tokenReq.setTextPayload(reqBody, contentType = constants:APPLICATION_URL_ENCODED_CONTENT_TYPE);
-    var response = check oidcProviderClientEP->post(config:getAsString("idp.oidc.tokenendpoint"), tokenReq);
+    var response = check oidcProviderClientEP->post(config:getAsString("idp.token.endpoint"), tokenReq);
 
     var responsePayload = check response.getJsonPayload();
     if (responsePayload["error"] != null) {

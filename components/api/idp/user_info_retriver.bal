@@ -28,7 +28,8 @@ public type UserInfo record {
 
 public function getUserInfo(string userId) returns UserInfo? | error {
     log:printDebug(io:sprintf("Retriving userInformation organiations for user : \'%s\'", userId));
-    var response = check scimProviderClient->get("/scim2/Users?filter=username+eq+" + userId);
+    var response = check scimProviderClient->get(config:getAsString("idp.scim2.user.endpoint") +
+    "?filter=username+eq+" + userId);
 
 
     if (response.statusCode >= 400) {
