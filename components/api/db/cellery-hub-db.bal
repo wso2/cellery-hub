@@ -25,7 +25,7 @@ import ballerina/encoding;
 
 public function getOrganization (string orgName) returns json | error {
     log:printDebug(io:sprintf("Performing data retreival on REGISTRY_ORGANIZATION table, Org name : \'%s\': ", orgName));
-    table<record {}> res =  check connection -> select (GET_ORG_QUERY, gen:OrgResponse, orgName, loadToMemory = true);
+    table<record {}> res =  check connection->select(GET_ORG_QUERY, gen:OrgResponse, orgName, loadToMemory = true);
     if (res.count() == 1) {
         gen:OrgResponse orgRes = check gen:OrgResponse.convert(res.getNext());
         json resPayload = check json.convert(orgRes);
@@ -37,15 +37,15 @@ public function getOrganization (string orgName) returns json | error {
     }
 }
 
-public function insertOrganization (string author, gen:OrgCreateRequest createOrgsBody) returns error? {
+public function insertOrganization(string author, gen:OrgCreateRequest createOrgsBody) returns error? {
     log:printDebug (io:sprintf("Performing insertion on REGISTRY_ORGANIZATION table, Org name : \'%s\'", createOrgsBody.orgName));
-    sql:UpdateResult res = check connection -> update (ADD_ORG_QUERY, createOrgsBody.orgName, createOrgsBody.description,
+    sql:UpdateResult res = check connection->update(ADD_ORG_QUERY, createOrgsBody.orgName, createOrgsBody.description,
                                             createOrgsBody.websiteUrl, createOrgsBody.defaultVisibility, author);
 }
 
-public function insertOrgUserMapping (string author, string orgName) returns error? {
-    log:printDebug (io:sprintf("Performing insertion on REGISTRY_ORG_USER_MAPPING table. User : %s, Org name : \'%s\'", author, orgName));
-    sql:UpdateResult res = check connection -> update (ADD_ORG_USER_MAPPING_QUERY, author, orgName);
+public function insertOrgUserMapping(string author, string orgName, string role) returns error? {
+    log:printDebug(io:sprintf("Performing insertion on REGISTRY_ORG_USER_MAPPING table. User : %s, Org name : \'%s\'", author, orgName));
+    sql:UpdateResult res = check connection->update(ADD_ORG_USER_MAPPING_QUERY, author, orgName, role);
 }
 
 public function getOrganizationCount(string userId) returns int | error {

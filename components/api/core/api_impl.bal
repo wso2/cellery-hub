@@ -18,10 +18,11 @@
 
 import ballerina/http;
 import ballerina/io;
-import cellery_hub_api/db;
-import cellery_hub_api/constants;
 import ballerina/log;
 import ballerina/mysql;
+import ballerina/transactions;
+import cellery_hub_api/constants;
+import cellery_hub_api/db;
 import cellery_hub_api/idp;
 
 # Get Auth Tokens.
@@ -70,46 +71,27 @@ public function createOrg(http:Request createOrgReq, gen:OrgCreateRequest create
             if (isMatch) {
                 log:printDebug(io:sprintf("\'%s\' is a valid organization name", createOrgsBody.orgName));
                 string userId = createOrgReq.getHeader(constants:AUTHENTICATED_USER);
-                json|error orgRes;
-                boolean hasError = true;
-                http:Response errRes = buildUnknownErrorResponse();
-                http:Response orgUsrRes = buildUnknownErrorResponse();
-
+                http:Response ? resp = ();
                 transaction {
-                    orgRes = db:insertOrganization(userId, createOrgsBody);
+                    var transactionId = transactions:getCurrentTransactionId();
+                    log:printDebug("Started transaction " + transactionId + " for creating organization " + createOrgsBody.orgName);
+
+                    json|error orgRes = db:insertOrganization(userId, createOrgsBody);
                     if (orgRes is error) {
                         log:printError("Unexpected error occured while inserting organization " + untaint createOrgsBody.orgName, err = orgRes);
-                        errRes = buildUnknownErrorResponse();
+                        abort;
                     } else {
-                        hasError = false;
                         log:printDebug(io:sprintf("New organization \'%s\' added to REGISTRY_ORGANIZATION. Author : %s", createOrgsBody.orgName, userId));
-                        orgUsrRes = addOrgUserMapping(userId, createOrgsBody.orgName);
+                        resp = addOrgUserMapping(userId, createOrgsBody.orgName, untaint constants:ROLE_ADMIN);
                     } 
                 } onretry {
-                    io:println("Retrying transaction");
+                    log:printDebug("Retrying creating organization for transaction " + transactions:getCurrentTransactionId());
                 } committed {
-                    io:println("Transaction committed");                                         
+                    log:printDebug("Creating Organization successful for transaction " + transactions:getCurrentTransactionId());
                 } aborted {
-                    io:println("Transaction aborted");
+                    log:printError("Creating Organization aborted for transaction " + transactions:getCurrentTransactionId());
                 }
-
-                if (!hasError) {
-                    return orgUsrRes;
-                }
-                else {
-                    return errRes;
-                }
-
-                // var orgRes = db:insertOrganization(userId, createOrgsBody);
-                // if (orgRes is error) {
-                //     log:printError("Unexpected error occured while inserting organization " + untaint createOrgsBody.orgName, err = orgRes);
-                //     return buildUnknownErrorResponse();
-                // } else {
-                //     log:printDebug(io:sprintf("New organization \'%s\' added to REGISTRY_ORGANIZATION. Author : %s", createOrgsBody.orgName, userId));
-                //     return addOrgUserMapping(userId, createOrgsBody.orgName);
-                // }
-
-
+                return resp ?: buildUnknownErrorResponse();
             } else {
                 log:printError(io:sprintf("Insertion denied : \'%s\' is an invalid organization name", createOrgsBody.orgName));
                 return buildErrorResponse(http:METHOD_NOT_ALLOWED_405, constants:API_ERROR_CODE, "Unable to create organization",
@@ -126,8 +108,8 @@ public function createOrg(http:Request createOrgReq, gen:OrgCreateRequest create
     }
 }
 
-function addOrgUserMapping(string userId, string orgName) returns http:Response{
-    var orgUserRes = db:insertOrgUserMapping(userId, orgName);
+function addOrgUserMapping(string userId, string orgName, string role) returns http:Response{
+    var orgUserRes = db:insertOrgUserMapping(userId, orgName, role);
     if (orgUserRes is error) {
         log:printError(io:sprintf("Unexpected error occured while inserting org-user mapping. user : %s, Organization : %s", userId, orgName),
                                 err = orgUserRes);
@@ -368,7 +350,7 @@ returns http:Response {
             json | error resPayload =  json.convert(userInfoListResponse);
             if (resPayload is json) {
                 log:printInfo(resPayload.toString());
-                return buildSuccessResponse(resPayload);
+                return buildSuccessResponse(jsonResponse = resPayload);
             } else {
                 log:printError("Error while converting payload to json for organization's user request", err = resPayload);
                 return buildUnknownErrorResponse();
