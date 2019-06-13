@@ -153,7 +153,7 @@ class ImageVersion extends React.Component {
         const imageName = match.params.imageName;
         const version = match.params.version;
 
-        NotificationUtils.showLoadingOverlay(`Fetching image version "${orgName}/${imageName}:${version}"`,
+        NotificationUtils.showLoadingOverlay(`Fetching image version ${orgName}/${imageName}:${version}`,
             globalState);
         self.setState({
             isLoading: true

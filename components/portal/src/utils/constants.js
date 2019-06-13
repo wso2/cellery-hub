@@ -30,6 +30,10 @@ const Constants = {
     Visibility: {
         PUBLIC: "PUBLIC",
         PRIVATE: "PRIVATE"
+    },
+    SortingOrder: {
+        MOST_POPULAR: "most-popular",
+        RECENTLY_UPDATED: "recently-updated"
     }
 };
 

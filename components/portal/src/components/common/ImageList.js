@@ -70,8 +70,8 @@ class ImageList extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            pageNo: 0,
-            rowsPerPage: 10
+            pageNo: props.defaultPageNo,
+            rowsPerPage: props.defaultRowsPerPage
         };
     }
 
@@ -151,6 +151,8 @@ ImageList.propTypes = {
         goBack: PropTypes.func.isRequired
     }),
     classes: PropTypes.object.isRequired,
+    defaultPageNo: PropTypes.number.isRequired,
+    defaultRowsPerPage: PropTypes.number.isRequired,
     totalCount: PropTypes.number.isRequired,
     pageData: PropTypes.arrayOf(PropTypes.shape({
         orgName: PropTypes.string.isRequired,

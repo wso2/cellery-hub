@@ -97,7 +97,7 @@ class Org extends React.Component {
         const {globalState, match} = self.props;
         const orgName = match.params.orgName;
 
-        NotificationUtils.showLoadingOverlay(`Fetching organization "${orgName}"`,
+        NotificationUtils.showLoadingOverlay(`Fetching organization ${orgName}`,
             globalState);
         self.setState({
             isLoading: true
