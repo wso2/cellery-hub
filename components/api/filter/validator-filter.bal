@@ -35,17 +35,25 @@ public type validateRequestFilter object {
             request.removeHeader(constants:AUTHENTICATED_USER);
         }
         string token = "";
-        if(request.hasHeader(constants:AUTHORIZATION_HEADER)) {
+        if(request.hasHeader(constants:AUTHORIZATION_HEADER) && request.hasHeader(constants:COOKIE_HEADER)) {
             string tokenHeaderValue = request.getHeader(constants:AUTHORIZATION_HEADER);
             string[] splittedToken = tokenHeaderValue.split(" ");
-            if splittedToken.length() != 2 || !(splittedToken[0] == "Bearer" || splittedToken[0] == "bearer") {
-                log:printError("Not not receive the token in proper format");
+            if splittedToken.length() != 2 || !(splittedToken[0].equalsIgnoreCase("Bearer")) {
+                log:printError("Did not receive the token in proper format");
                 return true;
             }
-            token = splittedToken[1];
-            if "" == token {
-                log:printDebug("Did not receive any token. Passing the request to the next filter");
+            string lastTokenElement = splittedToken[1];
+            string cookieHeader = request.getHeader(constants:COOKIE_HEADER);
+            string|error firstTokenElement = getCookie(cookieHeader);
+            if (firstTokenElement is error) {
+                log:printError("Cookie value could not be resolved. Passing to the next filter", err = firstTokenElement);
                 return true;
+            } else {
+                token = io:sprintf("%s%s", firstTokenElement, lastTokenElement);
+                if "" == token {
+                    log:printDebug("Did not receive any token. Passing the request to the next filter");
+                    return true;
+                }
             }
             validator:Conf|error conf = untaint validator:getAuthConfig();
             if conf is validator:Conf {
@@ -80,3 +88,29 @@ public type validateRequestFilter object {
         return true;
     }
 };
+
+function getCookie(string cookiesString) returns string|error {
+    string cookieValue = "";
+    string[] cookies = cookiesString.split("\\s*;\\s*");
+    foreach string cookie in cookies {
+        string[] cookieTokens = cookie.split("=");
+        if (cookieTokens[0] == constants:TOKEN_COOKIE_KEY){
+            cookieValue = cookieTokens[1];
+        }
+    }
+    if cookieValue == "" {
+        CookieNotFoundData errorDetail = {
+                        errCookie: cookiesString
+        };
+        CookieNotFoundError cookieNotFoundError =
+                                    error("Cannot find the header Cookie", errorDetail);
+        return cookieNotFoundError;
+    }
+    return cookieValue;
+}
+
+type CookieNotFoundData record {
+    string errCookie;
+};
+
+type CookieNotFoundError error<string, CookieNotFoundData>;

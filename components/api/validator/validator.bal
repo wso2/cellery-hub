@@ -25,14 +25,14 @@ import ballerina/io;
 boolean isIntrospectionEPInitialized = false;
 
 http:Client introspectionEP = new("https://wso2.com" , config = {
-        auth: {
-            scheme: http:BASIC_AUTH,
-            config: {
-                username: "",
-                password: ""
-            }
+    auth: {
+        scheme: http:BASIC_AUTH,
+        config: {
+            username: "",
+            password: ""
         }
-    });
+    }
+});
 # Description
 #
 # + token - access token to be validated
@@ -43,6 +43,13 @@ public function validateAndGetUsername(string token, string username, Conf conf)
     if !isIntrospectionEPInitialized {
         var endPointUrl = conf.introspectionEp;
         introspectionEP = new(endPointUrl , config = {
+        secureSocket: {
+            verifyHostname :false,
+            trustStore: {
+                path: config:getAsString("security.truststore"),
+                password: config:getAsString("security.truststorepass")
+            }
+        },
         auth: {
             scheme: http:BASIC_AUTH,
             config: {
