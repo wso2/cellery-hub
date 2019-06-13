@@ -86,7 +86,7 @@ class Org extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            isLoading: false,
+            isLoading: true,
             isOrgNotFound: false,
             orgData: null
         };
