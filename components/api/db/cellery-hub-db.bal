@@ -25,7 +25,7 @@ import ballerina/encoding;
 
 public function getOrganization (string orgName) returns json | error {
     log:printDebug(io:sprintf("Performing data retreival on REGISTRY_ORGANIZATION table, Org name : \'%s\': ", orgName));
-    table<record {}> res =  check connection -> select (GET_ORG_QUERY, gen:OrgResponse, orgName, loadToMemory = true);
+    table<record {}> res =  check connection->select(GET_ORG_QUERY, gen:OrgResponse, orgName, loadToMemory = true);
     if (res.count() == 1) {
         gen:OrgResponse orgRes = check gen:OrgResponse.convert(res.getNext());
         json resPayload = check json.convert(orgRes);
@@ -37,10 +37,15 @@ public function getOrganization (string orgName) returns json | error {
     }
 }
 
-public function insertOrganization (string author, gen:OrgCreateRequest createOrgsBody) returns error? {
+public function insertOrganization(string author, gen:OrgCreateRequest createOrgsBody) returns error? {
     log:printDebug (io:sprintf("Performing insertion on REGISTRY_ORGANIZATION table, Org name : \'%s\'", createOrgsBody.orgName));
-    sql:UpdateResult res = check connection -> update (ADD_ORG_QUERY, createOrgsBody.orgName, createOrgsBody.description,
+    sql:UpdateResult res = check connection->update(ADD_ORG_QUERY, createOrgsBody.orgName, createOrgsBody.description,
                                             createOrgsBody.websiteUrl, createOrgsBody.defaultVisibility, author);
+}
+
+public function insertOrgUserMapping(string author, string orgName, string role) returns error? {
+    log:printDebug(io:sprintf("Performing insertion on REGISTRY_ORG_USER_MAPPING table. User : %s, Org name : \'%s\'", author, orgName));
+    sql:UpdateResult res = check connection->update(ADD_ORG_USER_MAPPING_QUERY, author, orgName, role);
 }
 
 public function getOrganizationCount(string userId) returns int | error {
@@ -123,7 +128,7 @@ function buildJsonPayloadForGetArtifact(table<record {}> res, string orgName, st
         resPayload["lastAuthor"] = artRes.lastAuthor;
         resPayload["updatedTimestamp"] = artRes.updatedTimestamp;
         resPayload["metadata"] = metadataJson;
-        return resPayload;      
+        return resPayload;
     } else if (res.count() == 0) {
         log:printDebug(io:sprintf("The requested artifact \'%s/%s:%s\' was not found in REGISTRY_ORGANIZATION",
                                     orgName, imageName, artifactVersion));
@@ -138,7 +143,7 @@ function buildJsonPayloadForGetArtifact(table<record {}> res, string orgName, st
 
 public function getMemberOrgsUsers(string userId, string orgName, int offset, int resultLimit)
 returns table<gen:User> | error {
-    log:printDebug(io:sprintf("Performing data retrieval of users for organization: %s, user: %s , with offset %d, 
+    log:printDebug(io:sprintf("Performing data retrieval of users for organization: %s, user: %s , with offset %d,
     and result limit : %d", orgName, userId, offset, resultLimit));
     table<gen:User> res = check connection->select(GET_MEMBERS_ORG_USERS, gen:User, userId,
     orgName, resultLimit, offset, loadToMemory = true);

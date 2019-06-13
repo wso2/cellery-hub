@@ -39,3 +39,5 @@ public const string IDP_DEFAULT_USERNAME = "admin";
 public const string AUTHORIZATION_HEADER = "Authorization";
 public const string COOKIE_HEADER = "Cookie";
 public const string TOKEN_COOKIE_KEY = "chpat";
+
+public const string ROLE_ADMIN = "admin";

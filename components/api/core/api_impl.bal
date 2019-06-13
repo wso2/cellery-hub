@@ -18,10 +18,11 @@
 
 import ballerina/http;
 import ballerina/io;
-import cellery_hub_api/db;
-import cellery_hub_api/constants;
 import ballerina/log;
 import ballerina/mysql;
+import ballerina/transactions;
+import cellery_hub_api/constants;
+import cellery_hub_api/db;
 import cellery_hub_api/idp;
 
 # Get Auth Tokens.
@@ -58,23 +59,64 @@ public function getTokens (http:Request getTokensReq) returns http:Response {
     }
 }
 
+# Create a new organization
+#
+# + createOrgReq - received query parameters
+# + createOrgsBody - received request body
+# + return - http response which cater to the request
 public function createOrg(http:Request createOrgReq, gen:OrgCreateRequest createOrgsBody) returns http:Response {
     if (createOrgReq.hasHeader(constants:AUTHENTICATED_USER)) {
-        string userId = createOrgReq.getHeader(constants:AUTHENTICATED_USER);
-        var res = db:insertOrganization(userId, createOrgsBody);
-        if (res is error) {
-            log:printError("Unexpected error occured while inserting organization " + untaint createOrgsBody.orgName, err = res);
-            return buildUnknownErrorResponse();
+        boolean | error isMatch = createOrgsBody.orgName.matches("^[a-z0-9]+(-[a-z0-9]+)*$");
+        if (isMatch is boolean){
+            if (isMatch) {
+                log:printDebug(io:sprintf("\'%s\' is a valid organization name", createOrgsBody.orgName));
+                string userId = createOrgReq.getHeader(constants:AUTHENTICATED_USER);
+                http:Response ? resp = ();
+                transaction {
+                    var transactionId = transactions:getCurrentTransactionId();
+                    log:printDebug("Started transaction " + transactionId + " for creating organization " + createOrgsBody.orgName);
+
+                    json|error orgRes = db:insertOrganization(userId, createOrgsBody);
+                    if (orgRes is error) {
+                        log:printError("Unexpected error occured while inserting organization " + untaint createOrgsBody.orgName, err = orgRes);
+                        abort;
+                    } else {
+                        log:printDebug(io:sprintf("New organization \'%s\' added to REGISTRY_ORGANIZATION. Author : %s", createOrgsBody.orgName, userId));
+                        resp = addOrgUserMapping(userId, createOrgsBody.orgName, untaint constants:ROLE_ADMIN);
+                    } 
+                } onretry {
+                    log:printDebug("Retrying creating organization for transaction " + transactions:getCurrentTransactionId());
+                } committed {
+                    log:printDebug("Creating Organization successful for transaction " + transactions:getCurrentTransactionId());
+                } aborted {
+                    log:printError("Creating Organization aborted for transaction " + transactions:getCurrentTransactionId());
+                }
+                return resp ?: buildUnknownErrorResponse();
+            } else {
+                log:printError(io:sprintf("Insertion denied : \'%s\' is an invalid organization name", createOrgsBody.orgName));
+                return buildErrorResponse(http:METHOD_NOT_ALLOWED_405, constants:API_ERROR_CODE, "Unable to create organization",
+                                                "Organization name is not valid");
+            }
         } else {
-            http:Response createOrgRes = new;
-            createOrgRes.statusCode = http:OK_200;
-            log:printDebug(io:sprintf("Organization \'%s\' is created. Author : %s", createOrgsBody.orgName, userId));
-            return createOrgRes;
+            log:printError("Unable to create organization", err = isMatch);
+            return buildUnknownErrorResponse();
         }
     } else {
-        log:printError("Unauthenticated request. Username is not found");
+        log:printError("Unauthenticated request : Username is not found");
         return buildErrorResponse(http:UNAUTHORIZED_401, constants:API_ERROR_CODE, "Unable to create organization",
-                                  "Unauthenticated request. Auth token is not provided");
+                                                            "Unauthenticated request. Auth token is not provided");
+    }
+}
+
+function addOrgUserMapping(string userId, string orgName, string role) returns http:Response{
+    var orgUserRes = db:insertOrgUserMapping(userId, orgName, role);
+    if (orgUserRes is error) {
+        log:printError(io:sprintf("Unexpected error occured while inserting org-user mapping. user : %s, Organization : %s", userId, orgName),
+                                err = orgUserRes);
+        return buildUnknownErrorResponse();
+    } else {
+        log:printDebug(io:sprintf("New organization \'%s\' added to REGISTRY_ORG_USER_MAPPING. Author : %s", orgName, userId));
+        return buildSuccessResponse();
     }
 }
 
@@ -82,11 +124,8 @@ public function getOrg(http:Request getOrgReq, string orgName) returns http:Resp
     json | error res = db:getOrganization(orgName);
     if (res is json) {
         if (res != null) {
-            http:Response getOrgRes = new;
-            getOrgRes.statusCode = http:OK_200;
-            getOrgRes.setJsonPayload(untaint res);
             log:printDebug(io:sprintf("Successfully fetched organization \'%s\'", orgName));
-            return getOrgRes;
+            return buildSuccessResponse(jsonResponse = res);
         } else {
             string errMsg = "Unable to fetch organization. ";
             string errDes = io:sprintf("There is no organization named \'%s\'", orgName);
@@ -150,7 +189,7 @@ public function getImageByImageName(http:Request getImageRequest, string orgName
             };
             json | error resPayload =  json.convert(imageResponse);
             if (resPayload is json) {
-                return buildSuccessResponse(resPayload);
+                return buildSuccessResponse(jsonResponse = resPayload);
 
             } else {
                 log:printError("Error while retriving image keywords" + imageName, err = resPayload);
@@ -222,7 +261,7 @@ int offset, int resultLimit) returns http:Response {
         json | error resPayload =  json.convert(response);
         if (resPayload is json) {
             log:printInfo(resPayload.toString());
-            return buildSuccessResponse(resPayload);
+            return buildSuccessResponse(jsonResponse = resPayload);
         } else {
             log:printError("Error while converting payload to json" + imageName, err = resPayload);
         }
@@ -245,11 +284,8 @@ public function getArtifact (http:Request getArtifactReq, string orgName, string
     }
     if (res is json) {
         if (res != null) {
-            http:Response getArtifactRes = new;
-            getArtifactRes.statusCode = http:OK_200;
-            getArtifactRes.setJsonPayload(untaint res);
             log:printDebug(io:sprintf("Successfully fetched artifact \'%s/%s:%s\' ", orgName, imageName, artifactVersion));
-            return getArtifactRes;
+            return buildSuccessResponse(jsonResponse = res);
         } else {
             string errMsg = "Unable to fetch artifact. ";
             string errDes = io:sprintf("There is no artifact named \'%s/%s:%s\'" ,orgName, imageName, artifactVersion);
@@ -296,7 +332,7 @@ returns http:Response {
                     users[counter] = userResponse;
                     counter += 1;
                 } else {
-                    log:printError(io:sprintf("Error while retriving user info for user %s", user.userId), 
+                    log:printError(io:sprintf("Error while retriving user info for user %s", user.userId),
                     err = userinfoResponse);
                 }
             }
@@ -314,14 +350,14 @@ returns http:Response {
             json | error resPayload =  json.convert(userInfoListResponse);
             if (resPayload is json) {
                 log:printInfo(resPayload.toString());
-                return buildSuccessResponse(resPayload);
+                return buildSuccessResponse(jsonResponse = resPayload);
             } else {
                 log:printError("Error while converting payload to json for organization's user request", err = resPayload);
                 return buildUnknownErrorResponse();
             }
         } else {
 
-            log:printError(io:sprintf("Error occured while retriving users from DB for organization %s : user %s", 
+            log:printError(io:sprintf("Error occured while retriving users from DB for organization %s : user %s",
             orgName, userId));
             return buildUnknownErrorResponse();
         }
