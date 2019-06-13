@@ -165,7 +165,8 @@ public function searchOrganizations(string orgName, int offset, int resultLimit)
     if (totalOrgs > 0){
         log:printDebug(io:sprintf("%d organization(s) found with the name \'%s\'", totalOrgs, orgName));
         map<any> imageCountMap = {};
-        table<gen:OrgListResponseIC> resImgCount = check connection->select(SEARCH_ORGS_QUERY_IC, gen:OrgListResponseIC, orgName, resultLimit, offset);
+        table<gen:OrgListResponseImageCount> resImgCount = check connection->select(SEARCH_ORGS_QUERY_IMAGE_COUNT, 
+        gen:OrgListResponseImageCount, orgName, resultLimit, offset);
         foreach var fd in resImgCount{
             imageCountMap[fd.orgName] = fd.imageCount;
         }

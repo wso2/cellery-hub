@@ -101,7 +101,7 @@ public type OrgListResponseAtom record {
     int membersCount;
 };
 
-public type OrgListResponseIC record { 
+public type OrgListResponseImageCount record { 
     string orgName;
     int imageCount;
 };
