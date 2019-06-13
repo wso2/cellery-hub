@@ -23,7 +23,7 @@ ARG PROJECT_DIR="/workspace"
 WORKDIR ${PROJECT_DIR}
 USER root
 
-COPY ./components/api/ ./
+COPY ./target/ ./
 
 RUN chown -R ballerina ${PROJECT_DIR}
 USER ballerina

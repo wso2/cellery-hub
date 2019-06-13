@@ -16,20 +16,15 @@
 #
 # ------------------------------------------------------------------------
 
-FROM node:11.2.0-slim
+FROM ubuntu:bionic
 LABEL MAINTAINER="WSO2 Cellery Maintainers <dev@wso2.org>"
 
-ARG PORTAL_PORT=3000
-ARG APP_DIR=/portal
+COPY ./files/ ./
 
-WORKDIR ${APP_DIR}
+RUN apt-get -y update;\
+    apt-get -y upgrade;\
+    apt-get -y install curl
 
-COPY ./target/ ${APP_DIR}/
+ENV TERM=xterm-256color
 
-ENV PORTAL_PORT=${PORTAL_PORT}
-
-EXPOSE ${PORTAL_PORT}
-
-RUN npm ci
-
-ENTRYPOINT ["node", "serve.js"]
+ENTRYPOINT ["bash", "setup-is.sh"]

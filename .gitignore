@@ -44,6 +44,6 @@ hs_err_pid*
 deployment/mysql/mnt
 deployment/docker-registry/mnt
 deployment/docker-auth/extension-logs
-docker/identity-server/files/idp-variables.sh
+docker/deployment-init/files/idp-variables.sh
 
 coverage.txt
