@@ -19,7 +19,7 @@
 FROM ubuntu:bionic
 LABEL MAINTAINER="WSO2 Cellery Maintainers <dev@wso2.org>"
 
-COPY ./docker/deployment-init/files/ ./
+COPY ./files/ ./
 
 RUN apt-get -y update;\
     apt-get -y upgrade;\

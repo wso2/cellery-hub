@@ -24,8 +24,7 @@ ARG APP_DIR=/portal
 
 WORKDIR ${APP_DIR}
 
-COPY ./components/portal/node-server ${APP_DIR}/
-COPY ./components/portal/build ${APP_DIR}/public/
+COPY ./target/ ${APP_DIR}/
 
 ENV PORTAL_PORT=${PORTAL_PORT}
 

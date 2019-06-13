@@ -233,19 +233,32 @@ test.$(DEPLOYMENT_INIT): build.$(DEPLOYMENT_INIT)
 
 .PHONY: docker.$(PROXY)
 docker.$(PROXY): build.$(PROXY)
-	docker build -t $(DOCKER_REPO)/cellery-hub-proxy:$(VERSION) -f ./docker/proxy/Dockerfile .
+	rm -rf ./docker/$(PROXY)/target
+	cp -r ./components/$(PROXY)/ ./docker/$(PROXY)/target/
+	cd ./docker/$(PROXY); \
+	docker build -t $(DOCKER_REPO)/cellery-hub-proxy:$(VERSION) .
 
 .PHONY: docker.$(DOCKER_AUTH)
 docker.$(DOCKER_AUTH): build.$(DOCKER_AUTH)
-	docker build -t $(DOCKER_REPO)/cellery-hub-docker-auth:$(VERSION) -f ./docker/docker-auth/Dockerfile .
+	rm -rf ./docker/$(DOCKER_AUTH)/target
+	cp -r ./components/$(DOCKER_AUTH)/target/ ./docker/$(DOCKER_AUTH)/target/
+	cd ./docker/$(DOCKER_AUTH); \
+	docker build -t $(DOCKER_REPO)/cellery-hub-docker-auth:$(VERSION) .
 
 .PHONY: docker.$(PORTAL)
 docker.$(PORTAL): build.$(PORTAL)
-	docker build -t $(DOCKER_REPO)/cellery-hub-portal:$(VERSION) -f ./docker/portal/Dockerfile .
+	rm -rf ./docker/$(PORTAL)/target
+	cp -r ./components/portal/node-server ./docker/$(PORTAL)/target/
+	cp -r ./components/portal/build ./docker/$(PORTAL)/target/public/
+	cd ./docker/$(PORTAL); \
+	docker build -t $(DOCKER_REPO)/cellery-hub-portal:$(VERSION) .
 
 .PHONY: docker.$(API)
 docker.$(API): build.$(API)
-	docker build -t $(DOCKER_REPO)/cellery-hub-api:$(VERSION) -f ./docker/api/Dockerfile .
+	rm -rf ./docker/$(API)/target
+	cp -r ./components/$(API)/ ./docker/$(API)/target/
+	cd ./docker/$(API); \
+	docker build -t $(DOCKER_REPO)/cellery-hub-api:$(VERSION) .
 
 .PHONY: docker.$(IDENTITY_SERVER_CUSTOMIZATION)
 docker.$(IDENTITY_SERVER_CUSTOMIZATION): build.$(IDENTITY_SERVER_CUSTOMIZATION)
@@ -253,7 +266,8 @@ docker.$(IDENTITY_SERVER_CUSTOMIZATION): build.$(IDENTITY_SERVER_CUSTOMIZATION)
 
 .PHONY: docker.$(DEPLOYMENT_INIT)
 docker.$(DEPLOYMENT_INIT): build.$(DEPLOYMENT_INIT)
-	docker build -t $(DOCKER_REPO)/cellery-hub-deployment-init:$(VERSION) -f ./docker/deployment-init/Dockerfile .
+	cd ./docker/$(DEPLOYMENT_INIT); \
+	docker build -t $(DOCKER_REPO)/cellery-hub-deployment-init:$(VERSION) .
 
 
 .PHONY: docker-push.$(PROXY)
