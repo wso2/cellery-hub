@@ -1,6 +1,6 @@
 swagger: "2.0"
 info:
-  version: "0.1.0"
+  version: "0.0.1"
   title: "Cellery Hub API"
   description: "Cellery Hub API"
   contact:
@@ -14,29 +14,32 @@ schemes:
 - "https"
 
 paths:
-  /auth/token:
+  /orgs:
     get:
-      operationId: "getTokens"
-      summary: "Get tokens"
+      operationId: "listOrgs"
+      summary: "Retrieve organizations"
+      description: "Retrieve organizations"
+      consumes:
+      - "application/json"
       produces:
       - "application/json"
       parameters:
-      - $ref: "#/parameters/authCodeQueryParam"
-      - $ref: "#/parameters/callbackUrlQueryParam"
+        - $ref: '#/parameters/orgNameQueryParam'
+        - $ref: '#/parameters/limitQueryParam'
+        - $ref: '#/parameters/offsetQueryParam'
       responses:
         200:
           description: "OK"
           schema:
-            $ref: "#/definitions/OrgResponse"
+            $ref: '#/definitions/OrgListResponse'
         405:
-          description: "Invalid Input"
+          description: "Invalid input"
           schema:
-            $ref: "#/definitions/ErrorResponse"
+            $ref: '#/definitions/ErrorResponse'
         500:
-          description: "Internal Server Error"
+          description: "Internal server error"
           schema:
-            $ref: "#/definitions/ErrorResponse"
-  /orgs:
+            $ref: '#/definitions/ErrorResponse'
     post:
       operationId: "createOrg"
       summary: "Create organization"
@@ -78,20 +81,32 @@ paths:
           description: "Internal Server Error"
           schema:
             $ref: "#/definitions/ErrorResponse"
-
+            
+  /artifact/{orgName}/{imageName}/{artifactVersion}:
+    get:
+      operationId: "getArtifact"
+      summary: "Get a specific artifact"
+      produces:
+      - "application/json"
+      parameters:
+      - $ref: "#/parameters/orgNamePathParam"
+      - $ref: "#/parameters/imageNamePathParam"
+      - $ref: "#/parameters/artifactVersionPathParam"
+      responses:
+        200:
+          description: "OK"
+          schema:
+            $ref: "#/definitions/ArtifactResponse"
+        405:
+          description: "Invalid Input"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+        500:
+          description: "Internal Server Error"
+          schema:
+            $ref: "#/definitions/ErrorResponse" 
+            
 parameters:
-  authCodeQueryParam:
-    name: "authCode"
-    in: "query"
-    description: "Auth code retrieved from a OIDC provider"
-    required: true
-    type: "string"
-  callbackUrlQueryParam:
-    name: "callbackUrl"
-    in: "query"
-    description: "callback Url used in the OIDC flow"
-    required: true
-    type: "string"
   orgCreateBody:
     name: "organization"
     in: "body"
@@ -103,6 +118,18 @@ parameters:
     name: "orgName"
     in: "path"
     description: "Name of the organization"
+    required: true
+    type: "string"
+  imageNamePathParam:
+    name: "imageName"
+    in: "path"
+    description: "Name of the image"
+    required: true
+    type: "string"
+  artifactVersionPathParam:
+    name: "artifactVersion"
+    in: "path"
+    description: "Version of the artifact"
     required: true
     type: "string"
   orgNameQueryParam:
@@ -122,28 +149,21 @@ parameters:
     in: "query"
     description: "The attribute to order the images"
     required: false
-    type: "string"
+    type: string
   limitQueryParam:
     name: "limit"
     in: "query"
     description: "Number of results returned for pagination"
     required: true
-    type: "number"
+    type: integer
   offsetQueryParam:
     name: "offset"
     in: "query"
     description: "Offset of the result set returned for pagination"
     required: true
-    type: "number"
-
+    type: integer
+    
 definitions:
-  TokensResponse:
-    type: "object"
-    properties:
-      accessToken:
-        type: "string"
-      idToken:
-        type: "string"
   OrgCreateRequest:
     type: "object"
     properties:
@@ -166,11 +186,45 @@ definitions:
         type: "string"
       createdTimestamp:
         type: "string"
+  ArtifactResponse:
+    type: "object"
+    properties:
+      description:
+        type: "string"
+      pullCount:
+        type: "integer"
+      lastAuthor:
+        type: "string"
+      updatedTimestamp:
+        type: "string"
+      metadata:
+        type: "object"
+  OrgListResponse:
+    type: object
+    properties:
+      total:
+        type: integer
+        description: "total count of organizations"
+      data:
+        type: array
+        items:
+          $ref: '#/definitions/OrgListResponseAtom'
+  OrgListResponseAtom:
+    type: object
+    properties:
+      orgName:
+        type: string
+      description:
+        type: string
+      membersCount:
+        type: integer
+      imageCount:
+        type: integer
   ErrorResponse:
     type: "object"
     properties:
       code:
-        type: "number"
+        type: integer
         description: "API specific error code"
       message:
         type: "string"
@@ -178,4 +232,3 @@ definitions:
       description:
         type: "string"
         description: "Description about the error occurred"
-
