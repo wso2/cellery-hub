@@ -24,6 +24,7 @@ import ballerina/openapi;
 import cellery_hub_api/gen;
 import cellery_hub_api/filter;
 import cellery_hub_api/constants;
+import ballerina/io;
 
 http:ServiceEndpointConfiguration celleryHubAPIEPConfig = {
     secureSocket: {
@@ -82,17 +83,19 @@ service CelleryHubAPI on ep {
                 allowEmptyValue: ""
             },
             {
+                name: "limit",
+                inInfo: "query",
+                paramType: "int",
+                description: "Number of results returned for pagination",
+                required: true,
+                allowEmptyValue: ""
+            },
+            {
                 name: "offset",
                 inInfo: "query",
-                paramType: "integer",
-                description: "offset value",
-                allowEmptyValue: ""
-            },            
-            {
-                name: "resultLimit",
-                inInfo: "query",
-                paramType: "integer",
-                description: "limit value",
+                paramType: "int",
+                description: "Offset of the result set returned for pagination",
+                required: true,
                 allowEmptyValue: ""
             }
         ]
@@ -101,8 +104,34 @@ service CelleryHubAPI on ep {
         methods:["GET"],
         path:"/orgs"
     }
-    resource function listOrgs(http:Caller outboundEp, http:Request _listOrgsReq) returns error? {
-        http:Response _listOrgsRes = listOrgs(_listOrgsReq);
+    resource function listOrgs (http:Caller outboundEp, http:Request _listOrgsReq) returns error? {
+        map<string> queryParams = _listOrgsReq.getQueryParams();
+        int offset = 0;
+        int resultLimit = 10;
+        string orgName = "%";
+        if (queryParams.hasKey(constants:OFFSET)) {
+            int | error offsetQueryParam = int.convert(queryParams.offset);
+            if (offsetQueryParam is int) {
+                offset = offsetQueryParam;
+            }
+        }
+        if (queryParams.hasKey(constants:RESULT_LIMIT)) {
+            int | error resultLimitQueryParam = int.convert(queryParams.
+            resultLimit);
+            if (resultLimitQueryParam is int) {
+                resultLimit = resultLimitQueryParam;
+                if (resultLimit > 25) {
+                    log:printDebug(io:sprintf("Requested result limit exeeded 25. Hense reset resultLimit to 25"));
+                    resultLimit = 25;
+                }
+            }
+        }
+        if (queryParams.hasKey(constants:ORG_NAME)) {
+            log:printDebug("orgName is present");
+            orgName = queryParams.orgName;
+            orgName = orgName.replace("*", "%");
+        }
+        http:Response _listOrgsRes = listOrgs(_listOrgsReq, orgName, offset, resultLimit);
         error? x = outboundEp->respond(_listOrgsRes);
     }
 
@@ -203,7 +232,7 @@ service CelleryHubAPI on ep {
     }
 
 
-        @openapi:ResourceInfo {
+    @openapi:ResourceInfo {
         summary: "Get a specific Image with versions",
         parameters: [
         {
@@ -250,10 +279,8 @@ service CelleryHubAPI on ep {
         }
         if (queryParams.hasKey(constants:ARTIFACT_VERSION)) {
             log:printDebug("artifactVersion is present");
-            string | error artifactVersionQueryParam = queryParams.artifactVersion;
-            if (artifactVersionQueryParam is string) {
-                artifactVersion = artifactVersionQueryParam;
-            }
+            artifactVersion = queryParams.artifactVersion;
+            artifactVersion = artifactVersion.replace("*", "%");
         }
         http:Response _getImageRes = getArtifactsOfImage(_getImageReq, untaint orgName, untaint imageName, untaint artifactVersion,
         untaint offset, resultLimit);

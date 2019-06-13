@@ -21,12 +21,12 @@ public const string APPLICATION_URL_ENCODED_CONTENT_TYPE = "application/x-www-fo
 public const string AUTHENTICATED_USER = "x-cellery-hub-user";
 public const string G_CAPTCHA_RESPONSE = "g-recaptcha-response";
 public const string SET_COOKIE_HEADER = "Set-Cookie";
-public const string ORG_NAME = "orgName";
 
 public const int API_ERROR_CODE = 1;
 public const string OFFSET = "offset";
 public const string RESULT_LIMIT = "resultLimit";
 public const string ARTIFACT_VERSION = "artifactVersion";
+public const string ORG_NAME = "orgName";
 
 public const string IDP_ENDPOINT_VAR = "idp.endpoint";
 public const string IDP_INTROSPCET_VAR = "idp.introspection.endpoint";

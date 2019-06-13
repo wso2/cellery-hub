@@ -91,7 +91,7 @@ public type StringRecord record {
 };
 
 public type OrgListResponse record {
-    int totalCount; 
+    int count; 
     OrgListResponseAtom[] data;
 };
 
@@ -99,6 +99,11 @@ public type OrgListResponseAtom record {
     string orgName;
     string description;
     int membersCount;
+};
+
+public type OrgListResponseIC record { 
+    string orgName;
+    int imageCount;
 };
 
 public type ErrorResponse record {
