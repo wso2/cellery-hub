@@ -59,6 +59,28 @@ public function getTokens (http:Request getTokensReq) returns http:Response {
     }
 }
 
+# Search based on organization name
+#
+# + listOrgsReq - Received query parameters
+# + return - http response which cater to the request
+public function listOrgs(http:Request listOrgsReq, string orgName, int offset, int resultLimit) returns http:Response {
+    json | error res = db:searchOrganizations(orgName, offset, resultLimit);
+    if (res is json) {
+        if (res != null) {
+            log:printDebug(io:sprintf("Successfully retrieved organization(s) for org name \'%s\'", orgName));
+            return buildSuccessResponse(jsonResponse = res);
+        } else {
+            string errMsg = "No matching organization found. ";
+            string errDes = io:sprintf("There are no organization(s) for org name \'%s\'", orgName);
+            log:printError(errMsg + errDes);
+            return buildErrorResponse(http:NOT_FOUND_404, constants:API_ERROR_CODE, errMsg, errDes);
+        }
+    } else {
+        log:printError("Unable to perform search on organizations", err = res);
+        return buildUnknownErrorResponse();
+    }
+}
+
 # Create a new organization
 #
 # + createOrgReq - received query parameters
@@ -83,19 +105,22 @@ public function createOrg(http:Request createOrgReq, gen:OrgCreateRequest create
                     } else {
                         log:printDebug(io:sprintf("New organization \'%s\' added to REGISTRY_ORGANIZATION. Author : %s", createOrgsBody.orgName, userId));
                         resp = addOrgUserMapping(userId, createOrgsBody.orgName, untaint constants:ROLE_ADMIN);
-                    } 
+                    }
                 } onretry {
-                    log:printDebug("Retrying creating organization for transaction " + transactions:getCurrentTransactionId());
+                    log:printDebug(io:sprintf("Retrying creating organization \'%s\' for transaction %s", createOrgsBody.orgName,
+                    transactions:getCurrentTransactionId()));
                 } committed {
-                    log:printDebug("Creating Organization successful for transaction " + transactions:getCurrentTransactionId());
+                    log:printDebug(io:sprintf("Creating Organization \'%s\'successful for transaction %s", createOrgsBody.orgName,
+                    transactions:getCurrentTransactionId()));
                 } aborted {
-                    log:printError("Creating Organization aborted for transaction " + transactions:getCurrentTransactionId());
+                    log:printError(io:sprintf("Creating Organization \'%s\' aborted for transaction %d", createOrgsBody.orgName,
+                    transactions:getCurrentTransactionId()));
                 }
                 return resp ?: buildUnknownErrorResponse();
             } else {
                 log:printError(io:sprintf("Insertion denied : \'%s\' is an invalid organization name", createOrgsBody.orgName));
                 return buildErrorResponse(http:METHOD_NOT_ALLOWED_405, constants:API_ERROR_CODE, "Unable to create organization",
-                                                "Organization name is not valid");
+                "Organization name is not valid");
             }
         } else {
             log:printError("Unable to create organization", err = isMatch);

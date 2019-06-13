@@ -90,6 +90,22 @@ public type StringRecord record {
     string value;
 };
 
+public type OrgListResponse record {
+    int count; 
+    OrgListResponseAtom[] data;
+};
+
+public type OrgListResponseAtom record { 
+    string orgName;
+    string description;
+    int membersCount;
+};
+
+public type OrgListResponseImageCount record { 
+    string orgName;
+    int imageCount;
+};
+
 public type ErrorResponse record {
     int code;
     string message;

@@ -26,6 +26,7 @@ public const int API_ERROR_CODE = 1;
 public const string OFFSET = "offset";
 public const string RESULT_LIMIT = "resultLimit";
 public const string ARTIFACT_VERSION = "artifactVersion";
+public const string ORG_NAME = "orgName";
 
 public const string IDP_ENDPOINT_VAR = "idp.endpoint";
 public const string IDP_INTROSPCET_VAR = "idp.introspection.endpoint";
