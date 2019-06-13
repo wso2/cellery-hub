@@ -150,7 +150,16 @@ public function getOrg(http:Request getOrgReq, string orgName) returns http:Resp
     if (res is json) {
         if (res != null) {
             log:printDebug(io:sprintf("Successfully fetched organization \'%s\'", orgName));
-            return buildSuccessResponse(jsonResponse = res);
+            string userId = res.author.toString();
+            log:printDebug("User ID :"+ userId);
+            json |error newRes = buildResponseWithUserInfo(res, "res.author");            
+            if (newRes is json) {
+                io:println(newRes);
+                return buildSuccessResponse(jsonResponse = res);
+            } else {
+                log:printDebug(io:sprintf("Unable to retrive user info for user id \'%s\'", userId));
+                return buildUnknownErrorResponse();
+            }            
         } else {
             string errMsg = "Unable to fetch organization. ";
             string errDes = io:sprintf("There is no organization named \'%s\'", orgName);
