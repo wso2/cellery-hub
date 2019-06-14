@@ -16,6 +16,7 @@
  * under the License.
  */
 
+import Constants from "../../utils/constants";
 import Divider from "@material-ui/core/Divider";
 import FormControl from "@material-ui/core/FormControl";
 import Grid from "@material-ui/core/Grid";
@@ -91,8 +92,8 @@ class MyImages extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            organization: "all",
-            sort: "most-popular"
+            organization: "*",
+            sort: Constants.SortingOrder.MOST_POPULAR
         };
     }
 
@@ -135,7 +136,7 @@ class MyImages extends React.Component {
                                         input={
                                             <Input name={"organization"} id={"organization-label-placeholder"}/>
                                         }>
-                                        <MenuItem value={"all"}>All</MenuItem>
+                                        <MenuItem value={"*"}>All</MenuItem>
                                         {orgs.map((org) => <MenuItem key={org} value={org}>{org}</MenuItem>)}
                                     </Select>
                                 </FormControl>
@@ -161,9 +162,12 @@ class MyImages extends React.Component {
                                     </InputLabel>
                                     <Select value={sort} onChange={this.handleSortChange} name={"sort"} displayEmpty
                                         input={<Input name={"sort"} id={"sort-label-placeholder"}/>}>
-                                        <MenuItem value={"most-popular"}>Most Popular</MenuItem>
-                                        <MenuItem value={"a-z"}>A-Z</MenuItem>
-                                        <MenuItem value={"updated"}>Recently Updated</MenuItem>
+                                        <MenuItem value={Constants.SortingOrder.RECENTLY_UPDATED}>
+                                            Recently Updated
+                                        </MenuItem>
+                                        <MenuItem value={Constants.SortingOrder.MOST_POPULAR}>
+                                            Most No of Pulls
+                                        </MenuItem>
                                     </Select>
                                 </FormControl>
                             </form>

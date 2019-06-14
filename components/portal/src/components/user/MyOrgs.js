@@ -87,8 +87,6 @@ class MyOrgs extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            organization: "all",
-            sort: "most-popular",
             isOrgsAvailable: true,
             isDialogOpen: false
         };
