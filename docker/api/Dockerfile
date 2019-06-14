@@ -28,7 +28,7 @@ COPY ./target/ ./
 RUN chown -R ballerina ${PROJECT_DIR}
 USER ballerina
 
-RUN ballerina build
+RUN ballerina build --experimental
 
 FROM ballerina/ballerina:0.991.0
 
