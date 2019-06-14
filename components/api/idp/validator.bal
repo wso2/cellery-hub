@@ -20,62 +20,75 @@ import ballerina/config;
 import ballerina/http;
 import ballerina/log;
 import ballerina/time;
-import ballerina/io;
 
 boolean isIntrospectionEPInitialized = false;
 
-http:Client introspectionEP = new("https://wso2.com" , config = {
-    auth: {
-        scheme: http:BASIC_AUTH,
-        config: {
-            username: "",
-            password: ""
-        }
-    }
-});
+public type TokenDetail record { 
+    string username;
+    int expiryTime;
+};
+
+// http:Client introspectionEP3 = new(config:getAsString(constants:IDP_INTROSPCET_VAR));
+
 # Description
 #
 # + token - access token to be validated
-# + conf - authorization configuration struct
-# + return - returns whether the access token is valid or not
-public function validateAndGetUsername(string token, string username, Conf conf) returns (string)|error {
+# + username - username to be validated
+# + return - returns a token detail if an access token is valid otherwise retuns a error
+public function validateAndGetTokenDetails(string token, string username) returns (TokenDetail)|error {
     log:printDebug("Access token validator reached and token will be validated");
+    // TODO Need to remove this after the bug on this in ballerina is fixed
     if !isIntrospectionEPInitialized {
-        var endPointUrl = conf.introspectionEp;
-        introspectionEP = new(endPointUrl , config = {
-        secureSocket: {
-            verifyHostname :false,
-            trustStore: {
-                path: config:getAsString("security.truststore"),
-                password: config:getAsString("security.truststorepass")
+        var endPointUrl = io:sprintf("%s%s", config:getAsString(constants:IDP_ENDPOINT_VAR), 
+        config:getAsString(constants:IDP_INTROSPCET_VAR));
+        scimProviderClient = new(endPointUrl , config = {
+            secureSocket: {
+                verifyHostname :false,
+                trustStore: {
+                    path: config:getAsString("security.truststore"),
+                    password: config:getAsString("security.truststorepass")
+                }
+            },
+            auth: {
+                scheme: http:BASIC_AUTH,
+                config: {
+                    username: config:getAsString("idp.username"),
+                    password: config:getAsString("idp.password")
+                }
             }
-        },
-        auth: {
-            scheme: http:BASIC_AUTH,
-            config: {
-                username: conf.username,
-                password: conf.password
-            }
-        }
-    });
+        });
     isIntrospectionEPInitialized = true;
     }
+
     http:Request req = new;
     req.setPayload(io:sprintf("token=" + token));
     error ? x = req.setContentType(constants:APPLICATION_URL_ENCODED_CONTENT_TYPE);
-    var response = introspectionEP->post("", req);
+    var response = scimProviderClient->post("", req);
     var isValid = false;
     if (response is http:Response) {
         json result = check response.getJsonPayload();
         log:printDebug(io:sprintf("Response json from the introspection endpoint is %s", check string.convert(result)));
         isValid = check boolean.convert(result.active);
         string|error tokenUsername = string.convert(result.username);
+        int|error tokenExpiryTime = int.convert(result.exp);
+        TokenDetail tokenDetail = {
+            username: "",
+            expiryTime: 0
+        };
         if (isValid) {
-            if (tokenUsername is string) {
+            if (tokenUsername is string) && (tokenExpiryTime is int) {
                 if (username != "") && (username == tokenUsername) {
-                    return tokenUsername;
+                    tokenDetail = {
+                        username: tokenUsername,
+                        expiryTime: tokenExpiryTime
+                    };
+                    return tokenDetail;
                 } else if (username == "") {
-                    return tokenUsername;
+                    tokenDetail = {
+                        username: tokenUsername,
+                        expiryTime: tokenExpiryTime
+                    };
+                    return tokenDetail;
                 } else {
                     log:printError("Provided username does not match with the username in the token");
                     UsernameNotFoundErrorData errorDetail = {
@@ -89,7 +102,7 @@ public function validateAndGetUsername(string token, string username, Conf conf)
             log:printError("Token does not contain username");
         }
         log:printError("Token is not active");
-        return tokenUsername;
+        return tokenDetail;
     } else {
         log:printError("Failed to call the introspection endpoint", err = response);
         return response;
