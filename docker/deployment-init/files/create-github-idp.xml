@@ -150,7 +150,7 @@
             <xsd:federatedAuthenticatorConfigs>
                <xsd:displayName>github</xsd:displayName>
                <xsd:enabled>true</xsd:enabled>
-               <xsd:name>GithubAuthenticator</xsd:name>
+               <xsd:name>CelleryGithubAuthenticator</xsd:name>
                <xsd:properties>
                   <xsd:advanced>false</xsd:advanced>
                   <xsd:confidential>false</xsd:confidential>

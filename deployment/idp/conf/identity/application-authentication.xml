@@ -32,7 +32,7 @@
     <AuthenticationEndpointURL>/authenticationendpoint/login.do</AuthenticationEndpointURL>
     <AuthenticationEndpointRetryURL>/authenticationendpoint/retry.do</AuthenticationEndpointRetryURL>
     <AuthenticationEndpointMissingClaimsURL>/authenticationendpoint/claims.do</AuthenticationEndpointMissingClaimsURL>
-    <AuthenticatorConfig name="GithubAuthenticator" enabled="true">
+    <AuthenticatorConfig name="CelleryGithubAuthenticator" enabled="true">
             <Parameter name="claim-dialect"></Parameter>
     </AuthenticatorConfig>
 

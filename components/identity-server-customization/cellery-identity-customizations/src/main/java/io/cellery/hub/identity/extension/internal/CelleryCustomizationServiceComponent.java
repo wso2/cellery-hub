@@ -16,10 +16,11 @@
  * under the License.
  */
 
-package io.cellery.hub.identity.extension.post.authn.handler.internal;
+package io.cellery.hub.identity.extension.internal;
 
-import io.cellery.hub.identity.extension.post.authn.handler.CliOrganizationValidationPostAuthnHandler;
-import io.cellery.hub.identity.extension.post.authn.handler.JITProvisioningPostAuthenticationHandler;
+import io.cellery.hub.identity.extension.authenticators.CelleryGithubAuthenticator;
+import io.cellery.hub.identity.extension.handlers.CliOrganizationValidationPostAuthnHandler;
+import io.cellery.hub.identity.extension.handlers.JITProvisioningPostAuthenticationHandler;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.osgi.service.component.ComponentContext;
@@ -28,6 +29,7 @@ import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
+import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.PostAuthenticationHandler;
 import org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent;
 import org.wso2.carbon.registry.core.service.RegistryService;
@@ -37,12 +39,12 @@ import org.wso2.carbon.user.core.service.RealmService;
  * Activator class for Provisioning Post Authentication Handler.
  */
 @Component(
-        name = "identity.extension.authn.custom.provisioning.handler",
+        name = "identity.cellery.extensions",
         immediate = true
 )
-public class ProvisioningPostAuthnHandlerServiceComponent {
+public class CelleryCustomizationServiceComponent {
 
-    private static Log log = LogFactory.getLog(ProvisioningPostAuthnHandlerServiceComponent.class);
+    private static Log log = LogFactory.getLog(CelleryCustomizationServiceComponent.class);
 
     @Activate
     protected void activate(ComponentContext context) {
@@ -52,6 +54,10 @@ public class ProvisioningPostAuthnHandlerServiceComponent {
                     JITProvisioningPostAuthenticationHandler.getInstance(), null);
             context.getBundleContext().registerService(PostAuthenticationHandler.class.getName(),
                     new CliOrganizationValidationPostAuthnHandler(), null);
+
+            CelleryGithubAuthenticator authenticator = new CelleryGithubAuthenticator();
+            context.getBundleContext().registerService(ApplicationAuthenticator.class.getName(),
+                    authenticator, null );
 
         } catch (Throwable e) {
             log.error("Error while activating disclaimer extension authentication handler.", e);
@@ -70,7 +76,7 @@ public class ProvisioningPostAuthnHandlerServiceComponent {
         if (log.isDebugEnabled()) {
             log.debug("RealmService is set in the Application Authentication Framework bundle");
         }
-        CelleryPostAuthnHandlerDataHolder.getInstance().setRealmService(realmService);
+        CelleryCustomizationDataHolder.getInstance().setRealmService(realmService);
     }
 
     protected void unsetRealmService(RealmService realmService) {
@@ -78,7 +84,7 @@ public class ProvisioningPostAuthnHandlerServiceComponent {
         if (log.isDebugEnabled()) {
             log.debug("RealmService is unset in the Application Authentication Framework bundle");
         }
-        CelleryPostAuthnHandlerDataHolder.getInstance().setRealmService(null);
+        CelleryCustomizationDataHolder.getInstance().setRealmService(null);
     }
 
     @Reference(
@@ -93,7 +99,7 @@ public class ProvisioningPostAuthnHandlerServiceComponent {
         if (log.isDebugEnabled()) {
             log.debug("RegistryService is set in the Application Authentication Framework bundle");
         }
-        CelleryPostAuthnHandlerDataHolder.getInstance().setRegistryService(registryService);
+        CelleryCustomizationDataHolder.getInstance().setRegistryService(registryService);
     }
 
     protected void unsetRegistryService(RegistryService registryService) {
@@ -101,7 +107,7 @@ public class ProvisioningPostAuthnHandlerServiceComponent {
         if (log.isDebugEnabled()) {
             log.debug("RegistryService is unset in the Application Authentication Framework bundle");
         }
-        CelleryPostAuthnHandlerDataHolder.getInstance().setRegistryService(null);
+        CelleryCustomizationDataHolder.getInstance().setRegistryService(null);
     }
 
     protected void unsetIdentityCoreInitializedEventService(IdentityCoreInitializedEvent identityCoreInitializedEvent) {
@@ -123,12 +129,12 @@ public class ProvisioningPostAuthnHandlerServiceComponent {
 
     public static RealmService getRealmService() {
 
-        return CelleryPostAuthnHandlerDataHolder.getInstance().getRealmService();
+        return CelleryCustomizationDataHolder.getInstance().getRealmService();
     }
 
     public static RegistryService getRegistryService() {
 
-        return CelleryPostAuthnHandlerDataHolder.getInstance().getRegistryService();
+        return CelleryCustomizationDataHolder.getInstance().getRegistryService();
     }
 }
 

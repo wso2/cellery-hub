@@ -20,7 +20,7 @@
 
 
     <groupId>io.cellery.hub</groupId>
-    <artifactId>custom-provisioning-post-auth-handler</artifactId>
+    <artifactId>cellery-identity-customizations</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <modelVersion>4.0.0</modelVersion>
     <packaging>bundle</packaging>
@@ -127,7 +127,11 @@
             <artifactId>org.eclipse.osgi.services</artifactId>
             <version>${equinox.osgi.services.version}</version>
         </dependency>
-
+        <dependency>
+            <groupId>org.wso2.carbon.extension.identity.authenticator</groupId>
+            <artifactId>org.wso2.carbon.extension.identity.authenticator.github.connector</artifactId>
+            <version>${docker.hub.github.authenticator.version}</version>
+        </dependency>
     </dependencies>
 
     <build>
@@ -164,8 +168,8 @@
                     <instructions>
                         <Bundle-SymbolicName>${project.artifactId}</Bundle-SymbolicName>
                         <Bundle-Name>${project.artifactId}</Bundle-Name>
-                        <Export-Package>!io.cellery.hub.identity.extension.post.authn.handler.internal,
-                            io.cellery.hub.identity.extension.post.authn.handler.*; version="${project.version}"
+                        <Export-Package>!io.cellery.hub.identity.extension.internal,
+                            io.cellery.hub.identity.extension.*; version="${project.version}"
                         </Export-Package>
                         <Import-Package>
                             javax.servlet.http,
@@ -193,6 +197,9 @@
                             org.wso2.carbon.core.*,
                             org.wso2.carbon.utils.multitenancy,
                             org.wso2.carbon.identity.base.*,
+                            org.wso2.carbon.identity.authenticator.github,
+                            org.apache.oltu.oauth2.*; version="${oltu.package.import.version.range}",
+                            org.json,
                         </Import-Package>
                     </instructions>
                 </configuration>
@@ -215,6 +222,8 @@
         <equinox.osgi.services.version>3.5.100.v20160504-1419</equinox.osgi.services.version>
         <version.equinox.osgi>3.9.1.v20130814-1242</version.equinox.osgi>
         <maven.compiler.plugin.version>3.5.1</maven.compiler.plugin.version>
+        <docker.hub.github.authenticator.version>1.0.1</docker.hub.github.authenticator.version>
+        <oltu.package.import.version.range>[1.0.0, 2.0.0)</oltu.package.import.version.range>
     </properties>
 
 </project>

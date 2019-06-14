@@ -16,9 +16,9 @@
  * under the License.
  */
 
-package io.cellery.hub.identity.extension.post.authn.handler;
+package io.cellery.hub.identity.extension.handlers;
 
-import io.cellery.hub.identity.extension.post.authn.handler.internal.ProvisioningPostAuthnHandlerServiceComponent;
+import io.cellery.hub.identity.extension.internal.CelleryCustomizationServiceComponent;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
@@ -630,7 +630,7 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
                                                                        String externalIdPConfigName)
             throws PostAuthenticationFailedException {
 
-        RealmService realmService = ProvisioningPostAuthnHandlerServiceComponent.getRealmService();
+        RealmService realmService = CelleryCustomizationServiceComponent.getRealmService();
         UserRealm realm = null;
         try {
             int usersTenantId = IdentityTenantUtil.getTenantId(tenantDomain);
@@ -861,8 +861,8 @@ public class JITProvisioningPostAuthenticationHandler extends AbstractPostAuthnH
         try {
             String uniqueClaim = claimUri;
             UserRealm realm = AnonymousSessionUtil.getRealmByTenantDomain(
-                    ProvisioningPostAuthnHandlerServiceComponent.getRegistryService(),
-                    ProvisioningPostAuthnHandlerServiceComponent.getRealmService(),
+                    CelleryCustomizationServiceComponent.getRegistryService(),
+                    CelleryCustomizationServiceComponent.getRealmService(),
                     MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
             if (log.isDebugEnabled()) {
                 log.debug("Checking whether the user exists with claim uri: " + uniqueClaim + ", value: " + claims
