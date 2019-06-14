@@ -28,14 +28,14 @@ function addOrgUserMapping(string userId, string orgName, string role) returns h
     }
 }
 
-function buildResponseWithUserInfo (json payload, string userId, string index) returns json | error {
+function updatePayloadWithUserInfo (json payload, string field) returns error? {
+    string userId = payload[field].toString();
     idp:UserInfo | error? modifiedRes = idp:getUserInfo(userId);
     if (modifiedRes is idp:UserInfo) {
-        payload[index] = check json.convert(modifiedRes);
+        payload[field] = check json.convert(modifiedRes);
         log:printDebug(io:sprintf("Modifying response by adding userInformation for user ID : %s", userId));
     } else {
-        payload[index] = {};
+        payload[field] = {};
         log:printDebug(io:sprintf("Response modification failed : User information not found for user : \'%s\'", userId));
     }
-    return payload;
 }

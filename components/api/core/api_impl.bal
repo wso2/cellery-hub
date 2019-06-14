@@ -138,27 +138,24 @@ public function createOrg(http:Request createOrgReq, gen:OrgCreateRequest create
 
 public function getOrg(http:Request getOrgReq, string orgName) returns http:Response {
     json | error res = db:getOrganization(orgName);
-    string ERROR_MESSAGE = "Unable to fetch organization";
     if (res is json) {
         if (res != null) {
-            log:printDebug(io:sprintf("Successfully fetched organization \'%s\'", orgName));
-            string userId = res.author.toString();
-            log:printDebug("Author\'s User ID :"+ userId);
-            json |error modifiedRes = buildResponseWithUserInfo(res, untaint userId, "author");            
-            if (modifiedRes is json) {
-                log:printDebug(io:sprintf("Successfully modified getOrg response for user id \'%s\'", userId));
-                return buildSuccessResponse(jsonResponse = res);
-            } else {
+            log:printDebug(io:sprintf("Successfully fetched organization \'%s\'", orgName));            
+            error? modifiedRes = updatePayloadWithUserInfo(untaint res, "author");            
+            if (modifiedRes is error) {
                 log:printError("Unexpected error occured while modifying getOrg response", err = modifiedRes);
                 return buildUnknownErrorResponse();
+            } else {
+                log:printDebug("Successfully modified getOrg response with user info");
+                return buildSuccessResponse(jsonResponse = res);                
             }            
         } else {
             string errDes = io:sprintf("There is no organization named \'%s\'", orgName);
-            log:printError(ERROR_MESSAGE + " : " + errDes);
-            return buildErrorResponse(http:NOT_FOUND_404, constants:API_ERROR_CODE, ERROR_MESSAGE, errDes);
+            log:printError("Unable to fetch organization" + " : " + errDes);
+            return buildErrorResponse(http:NOT_FOUND_404, constants:API_ERROR_CODE, "Unable to fetch organization", errDes);
         }
     } else {
-        log:printError(ERROR_MESSAGE, err = res);
+        log:printError("Unable to fetch organization", err = res);
         return buildUnknownErrorResponse();
     }
 }
@@ -312,13 +309,13 @@ public function getArtifact (http:Request getArtifactReq, string orgName, string
             log:printDebug(io:sprintf("Successfully fetched artifact \'%s/%s:%s\' ", orgName, imageName, artifactVersion));
             string userId = res.lastAuthor.toString();
             log:printDebug("Last Author\'s User ID :"+ userId);
-            json |error modifiedRes = buildResponseWithUserInfo(res, untaint userId, "lastAuthor");            
-            if (modifiedRes is json) {
+            error? modifiedRes = updatePayloadWithUserInfo(untaint res, "lastAuthor");            
+            if (modifiedRes is error) {
+                log:printError("Unexpected error occured while modifying getArtifact response", err = modifiedRes);
+                return buildUnknownErrorResponse();                
+            } else {
                 log:printDebug(io:sprintf("Successfully modified getArtifact response for user id \'%s\'", userId));
                 return buildSuccessResponse(jsonResponse = res);
-            } else {
-                log:printError("Unexpected error occured while modifying getArtifact response", err = modifiedRes);
-                return buildUnknownErrorResponse();
             } 
         } else {
             string errMsg = "Unable to fetch artifact. ";
