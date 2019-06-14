@@ -27,13 +27,12 @@ import cellery_hub_api/idp;
 import cellery_hub_api/constants;
 
 cache:Cache cache = new(expiryTimeMillis = 259200000);
+
 public type validateRequestFilter object {
     public function filterRequest(http:Caller caller, http:Request request,
     http:FilterContext context) returns boolean {
         log:printDebug("Request was intercepted to validate the token ......");
-        string headerUsername = "";
         if(request.hasHeader(constants:AUTHENTICATED_USER)) {
-            headerUsername = request.getHeader(constants:AUTHENTICATED_USER);
             request.removeHeader(constants:AUTHENTICATED_USER);
         }
         string token = "";
@@ -57,25 +56,23 @@ public type validateRequestFilter object {
                     return true;
                 }
             }
-            idp:TokenDetail|error tokenDetail;
+            idp:TokenDetail|error tokenDetail = {
+                username: "",
+                expiryTime: 0
+            };
             if (cache.hasKey(token)) {
                 idp:TokenDetail cachedTokenDetail = <idp:TokenDetail>cache.get(token);
-                if (cachedTokenDetail.username != "") {
-                    if isExpired(cachedTokenDetail.expiryTime) {
-                        log:printError("Token is expired. Passing to the next filter");
-                        cache.remove(token);
-                        return true;
-                    } else {
-                        request.setHeader(constants:AUTHENTICATED_USER, cachedTokenDetail.username);
-                        log:printDebug(io:sprintf("Resolved user as %s from the cache", cachedTokenDetail.username));
-                        return true;
-                    }
+                if isExpired(cachedTokenDetail.expiryTime) {
+                    log:printError("Token is expired. Passing to the next filter");
+                    cache.remove(token);
+                    return true;
                 } else {
-                    log:printDebug("Could not resolve username from the cache");
+                    request.setHeader(constants:AUTHENTICATED_USER, cachedTokenDetail.username);
+                    log:printDebug(io:sprintf("Resolved user as %s from the cache", cachedTokenDetail.username));
+                    return true;
                 }
-                return true;
             } else {
-                tokenDetail = idp:validateAndGetTokenDetails(untaint token, headerUsername);
+                tokenDetail = idp:getTokenDetails(untaint token);
             }
             if (tokenDetail is idp:TokenDetail) {
                 if (tokenDetail.username != "") {
@@ -89,7 +86,7 @@ public type validateRequestFilter object {
                     return true;
                 }
             } else {
-                log:printError("When validating the token something went wrong", err = tokenDetail);
+                log:printError("When retrieving the token detail something went wrong", err = tokenDetail);
                 return true;
             }
         } else {

@@ -28,6 +28,9 @@ public type UserInfo record {
 
 public function getUserInfo(string userId) returns UserInfo? | error {
     log:printDebug(io:sprintf("Retriving userInformation organiations for user : \'%s\'", userId));
+    // TODO There is a bug on ballerina that when there are more than one global client endpoints,
+    // we have to reinitialize the endpoint. Need to remove this after the bug on this in ballerina is fixed
+    http:Client idpClientEP = getClientEP();
     var response = check idpClientEP->get(config:getAsString("idp.scim2.user.endpoint") +
     "?filter=username+eq+" + userId);
 

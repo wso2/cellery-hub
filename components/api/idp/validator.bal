@@ -22,49 +22,22 @@ import ballerina/log;
 import ballerina/time;
 import ballerina/io;
 
-boolean isIntrospectionEPInitialized = false;
-
 public type TokenDetail record { 
     string username;
     int expiryTime;
 };
 
-// http:Client introspectionEP3 = new(config:getAsString(constants:IDP_INTROSPCET_VAR));
-
-# Description
-#
+# This is used to validate the token comming in and returning token detail consists of expiry time and username
 # + token - access token to be validated
-# + username - username to be validated
 # + return - returns a token detail if an access token is valid otherwise retuns a error
-public function validateAndGetTokenDetails(string token, string username) returns (TokenDetail)|error {
+public function getTokenDetails(string token) returns (TokenDetail)|error {
     log:printDebug("Access token validator reached and token will be validated");
-    // TODO There is a bug on ballerina that when there are more than 
-    // one global client endpoints, we have to reinitialize the endpoint 
-    // Need to remove this after the bug on this in ballerina is fixed
-    if !isIntrospectionEPInitialized {
-        var endPointUrl = config:getAsString(constants:IDP_ENDPOINT_VAR);
-        idpClientEP = new(endPointUrl , config = {
-            secureSocket: {
-                verifyHostname :false,
-                trustStore: {
-                    path: config:getAsString("security.truststore"),
-                    password: config:getAsString("security.truststorepass")
-                }
-            },
-            auth: {
-                scheme: http:BASIC_AUTH,
-                config: {
-                    username: config:getAsString("idp.username"),
-                    password: config:getAsString("idp.password")
-                }
-            }
-        });
-    isIntrospectionEPInitialized = true;
-    }
-
     http:Request req = new;
     req.setPayload(io:sprintf("token=" + token));
     error ? x = req.setContentType(constants:APPLICATION_URL_ENCODED_CONTENT_TYPE);
+    // TODO There is a bug on ballerina that when there are more than one global client endpoints,
+    // we have to reinitialize the endpoint. Need to remove this after the bug on this in ballerina is fixed
+    http:Client idpClientEP = getClientEP();
     var response = idpClientEP->post(config:getAsString(constants:IDP_INTROSPCET_VAR), req);
     var isValid = false;
     if (response is http:Response) {
@@ -80,8 +53,6 @@ public function validateAndGetTokenDetails(string token, string username) return
         };
         if (isValid) {
             if (tokenDetail.username != "") || (tokenDetail.expiryTime == 0) {
-                return tokenDetail;
-            } else if (username == "") {
                 return tokenDetail;
             } else {
                 log:printError("Provided username does not match with the username in the token");
