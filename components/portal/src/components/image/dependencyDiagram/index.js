@@ -28,45 +28,56 @@ const styles = (theme) => ({
     }
 });
 
-const graphData = {
-    cells: ["pet-fe", "pet-be"],
-    components: [
-        {
-            cell: "pet-fe",
-            name: "portal"
-        },
-        {
-            cell: "pet-be",
-            name: "controller"
-        },
-        {
-            cell: "pet-be",
-            name: "catalog"
-        },
-        {
-            cell: "pet-be",
-            name: "orders"
-        },
-        {
-            cell: "pet-be",
-            name: "customers"
-        }
-    ],
-    dependencyLinks: [
-        {
-            alias: "petStoreBackend",
-            from: "pet-fe",
-            to: "pet-be"
-        }
-    ]
-};
-
 const DependencyDiagram = (props) => {
     const {classes, data} = props;
+    const getCellName = (cellData) => `${cellData.org}/${cellData.name}:${cellData.ver}`;
+    const diagramData = {
+        cells: [getCellName(data)],
+        components: data.components.map((component) => (
+            {
+                cell: getCellName(data),
+                name: component
+            }
+        )),
+        dependencyLinks: []
+    };
+
+    // Recursively extract dependencies (including transitive dependencies if available)
+    const extractData = (cell) => {
+        if (cell.dependencies) {
+            Object.entries(cell.dependencies).forEach(([alias, dependency]) => {
+                const dependencyName = getCellName(dependency);
+                if (!diagramData.cells.includes(dependencyName)) {
+                    diagramData.cells.push(dependencyName);
+                }
+                diagramData.dependencyLinks.push({
+                    alias: alias,
+                    from: getCellName(cell),
+                    to: dependencyName
+                });
+
+                if (dependency.components) {
+                    dependency.components.forEach((component) => {
+                        const matches = diagramData.components.find(
+                            (datum) => datum.cell === dependencyName && datum.name === component);
+                        if (!matches) {
+                            diagramData.components.push({
+                                cell: dependencyName,
+                                name: component
+                            });
+                        }
+                    });
+                }
+
+                extractData(dependency);
+            });
+        }
+    };
+    extractData(data);
 
     return (
         <div className={classes.content}>
-            <CellDiagram data={graphData} focusedCell={`${data.org}/${data.name}:${data.ver}`}/>
+            <CellDiagram data={diagramData} focusedCell={`${data.org}/${data.name}:${data.ver}`}/>
         </div>
     );
 };

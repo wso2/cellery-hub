@@ -49,23 +49,23 @@ class AuthUtils {
      * Redirect the user to IDP for Hub authentication.
      *
      * @param {StateHolder} globalState The global state provided to the current component
-     * @param {FederatedIdPType} [fidp] The federated idp to be used
+     * @param {FederatedIdPType} [fidpOverride] The federated idp to be used
      */
-    static initiateHubLoginFlow(globalState, fidp) {
+    static initiateHubLoginFlow(globalState, fidpOverride) {
         const clientId = globalState.get(StateHolder.CONFIG).idp.hubClientId;
-        this.initiateLoginFlow(globalState, fidp, clientId, window.location.href.split("?")[0]);
+        this.initiateLoginFlow(globalState, fidpOverride, clientId, window.location.href.split("?")[0]);
     }
 
     /**
      * Redirect the user to IDP for SDK authentication.
      *
      * @param {StateHolder} globalState The global state provided to the current component
-     * @param {FederatedIdPType} [fidp] The federated idp to be used
+     * @param {FederatedIdPType} [fidpOverride] The federated idp to be used
      * @param {string} redirectUrl The URL to redirect back to
      */
-    static initiateSdkLoginFlow(globalState, fidp, redirectUrl) {
+    static initiateSdkLoginFlow(globalState, fidpOverride, redirectUrl) {
         const clientId = globalState.get(StateHolder.CONFIG).idp.sdkClientId;
-        this.initiateLoginFlow(globalState, fidp, clientId, redirectUrl);
+        this.initiateLoginFlow(globalState, fidpOverride, clientId, redirectUrl);
     }
 
     /**
@@ -73,12 +73,23 @@ class AuthUtils {
      *
      * @private
      * @param {StateHolder} globalState The global state provided to the current component
-     * @param {FederatedIdPType} [fidp] The federated idp to be used
+     * @param {FederatedIdPType} [fidpOverride] The federated idp to be used
      * @param {string} clientId The client ID to be used
      * @param {string} redirectUrl The URL to redirect back to
      */
-    static initiateLoginFlow(globalState, fidp, clientId, redirectUrl) {
-        AuthUtils.setDefaultFIdP(fidp);
+    static initiateLoginFlow(globalState, fidpOverride, clientId, redirectUrl) {
+        let fidp;
+        if (fidpOverride) {
+            fidp = fidpOverride;
+            AuthUtils.setDefaultFIdP(fidp);
+        } else {
+            const defaultFidp = AuthUtils.getDefaultFIdP();
+            if (defaultFidp) {
+                fidp = defaultFidp;
+            } else {
+                throw Error("Failed to login without Federated IdP selected");
+            }
+        }
         const params = {
             response_type: "code",
             nonce: "auth",

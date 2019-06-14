@@ -205,7 +205,7 @@ class OrgCreate extends React.Component {
                                     onChange={this.handleOrgInputChange}
                                     endAdornment={
                                         <InputAdornment position={"end"}>
-                                            <IconButton aria-label={"Toggle password visibility"}
+                                            <IconButton aria-label={"Check Organization Avaiability"}
                                                 onClick={this.handleCheckAvailability}
                                                 disabled={!orgNameToBeCreated || errorMessage}>
                                                 <DoneAllRounded/>

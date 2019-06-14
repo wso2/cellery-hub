@@ -318,7 +318,7 @@ service CelleryHubAPI on ep {
     }
     @http:ResourceConfig {
         methods:["GET"],
-        path:"/artifact/{orgName}/{imageName}/{artifactVersion}"
+        path:"/artifacts/{orgName}/{imageName}/{artifactVersion}"
     }
     resource function getArtifact (http:Caller outboundEp, http:Request _getArtifactReq, string orgName, string imageName, string artifactVersion) returns error? {
         http:Response _getArtifactRes = getArtifact(_getArtifactReq, untaint orgName, untaint imageName, untaint artifactVersion);

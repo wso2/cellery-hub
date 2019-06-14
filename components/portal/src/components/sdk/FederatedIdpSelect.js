@@ -62,12 +62,8 @@ const FederatedIdpSelect = (props) => {
 
     const params = HttpUtils.parseQueryParams(location.search);
     const redirectUrl = params.redirectUrl;
-    let fidp = AuthUtils.getDefaultFIdP();
-    if (!fidp) {
-        fidp = params.fidp;
-    }
-    if (fidp) {
-        AuthUtils.initiateSdkLoginFlow(globalState, fidp, redirectUrl);
+    if (params.fidp) {
+        AuthUtils.initiateSdkLoginFlow(globalState, params.fidp, redirectUrl);
         return null;
     }
     return (

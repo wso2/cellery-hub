@@ -181,9 +181,8 @@ class HttpUtils {
                 if (error.response) {
                     const errorResponse = error.response;
                     if (errorResponse.status === 401) {
-                        const fidp = AuthUtils.getDefaultFIdP();
                         AuthUtils.removeUserFromStorageOnly(globalState);
-                        AuthUtils.initiateHubLoginFlow(globalState, fidp);
+                        AuthUtils.initiateHubLoginFlow(globalState);
                     }
                     reject(new HubApiError(errorResponse.data, errorResponse.status));
                 } else {

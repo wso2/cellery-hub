@@ -53,7 +53,7 @@ services:
       - PASSWORD=admin
       - MYSQL_USER=celleryhub
       - MYSQL_PASSWORD=celleryhub
-      - MYSQL_HOST=localhost
+      - MYSQL_HOST=mysql.hub.internal
       - MYSQL_PORT=3306
   idp.hub.cellery.io:
     image: wso2cellery/cellery-hub-idp:5.7.0
