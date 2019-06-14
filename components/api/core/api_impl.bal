@@ -113,7 +113,7 @@ public function createOrg(http:Request createOrgReq, gen:OrgCreateRequest create
                     log:printDebug(io:sprintf("Retrying creating organization \'%s\' for transaction %s", createOrgsBody.orgName,
                     transactions:getCurrentTransactionId()));
                 } committed {
-                    log:printDebug(io:sprintf("Creating Organization \'%s\'successful for transaction %s", createOrgsBody.orgName,
+                    log:printDebug(io:sprintf("Creating Organization \'%s\' successful for transaction %s", createOrgsBody.orgName,
                     transactions:getCurrentTransactionId()));
                 } aborted {
                     log:printError(io:sprintf("Creating Organization \'%s\' aborted for transaction %s", createOrgsBody.orgName,
