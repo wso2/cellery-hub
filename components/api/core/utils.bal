@@ -16,16 +16,26 @@
 //
 // ------------------------------------------------------------------------
 
-function buildResponseWithUserInfo (json payload, string pathForUserID) returns json | error {
-    idp:UserInfo | error? newRes = idp:getUserInfo(pathForUserID);
-    if (newRes is idp:UserInfo) {
-        json resPayload = {};
-        resPayload["description"] = payload.description;
-        resPayload["websiteUrl"] = payload.websiteUrl;
-        resPayload["createdTimestamp"] = payload.createdTimestamp;
-        resPayload["author"] = check json.convert(newRes);
-        return resPayload;
+function addOrgUserMapping(string userId, string orgName, string role) returns http:Response{
+    var orgUserRes = db:insertOrgUserMapping(userId, orgName, role);
+    if (orgUserRes is error) {
+        log:printError(io:sprintf("Unexpected error occured while inserting org-user mapping. user : %s, Organization : %s", userId, orgName),
+                                err = orgUserRes);
+        return buildUnknownErrorResponse();
     } else {
-        return newRes;
+        log:printDebug(io:sprintf("New organization \'%s\' added to REGISTRY_ORG_USER_MAPPING. Author : %s", orgName, userId));
+        return buildSuccessResponse();
     }
+}
+
+function buildResponseWithUserInfo (json payload, string userId, string index) returns json | error {
+    idp:UserInfo | error? modifiedRes = idp:getUserInfo(userId);
+    if (modifiedRes is idp:UserInfo) {
+        payload[index] = check json.convert(modifiedRes);
+        log:printDebug(io:sprintf("Modifying response by adding userInformation for user ID : %s", userId));
+    } else {
+        payload[index] = {};
+        log:printDebug(io:sprintf("Response modification failed : User information not found for user : \'%s\'", userId));
+    }
+    return payload;
 }

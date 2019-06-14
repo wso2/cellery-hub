@@ -82,7 +82,7 @@ paths:
           schema:
             $ref: "#/definitions/ErrorResponse"
             
-  /artifact/{orgName}/{imageName}/{artifactVersion}:
+  /artifacts/{orgName}/{imageName}/{artifactVersion}:
     get:
       operationId: "getArtifact"
       summary: "Get a specific artifact"

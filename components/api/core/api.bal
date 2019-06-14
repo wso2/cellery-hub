@@ -326,7 +326,7 @@ service CelleryHubAPI on ep {
     }
 
     @openapi:ResourceInfo {
-        summary: "Get a specific artifact",
+        summary: "Get list of members in an organization",
         parameters: [
         {
             name: "orgName",
