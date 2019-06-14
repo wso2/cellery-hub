@@ -101,7 +101,7 @@
     <dependencies>
         <dependency>
             <groupId>io.cellery.hub</groupId>
-            <artifactId>custom-provisioning-post-auth-handler</artifactId>
+            <artifactId>cellery-identity-customizations</artifactId>
             <version>${docker.hub.identity.customization.version}</version>
         </dependency>
         <dependency>

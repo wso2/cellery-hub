@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package io.cellery.hub.identity.extension.post.authn.handler;
+package io.cellery.hub.identity.extension;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;

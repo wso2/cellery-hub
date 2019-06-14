@@ -156,14 +156,14 @@
                             <xsd1:defaultAuthenticatorConfig>
                                 <xsd1:displayName>github</xsd1:displayName>
                                 <xsd1:enabled>false</xsd1:enabled>
-                                <xsd1:name>GithubAuthenticator</xsd1:name>
+                                <xsd1:name>CelleryGithubAuthenticator</xsd1:name>
                                 <xsd1:valid>true</xsd1:valid>
                             </xsd1:defaultAuthenticatorConfig>
                             <xsd1:enable>false</xsd1:enable>
                             <xsd1:federatedAuthenticatorConfigs>
                                 <xsd1:displayName>github</xsd1:displayName>
                                 <xsd1:enabled>false</xsd1:enabled>
-                                <xsd1:name>GithubAuthenticator</xsd1:name>
+                                <xsd1:name>CelleryGithubAuthenticator</xsd1:name>
                                 <xsd1:valid>true</xsd1:valid>
                             </xsd1:federatedAuthenticatorConfigs>
                             <xsd1:federationHub>true</xsd1:federationHub>

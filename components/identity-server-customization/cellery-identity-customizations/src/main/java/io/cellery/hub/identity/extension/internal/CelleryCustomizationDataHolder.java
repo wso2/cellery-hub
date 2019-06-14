@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package io.cellery.hub.identity.extension.post.authn.handler.internal;
+package io.cellery.hub.identity.extension.internal;
 
 import org.wso2.carbon.registry.core.service.RegistryService;
 import org.wso2.carbon.user.core.service.RealmService;
@@ -24,18 +24,18 @@ import org.wso2.carbon.user.core.service.RealmService;
 /**
  * Keep services aquired through OSGI.
  */
-public class CelleryPostAuthnHandlerDataHolder {
+public class CelleryCustomizationDataHolder {
 
     private RealmService realmService = null;
     private RegistryService registryService = null;
-    private static CelleryPostAuthnHandlerDataHolder instance = new CelleryPostAuthnHandlerDataHolder();
+    private static CelleryCustomizationDataHolder instance = new CelleryCustomizationDataHolder();
 
-    public static CelleryPostAuthnHandlerDataHolder getInstance() {
+    public static CelleryCustomizationDataHolder getInstance() {
 
         return instance;
     }
 
-    private CelleryPostAuthnHandlerDataHolder() {
+    private CelleryCustomizationDataHolder() {
 
     }
 

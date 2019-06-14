@@ -84,7 +84,7 @@ clean.$(API):
 
 .PHONY: clean.$(IDENTITY_SERVER_CUSTOMIZATION)
 clean.$(IDENTITY_SERVER_CUSTOMIZATION):
-	mvn clean -f ./components/$(IDENTITY_SERVER_CUSTOMIZATION)/provisioning-post-auth-handler/pom.xml
+	mvn clean -f ./components/$(IDENTITY_SERVER_CUSTOMIZATION)/cellery-identity-customizations/pom.xml
 
 .PHONY: clean.$(DEPLOYMENT_INIT)
 clean.$(DEPLOYMENT_INIT):
@@ -195,7 +195,7 @@ build.$(API): clean.$(API) init.$(API)
 
 .PHONY: build.$(IDENTITY_SERVER_CUSTOMIZATION)
 build.$(IDENTITY_SERVER_CUSTOMIZATION): clean.$(IDENTITY_SERVER_CUSTOMIZATION) init.$(IDENTITY_SERVER_CUSTOMIZATION)
-	mvn clean install -f components/$(IDENTITY_SERVER_CUSTOMIZATION)/provisioning-post-auth-handler/pom.xml
+	mvn clean install -f components/$(IDENTITY_SERVER_CUSTOMIZATION)/cellery-identity-customizations/pom.xml
 
 .PHONY: build.$(DEPLOYMENT_INIT)
 build.$(DEPLOYMENT_INIT): clean.$(DEPLOYMENT_INIT) init.$(DEPLOYMENT_INIT)

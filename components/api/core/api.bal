@@ -278,7 +278,7 @@ service CelleryHubAPI on ep {
     }
     @http:ResourceConfig {
         methods: ["GET"],
-        path: "/users/{orgName}"
+        path: "/users/orgs/{orgName}"
     }
     resource function getOrgUsers(http:Caller outboundEp, http:Request _orgUserRequest, string orgName) returns error? {
 

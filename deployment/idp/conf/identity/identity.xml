@@ -686,11 +686,11 @@
 
         <!-- Post Authentication handlers for JIT provisioning, association and for handling subject identifier -->
         <EventListener type="org.wso2.carbon.identity.core.handler.AbstractIdentityHandler"
-                       name="io.cellery.hub.identity.extension.post.authn.handler.JITProvisioningPostAuthenticationHandler"
+                       name="io.cellery.hub.identity.extension.handlers.JITProvisioningPostAuthenticationHandler"
                        orderId="100" enable="true"/>
 
          <EventListener type="org.wso2.carbon.identity.core.handler.AbstractIdentityHandler"
-                               name="io.cellery.hub.identity.extension.post.authn.handler.CliOrganizationValidationPostAuthnHandler"
+                               name="io.cellery.hub.identity.extension.handlers.CliOrganizationValidationPostAuthnHandler"
                                orderId="200" enable="true">
                         <Property name="CREATE_ORG_ENDPOINT">https://localhost:9443/carbon</Property>
         </EventListener>
