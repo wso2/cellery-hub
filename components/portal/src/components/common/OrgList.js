@@ -58,70 +58,61 @@ const styles = (theme) => ({
 
 class OrgList extends React.Component {
 
-    constructor(props) {
-        super(props);
-        this.state = {
-            pageNo: 0,
-            rowsPerPage: 10
-        };
-    }
-
     handleOrgClick = (orgName) => {
         const {history} = this.props;
         history.push(`/orgs/${orgName}`);
     };
 
-    handleChangePageNo = (newPageNo) => {
-        const {onPageChange} = this.props;
-        const {rowsPerPage} = this.state;
-        this.setState({
-            pageNo: newPageNo
-        });
+    handleChangePageNo = (event, newPageNo) => {
+        const {onPageChange, rowsPerPage} = this.props;
         onPageChange(rowsPerPage, newPageNo);
     };
 
-    handleChangeRowsPerPage = (newRowsPerPage) => {
-        const {onPageChange} = this.props;
-        const {pageNo} = this.state;
-        this.setState({
-            rowsPerPage: newRowsPerPage
-        });
-        onPageChange(newRowsPerPage, pageNo);
+    handleChangeRowsPerPage = (event) => {
+        const {pageNo, rowsPerPage, onPageChange} = this.props;
+        const newRowsPerPage = event.target.value;
+        const newPageNo = (pageNo * rowsPerPage) / newRowsPerPage;
+        onPageChange(newRowsPerPage, newPageNo);
     };
 
     render = () => {
-        const {classes, totalCount, pageData} = this.props;
-        const {pageNo, rowsPerPage} = this.state;
-
+        const {classes, totalCount, pageNo, rowsPerPage, pageData} = this.props;
         return (
-            <React.Fragment>
-                <List component={"nav"}>
-                    {pageData.map((org) => (
-                        <div key={org.orgName}>
-                            <ListItem button onClick={() => this.handleOrgClick(org.orgName)}>
-                                <ListItemAvatar>
-                                    <Avatar className={classes.avatar}>
-                                        {org.orgName.charAt(0)}
-                                    </Avatar>
-                                </ListItemAvatar>
-                                <ListItemText primary={org.orgName}
-                                    secondary={org.description}/>
-                                <People className={classes.elementIcon}/>
-                                <Typography variant={"subtitle2"} color={"inherit"} className={classes.elementText}>
-                                    {org.membersCount}
-                                </Typography>
-                                <CellImage size={"small"} className={classes.svgElementIcon}/>
-                                <Typography variant={"subtitle2"} color={"inherit"} className={classes.elementText}>
-                                    {org.imagesCount}
-                                </Typography>
-                            </ListItem>
-                            <Divider/>
-                        </div>
-                    ))}
-                </List>
-                <TablePagination component={"nav"} page={pageNo} rowsPerPage={rowsPerPage} count={totalCount}
-                    onChangePage={this.handleChangePageNo} onChangeRowsPerPage={this.handleChangeRowsPerPage}/>
-            </React.Fragment>
+            totalCount > 0
+                ? (
+                    <React.Fragment>
+                        <List component={"nav"}>
+                            {pageData.map((org) => (
+                                <div key={org.orgName}>
+                                    <ListItem button onClick={() => this.handleOrgClick(org.orgName)}>
+                                        <ListItemAvatar>
+                                            <Avatar className={classes.avatar}>
+                                                {org.orgName.charAt(0)}
+                                            </Avatar>
+                                        </ListItemAvatar>
+                                        <ListItemText primary={org.orgName}
+                                            secondary={org.description}/>
+                                        <People className={classes.elementIcon}/>
+                                        <Typography variant={"subtitle2"} color={"inherit"}
+                                            className={classes.elementText}>
+                                            {org.membersCount}
+                                        </Typography>
+                                        <CellImage size={"small"} className={classes.svgElementIcon}/>
+                                        <Typography variant={"subtitle2"} color={"inherit"}
+                                            className={classes.elementText}>
+                                            {org.imageCount}
+                                        </Typography>
+                                    </ListItem>
+                                    <Divider/>
+                                </div>
+                            ))}
+                        </List>
+                        <TablePagination component={"nav"} page={pageNo} rowsPerPage={rowsPerPage} count={totalCount}
+                            onChangePage={this.handleChangePageNo} onChangeRowsPerPage={this.handleChangeRowsPerPage}
+                            rowsPerPageOptions={[5, 10, 25]}/>
+                    </React.Fragment>
+                )
+                : null
         );
     }
 
@@ -132,14 +123,16 @@ OrgList.propTypes = {
     history: PropTypes.shape({
         goBack: PropTypes.func.isRequired
     }),
+    pageNo: PropTypes.number.isRequired,
+    rowsPerPage: PropTypes.number.isRequired,
+    onPageChange: PropTypes.func.isRequired,
     totalCount: PropTypes.number.isRequired,
     pageData: PropTypes.arrayOf(PropTypes.shape({
         orgName: PropTypes.string.isRequired,
         description: PropTypes.string,
         membersCount: PropTypes.number.isRequired,
-        imagesCount: PropTypes.number.isRequired
-    })).isRequired,
-    onPageChange: PropTypes.func.isRequired
+        imageCount: PropTypes.number.isRequired
+    })).isRequired
 };
 
 export default withStyles(styles)(withRouter(OrgList));
