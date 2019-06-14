@@ -42,3 +42,4 @@ public const string COOKIE_HEADER = "Cookie";
 public const string TOKEN_COOKIE_KEY = "chpat";
 
 public const string ROLE_ADMIN = "admin";
+public const string DEFAULT_IMAGE_VISIBILITY = "PUBLIC";

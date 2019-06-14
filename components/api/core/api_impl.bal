@@ -93,6 +93,9 @@ public function createOrg(http:Request createOrgReq, gen:OrgCreateRequest create
             if (isMatch) {
                 log:printDebug(io:sprintf("\'%s\' is a valid organization name", createOrgsBody.orgName));
                 string userId = createOrgReq.getHeader(constants:AUTHENTICATED_USER);
+                if (createOrgsBody.defaultVisibility == "") {
+                    createOrgsBody.defaultVisibility = constants:DEFAULT_IMAGE_VISIBILITY;
+                }
                 http:Response ? resp = ();
                 transaction {
                     var transactionId = transactions:getCurrentTransactionId();
