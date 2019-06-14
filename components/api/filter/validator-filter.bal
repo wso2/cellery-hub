@@ -81,11 +81,11 @@ public type validateRequestFilter object {
                 if (tokenDetail.username != "") {
                     cache.put(token, tokenDetail);
                     request.setHeader(constants:AUTHENTICATED_USER, tokenDetail.username);
-                    log:printInfo(io:sprintf("The token is successfully validated for the user %s with expiry time of %d", 
+                    log:printDebug(io:sprintf("The token is successfully validated for the user %s with expiry time of %d",
                     tokenDetail.username, tokenDetail.expiryTime));
                     return true;
                 } else {
-                    log:printError("The token is not valid");
+                    log:printError("The token is not valid, since the token username is empty");
                     return true;
                 }
             } else {
@@ -137,7 +137,9 @@ function isExpired(int timeVal) returns boolean {
     int timeNow = time.time;
     if (timeNow/1000 < timeVal) {
         return false;
-    }else{
+    } else {
+        log:printDebug(io:sprintf("The system time is %d and the expiry time is %d  ", 
+        timeNow/1000, timeVal));
         return true;
     }
 }

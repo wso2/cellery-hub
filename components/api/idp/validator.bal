@@ -20,6 +20,7 @@ import ballerina/config;
 import ballerina/http;
 import ballerina/log;
 import ballerina/time;
+import ballerina/io;
 
 boolean isIntrospectionEPInitialized = false;
 
@@ -37,11 +38,12 @@ public type TokenDetail record {
 # + return - returns a token detail if an access token is valid otherwise retuns a error
 public function validateAndGetTokenDetails(string token, string username) returns (TokenDetail)|error {
     log:printDebug("Access token validator reached and token will be validated");
-    // TODO Need to remove this after the bug on this in ballerina is fixed
+    // TODO There is a bug on ballerina that when there are more than 
+    // one global client endpoints, we have to reinitialize the endpoint 
+    // Need to remove this after the bug on this in ballerina is fixed
     if !isIntrospectionEPInitialized {
-        var endPointUrl = io:sprintf("%s%s", config:getAsString(constants:IDP_ENDPOINT_VAR), 
-        config:getAsString(constants:IDP_INTROSPCET_VAR));
-        scimProviderClient = new(endPointUrl , config = {
+        var endPointUrl = config:getAsString(constants:IDP_ENDPOINT_VAR);
+        idpClientEP = new(endPointUrl , config = {
             secureSocket: {
                 verifyHostname :false,
                 trustStore: {
@@ -63,43 +65,33 @@ public function validateAndGetTokenDetails(string token, string username) return
     http:Request req = new;
     req.setPayload(io:sprintf("token=" + token));
     error ? x = req.setContentType(constants:APPLICATION_URL_ENCODED_CONTENT_TYPE);
-    var response = scimProviderClient->post("", req);
+    var response = idpClientEP->post(config:getAsString(constants:IDP_INTROSPCET_VAR), req);
     var isValid = false;
     if (response is http:Response) {
+        if (response.statusCode < 200 && response.statusCode > 300){
+            log:printError("Something went wrong while connecting to introspection endpoint");
+        }
         json result = check response.getJsonPayload();
         log:printDebug(io:sprintf("Response json from the introspection endpoint is %s", check string.convert(result)));
         isValid = check boolean.convert(result.active);
-        string|error tokenUsername = string.convert(result.username);
-        int|error tokenExpiryTime = int.convert(result.exp);
         TokenDetail tokenDetail = {
-            username: "",
-            expiryTime: 0
+            username: check string.convert(result.username),
+            expiryTime: check int.convert(result.exp)
         };
         if (isValid) {
-            if (tokenUsername is string) && (tokenExpiryTime is int) {
-                if (username != "") && (username == tokenUsername) {
-                    tokenDetail = {
-                        username: tokenUsername,
-                        expiryTime: tokenExpiryTime
-                    };
-                    return tokenDetail;
-                } else if (username == "") {
-                    tokenDetail = {
-                        username: tokenUsername,
-                        expiryTime: tokenExpiryTime
-                    };
-                    return tokenDetail;
-                } else {
-                    log:printError("Provided username does not match with the username in the token");
-                    UsernameNotFoundErrorData errorDetail = {
-                        errUsername: tokenUsername
-                    };
-                    UsernameNotFoundError userNotFoundError =
-                                            error("Provided username does not match with the username in the token", errorDetail);
-                    return userNotFoundError;
-                }
+            if (tokenDetail.username != "") || (tokenDetail.expiryTime == 0) {
+                return tokenDetail;
+            } else if (username == "") {
+                return tokenDetail;
+            } else {
+                log:printError("Provided username does not match with the username in the token");
+                UsernameNotFoundErrorData errorDetail = {
+                    errUsername: tokenDetail.username
+                };
+                UsernameNotFoundError userNotFoundError =
+                                        error("Provided username does not match with the username in the token", errorDetail);
+                return userNotFoundError;
             }
-            log:printError("Token does not contain username");
         }
         log:printError("Token is not active");
         return tokenDetail;

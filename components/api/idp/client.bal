@@ -36,7 +36,7 @@ http:Client oidcProviderClientEP = new(config:getAsString("idp.endpoint"), confi
 });
 
 
-http:Client scimProviderClient = new(config:getAsString("idp.endpoint"), config = {
+http:Client idpClientEP = new(config:getAsString("idp.endpoint"), config = {
     secureSocket: {
         trustStore: {
             path: config:getAsString("security.truststore"),
