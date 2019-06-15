@@ -66,13 +66,8 @@ public function getTokens (http:Request getTokensReq) returns http:Response {
 public function listOrgs(http:Request listOrgsReq, string orgName, int offset, int resultLimit) returns http:Response {
     json | error res = db:searchOrganizations(orgName, offset, resultLimit);
     if (res is json) {
-        if (res != null) {
-            log:printDebug(io:sprintf("Successfully retrieved organization(s) for org name \'%s\'", orgName));
-            return buildSuccessResponse(jsonResponse = res);
-        } else {
-            log:printDebug(io:sprintf("There are no organization(s) for org name \'%s\'", orgName));
-            return buildSuccessResponse();
-        }
+        log:printDebug(io:sprintf("Received json payload for org name \'%s\'", orgName));
+        return buildSuccessResponse(jsonResponse = res);
     } else {
         log:printError("Unable to perform search on organizations", err = res);
         return buildUnknownErrorResponse();
@@ -141,7 +136,7 @@ public function getOrg(http:Request getOrgReq, string orgName) returns http:Resp
             log:printDebug(io:sprintf("Successfully fetched organization \'%s\'", orgName));            
             error? err = updatePayloadWithUserInfo(untaint res, "author");            
             if (err is error) {
-                log:printError("Unexpected error occured while modifying getOrg response", err = err);
+                log:printError("Error occured while adding userInfo to getOrg response", err = err);
                 return buildUnknownErrorResponse();
             } else {
                 log:printDebug("Successfully modified getOrg response with user info");
@@ -309,7 +304,7 @@ public function getArtifact (http:Request getArtifactReq, string orgName, string
             log:printDebug("Last Author\'s User ID :"+ userId);
             error? err = updatePayloadWithUserInfo(untaint res, "lastAuthor");            
             if (err is error) {
-                log:printError("Unexpected error occured while modifying getArtifact response", err = err);
+                log:printError("Error occured while adding userInfo to getArtifact response", err = err);
                 return buildUnknownErrorResponse();                
             } else {
                 log:printDebug(io:sprintf("Successfully modified getArtifact response for user id \'%s\'", userId));
@@ -413,13 +408,8 @@ returns http:Response {
         apiUserId, userId, orgName));
         json | error res = db:searchUserOrganizations(userId, apiUserId, orgName, offset, resultLimit);
         if (res is json) {
-            if (res != null) {
-                log:printDebug(io:sprintf("Successfully retrieved organization(s) for userId %s and org name \'%s\'",userId, orgName));
-                return buildSuccessResponse(jsonResponse = res);
-            } else {
-                log:printDebug(io:sprintf("There are no organization(s) for userId %s and org name \'%s\'",userId, orgName));
-                return buildSuccessResponse();
-            }
+            log:printDebug(io:sprintf("Received json payload for userId %s and org name \'%s\'",userId, orgName));
+            return buildSuccessResponse(jsonResponse = res);           
         } else {
             log:printError("Unable to perform search on user\'s organizations", err = res);
             return buildUnknownErrorResponse();
