@@ -101,7 +101,7 @@ func main() {
 		os.Exit(extension.ErrorExitCode)
 	}
 	log.SetOutput(file)
-	log.Println("Authorization extension reached and token will be validated")
+	log.Println("Authentication extension reached and token will be validated")
 	text := extension.ReadStdIn()
 	log.Println("Payload received from CLI :")
 	credentials := strings.Split(text, " ")

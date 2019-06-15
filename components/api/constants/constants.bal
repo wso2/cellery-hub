@@ -14,7 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License
 //
-//
+// ------------------------------------------------------------------------
 
 public const string APPLICATION_URL_ENCODED_CONTENT_TYPE = "application/x-www-form-urlencoded";
 
@@ -42,3 +42,4 @@ public const string COOKIE_HEADER = "Cookie";
 public const string TOKEN_COOKIE_KEY = "chpat";
 
 public const string ROLE_ADMIN = "admin";
+public const string DEFAULT_IMAGE_VISIBILITY = "PUBLIC";
