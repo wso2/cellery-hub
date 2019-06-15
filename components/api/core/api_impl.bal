@@ -426,3 +426,13 @@ returns http:Response {
                                                             "Unauthenticated request. Auth token is not provided");
     }
 }
+
+
+public function listOrgImages (http:Request listOrgImagesReq, string orgName) returns http:Response {
+    // stub code - fill as necessary
+    http:Response listOrgImagesRes = new;
+    string listOrgImagesPayload = "Sample listOrgImages Response";
+    listOrgImagesRes.setTextPayload(listOrgImagesPayload);
+
+	return listOrgImagesRes;
+}

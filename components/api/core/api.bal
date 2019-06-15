@@ -438,4 +438,57 @@ service CelleryHubAPI on ep {
         http:Response _getUserOrgsRes = getUserOrgs(_getUserOrgsReq, userId, orgName, offset, resultLimit);
         error? x = outboundEp->respond(_getUserOrgsRes);
     }
+
+    @openapi:ResourceInfo {
+        summary: "Search images of a specific organization",
+        parameters: [
+            {
+                name: "orgName",
+                inInfo: "path",
+                paramType: "string",
+                description: "Name of the organization",
+                required: true,
+                allowEmptyValue: ""
+            },
+            {
+                name: "imageName",
+                inInfo: "query",
+                paramType: "string",
+                description: "Name of the Image",
+                allowEmptyValue: ""
+            },
+            {
+                name: "orderBy",
+                inInfo: "query",
+                paramType: "string",
+                description: "Enum to oder result",
+                required: true,
+                allowEmptyValue: ""
+            },
+            {
+                name: "limit",
+                inInfo: "query",
+                paramType: "int",
+                description: "Number of results returned for pagination",
+                required: true,
+                allowEmptyValue: ""
+            },
+            {
+                name: "offset",
+                inInfo: "query",
+                paramType: "int",
+                description: "Offset of the result set returned for pagination",
+                required: true,
+                allowEmptyValue: ""
+            }
+        ]
+    }
+    @http:ResourceConfig {
+        methods:["GET"],
+        path:"/images/{orgName}"
+    }
+    resource function listOrgImages (http:Caller outboundEp, http:Request _listOrgImagesReq, string orgName) returns error? {
+        http:Response _listOrgImagesRes = listOrgImages(_listOrgImagesReq, orgName);
+        error? x = outboundEp->respond(_listOrgImagesRes);
+    }
 }
