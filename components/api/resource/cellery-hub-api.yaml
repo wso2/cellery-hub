@@ -81,6 +81,30 @@ paths:
           description: "Internal Server Error"
           schema:
             $ref: "#/definitions/ErrorResponse"
+  /orgs/users/{userId}:
+    get:
+      operationId: "getUserOrgs"
+      summary: "Get user's organizations"
+      produces:
+      - "application/json"
+      parameters:
+      - $ref: "#/parameters/orgNameQueryParam"
+      - $ref: '#/parameters/limitQueryParam'
+      - $ref: '#/parameters/offsetQueryParam'
+      - $ref: "#/parameters/userIdPathParam"
+      responses:
+        200:
+          description: "OK"
+          schema:
+            $ref: "#/definitions/OrgResponse"
+        405:
+          description: "Invalid Input"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+        500:
+          description: "Internal Server Error"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
             
   /artifacts/{orgName}/{imageName}/{artifactVersion}:
     get:
@@ -130,6 +154,12 @@ parameters:
     name: "artifactVersion"
     in: "path"
     description: "Version of the artifact"
+    required: true
+    type: "string"
+  userIdPathParam:
+    name: "userId"
+    in: "path"
+    description: "UserId of the user"
     required: true
     type: "string"
   orgNameQueryParam:
@@ -202,7 +232,7 @@ definitions:
   OrgListResponse:
     type: object
     properties:
-      total:
+      totalCount:
         type: integer
         description: "total count of organizations"
       data:
@@ -232,3 +262,4 @@ definitions:
       description:
         type: "string"
         description: "Description about the error occurred"
+        

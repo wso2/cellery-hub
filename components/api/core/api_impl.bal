@@ -399,6 +399,14 @@ returns http:Response {
     }
 }
 
+# Search all organizations the user is a member of.
+# 
+# + getUserOrgsReq - received request which contains header
+# + userId - userId of user whose organizations are being search 
+# + orgName - regex for search organization
+# + offset - offset value
+# + resultLimit - resultLimit value
+# + return - http response which cater to the request
 public function getUserOrgs (http:Request getUserOrgsReq, string userId,  string orgName, int offset, int resultLimit) 
 returns http:Response {
     if (getUserOrgsReq.hasHeader(constants:AUTHENTICATED_USER)) {
