@@ -130,7 +130,7 @@ public function createOrg(http:Request createOrgReq, gen:OrgCreateRequest create
             return buildUnknownErrorResponse();
         }
     } else {
-        log:printError("Unauthenticated request : Username is not found");
+        log:printError("Unauthenticated request for createOrg: Username is not found");
         return buildErrorResponse(http:UNAUTHORIZED_401, constants:API_ERROR_CODE, "Unable to create organization",
                                                             "Unauthenticated request. Auth token is not provided");
     }
@@ -396,5 +396,33 @@ returns http:Response {
         log:printError("get org user request without an authenticated user");
         return buildErrorResponse(http:UNAUTHORIZED_401, constants:API_ERROR_CODE, "Unable to fetch organization users",
         "Unauthenticated request. No valid token is not provided");
+    }
+}
+
+public function getUserOrgs (http:Request getUserOrgsReq, string userId,  string orgName, int offset, int resultLimit) 
+returns http:Response {
+    if (getUserOrgsReq.hasHeader(constants:AUTHENTICATED_USER)) {
+        string apiUserId = getUserOrgsReq.getHeader(constants:AUTHENTICATED_USER);
+        log:printDebug(io:sprintf("User %s is fetching organizations of user with the userId %s for orgName \'%s\'",
+        apiUserId, userId, orgName));
+        json | error res = db:searchUserOrganizations(userId, apiUserId, orgName, offset, resultLimit);
+        if (res is json) {
+            if (res != null) {
+                log:printDebug(io:sprintf("Successfully retrieved organization(s) for userId %s and org name \'%s\'",userId, orgName));
+                return buildSuccessResponse(jsonResponse = res);
+            } else {
+                string errMsg = "No matching organization found. ";
+                string errDes = io:sprintf("There are no organization(s) for userId %s and org name \'%s\'",userId, orgName);
+                log:printError(errMsg + errDes);
+                return buildErrorResponse(http:NOT_FOUND_404, constants:API_ERROR_CODE, errMsg, errDes);
+            }
+        } else {
+            log:printError("Unable to perform search on user\'s organizations", err = res);
+            return buildUnknownErrorResponse();
+        }
+    } else {
+        log:printError("Unauthenticated request for getUserOrgs: Username is not found");
+        return buildErrorResponse(http:UNAUTHORIZED_401, constants:API_ERROR_CODE, "Unable to retrieve user\'s organizations",
+                                                            "Unauthenticated request. Auth token is not provided");
     }
 }
