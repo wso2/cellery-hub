@@ -136,7 +136,7 @@ class Orgs extends React.Component {
             NotificationUtils.hideLoadingOverlay(globalState);
         }).catch((err) => {
             let errorMessage;
-            if (err instanceof HubApiError) {
+            if (err instanceof HubApiError && err.getMessage()) {
                 errorMessage = err.getMessage();
             } else {
                 errorMessage = "Failed to fetch organizations";

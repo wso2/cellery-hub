@@ -179,8 +179,10 @@ class ImageVersion extends React.Component {
                         isVersionNotFound: true
                     });
                     errorMessage = `Image version ${orgName}/${imageName}:${version} not found`;
-                } else {
+                } else if (err.getMessage()) {
                     errorMessage = err.getMessage();
+                } else {
+                    errorMessage = `Failed to fetch Image version ${orgName}/${imageName}:${version}`;
                 }
             } else {
                 errorMessage = `Failed to fetch Image version ${orgName}/${imageName}:${version}`;

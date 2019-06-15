@@ -123,8 +123,10 @@ class Org extends React.Component {
                         isOrgNotFound: true
                     });
                     errorMessage = `Organization ${orgName} not found`;
-                } else {
+                } else if (err.getMessage()) {
                     errorMessage = err.getMessage();
+                } else {
+                    errorMessage = `Failed to fetch Organization ${orgName}`;
                 }
             } else {
                 errorMessage = `Failed to fetch Organization ${orgName}`;
