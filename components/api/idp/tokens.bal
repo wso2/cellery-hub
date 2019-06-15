@@ -27,6 +27,9 @@ public function getTokens(string authCode, string callbackUrl) returns (gen:Toke
     http:Request tokenReq = new;
     var reqBody = io:sprintf("grant_type=authorization_code&code=%s&redirect_uri=%s", authCode, callbackUrl);
     tokenReq.setTextPayload(reqBody, contentType = constants:APPLICATION_URL_ENCODED_CONTENT_TYPE);
+    // TODO There is a bug on ballerina that when there are more than one global client endpoints,
+    // we have to reinitialize the endpoint. Need to remove this after the bug on this in ballerina is fixed
+    http:Client oidcProviderClientEP = getOidcProviderClientEP();
     var response = check oidcProviderClientEP->post(config:getAsString("idp.token.endpoint"), tokenReq);
 
     var responsePayload = check response.getJsonPayload();

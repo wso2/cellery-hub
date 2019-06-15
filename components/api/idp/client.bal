@@ -19,36 +19,41 @@
 import ballerina/config;
 import ballerina/http;
 
-http:Client oidcProviderClientEP = new(config:getAsString("idp.endpoint"), config = {
-    secureSocket: {
-        trustStore: {
-            path: config:getAsString("security.truststore"),
-            password: config:getAsString("security.truststorepass")
-        }
-    },
-    auth: {
-        scheme: http:BASIC_AUTH,
-        config: {
-            username: config:getAsString("idp.oidc.clientid"),
-            password: config:getAsString("idp.oidc.clientsecret")
-        }
-    }
-});
-
-
-http:Client scimProviderClient = new(config:getAsString("idp.endpoint"), config = {
-    secureSocket: {
-        trustStore: {
-            path: config:getAsString("security.truststore"),
-            password: config:getAsString("security.truststorepass")
+function getOidcProviderClientEP() returns http:Client {
+    http:Client oidcProviderClientEP = new(config:getAsString("idp.endpoint"), config = {
+        secureSocket: {
+            trustStore: {
+                path: config:getAsString("security.truststore"),
+                password: config:getAsString("security.truststorepass")
+            }
         },
-        verifyHostname: false
-    },
-    auth: {
-        scheme: http:BASIC_AUTH,
-        config: {
-            username: config:getAsString("idp.username"),
-            password: config:getAsString("idp.password")
+        auth: {
+            scheme: http:BASIC_AUTH,
+            config: {
+                username: config:getAsString("idp.oidc.clientid"),
+                password: config:getAsString("idp.oidc.clientsecret")
+            }
         }
-    }
-});
+    });
+    return oidcProviderClientEP;
+}
+
+function getClientEP() returns http:Client {
+    http:Client idpClientEP = new(config:getAsString("idp.endpoint"), config = {
+        secureSocket: {
+            trustStore: {
+                path: config:getAsString("security.truststore"),
+                password: config:getAsString("security.truststorepass")
+            },
+            verifyHostname: false
+        },
+        auth: {
+            scheme: http:BASIC_AUTH,
+            config: {
+                username: config:getAsString("idp.username"),
+                password: config:getAsString("idp.password")
+            }
+        }
+    });
+    return idpClientEP;
+}
