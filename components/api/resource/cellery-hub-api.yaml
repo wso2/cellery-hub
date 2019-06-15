@@ -232,7 +232,7 @@ definitions:
   OrgListResponse:
     type: object
     properties:
-      totalCount:
+      count:
         type: integer
         description: "total count of organizations"
       data:

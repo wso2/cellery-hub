@@ -70,10 +70,8 @@ public function listOrgs(http:Request listOrgsReq, string orgName, int offset, i
             log:printDebug(io:sprintf("Successfully retrieved organization(s) for org name \'%s\'", orgName));
             return buildSuccessResponse(jsonResponse = res);
         } else {
-            string errMsg = "No matching organization found. ";
-            string errDes = io:sprintf("There are no organization(s) for org name \'%s\'", orgName);
-            log:printError(errMsg + errDes);
-            return buildErrorResponse(http:NOT_FOUND_404, constants:API_ERROR_CODE, errMsg, errDes);
+            log:printDebug(io:sprintf("There are no organization(s) for org name \'%s\'", orgName));
+            return buildSuccessResponse();
         }
     } else {
         log:printError("Unable to perform search on organizations", err = res);
@@ -419,10 +417,8 @@ returns http:Response {
                 log:printDebug(io:sprintf("Successfully retrieved organization(s) for userId %s and org name \'%s\'",userId, orgName));
                 return buildSuccessResponse(jsonResponse = res);
             } else {
-                string errMsg = "No matching organization found. ";
-                string errDes = io:sprintf("There are no organization(s) for userId %s and org name \'%s\'",userId, orgName);
-                log:printError(errMsg + errDes);
-                return buildErrorResponse(http:NOT_FOUND_404, constants:API_ERROR_CODE, errMsg, errDes);
+                log:printDebug(io:sprintf("There are no organization(s) for userId %s and org name \'%s\'",userId, orgName));
+                return buildSuccessResponse();
             }
         } else {
             log:printError("Unable to perform search on user\'s organizations", err = res);
