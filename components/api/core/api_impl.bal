@@ -141,9 +141,9 @@ public function getOrg(http:Request getOrgReq, string orgName) returns http:Resp
     if (res is json) {
         if (res != null) {
             log:printDebug(io:sprintf("Successfully fetched organization \'%s\'", orgName));            
-            error? modifiedRes = updatePayloadWithUserInfo(untaint res, "author");            
-            if (modifiedRes is error) {
-                log:printError("Unexpected error occured while modifying getOrg response", err = modifiedRes);
+            error? err = updatePayloadWithUserInfo(untaint res, "author");            
+            if (err is error) {
+                log:printError("Unexpected error occured while modifying getOrg response", err = err);
                 return buildUnknownErrorResponse();
             } else {
                 log:printDebug("Successfully modified getOrg response with user info");
@@ -309,9 +309,9 @@ public function getArtifact (http:Request getArtifactReq, string orgName, string
             log:printDebug(io:sprintf("Successfully fetched artifact \'%s/%s:%s\' ", orgName, imageName, artifactVersion));
             string userId = res.lastAuthor.toString();
             log:printDebug("Last Author\'s User ID :"+ userId);
-            error? modifiedRes = updatePayloadWithUserInfo(untaint res, "lastAuthor");            
-            if (modifiedRes is error) {
-                log:printError("Unexpected error occured while modifying getArtifact response", err = modifiedRes);
+            error? err = updatePayloadWithUserInfo(untaint res, "lastAuthor");            
+            if (err is error) {
+                log:printError("Unexpected error occured while modifying getArtifact response", err = err);
                 return buildUnknownErrorResponse();                
             } else {
                 log:printDebug(io:sprintf("Successfully modified getArtifact response for user id \'%s\'", userId));
