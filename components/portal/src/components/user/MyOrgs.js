@@ -102,6 +102,7 @@ class MyOrgs extends React.Component {
         this.setState({
             isDialogOpen: false
         });
+        this.handlePageChange();
     };
 
     handlePageChange = () => {

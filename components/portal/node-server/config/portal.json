@@ -1,6 +1,7 @@
 {
     "hubPublicUrl": "https://hub.cellery.io:9000",
     "hubApiUrl": "https://api.hub.cellery.io:11000/api/0.1.0",
+    "reCaptchaSiteKey": "fillme",
     "idp": {
         "url": "https://idp.hub.cellery.io:9443",
         "hubClientId": "celleryhubapplication",

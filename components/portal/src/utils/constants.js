@@ -37,6 +37,9 @@ const Constants = {
     },
     KeyCode: {
         ENTER: 13
+    },
+    Header: {
+        CELLERY_HUB_CAPTCHA: "g-recaptcha-response"
     }
 };
 
