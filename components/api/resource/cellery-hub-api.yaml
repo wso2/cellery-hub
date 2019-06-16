@@ -318,7 +318,7 @@ definitions:
         type: string
       pullCount:
         type: integer
-      updatedTeimstamp:
+      updatedTimestamp:
         type: string
       visibility:
         type: string

@@ -140,6 +140,6 @@ public type OrgImagesListResponseAtom record {
     string imageName;
     string description;
     int pullCount;
-    string updatedTeimstamp;
+    string updatedTimestamp;
     string visibility;
 };
