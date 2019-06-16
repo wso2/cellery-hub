@@ -168,7 +168,7 @@ class Orgs extends React.Component {
                 </Grid>
                 <Grid item xs={12} sm={12} md={12}>
                     <OrgList pageData={orgs} onPageChange={this.handlePageChange} totalCount={totalCount}
-                        defaultRowsPerPage={Orgs.DEFAULT_ROWS_PER_PAGE} defaultPageNo={Orgs.DEFAULT_PAGE_NO}/>
+                        rowsPerPage={Orgs.DEFAULT_ROWS_PER_PAGE} pageNo={Orgs.DEFAULT_PAGE_NO}/>
                 </Grid>
             </Grid>
         );
