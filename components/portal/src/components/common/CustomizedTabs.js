@@ -16,10 +16,12 @@
  * under the License.
  */
 
+import HttpUtils from "../../utils/api/httpUtils";
 import React from "react";
 import Tab from "@material-ui/core/Tab";
 import Tabs from "@material-ui/core/Tabs";
 import Typography from "@material-ui/core/Typography";
+import {withRouter} from "react-router-dom";
 import {withStyles} from "@material-ui/core/styles";
 import * as PropTypes from "prop-types";
 
@@ -71,26 +73,26 @@ TabContainer.propTypes = {
 
 class CustomizedTabs extends React.Component {
 
-    constructor(props) {
-        super(props);
-        this.state = {
-            selectedIndex: 0
-        };
-    }
+    handleTabChange = (event, newSelectedIndex) => {
+        const {history, match, location, tabs} = this.props;
 
-    handleChange = (event, newSelectedIndex) => {
-        this.setState({
-            selectedIndex: newSelectedIndex
+        const queryParamsString = HttpUtils.generateQueryParamString({
+            ...HttpUtils.parseQueryParams(location.search),
+            tab: tabs[newSelectedIndex].label
+        });
+        history.replace(match.url + queryParamsString, {
+            ...location.state
         });
     };
 
     render = () => {
-        const {tabs, classes} = this.props;
-        const {selectedIndex} = this.state;
+        const {classes, location, tabs} = this.props;
 
+        const queryParams = HttpUtils.parseQueryParams(location.search);
+        const selectedIndex = queryParams.tab ? tabs.findIndex((tab) => tab.label === queryParams.tab) : 0;
         return (
             <div className={classes.root}>
-                <CustomTabs value={selectedIndex} onChange={this.handleChange}>
+                <CustomTabs value={selectedIndex} onChange={this.handleTabChange}>
                     {
                         tabs.map((item) => (
                             <CustomTab key={item.label} label={item.label}/>
@@ -109,6 +111,16 @@ class CustomizedTabs extends React.Component {
 }
 
 CustomizedTabs.propTypes = {
+    history: PropTypes.shape({
+        replace: PropTypes.func.isRequired
+    }).isRequired,
+    match: PropTypes.shape({
+        url: PropTypes.string.isRequired
+    }).isRequired,
+    location: PropTypes.shape({
+        search: PropTypes.string.isRequired,
+        state: PropTypes.object.isRequired
+    }).isRequired,
     classes: PropTypes.object.isRequired,
     tabs: PropTypes.arrayOf(PropTypes.shape({
         label: PropTypes.string.isRequired,
@@ -116,4 +128,4 @@ CustomizedTabs.propTypes = {
     })).isRequired
 };
 
-export default withStyles(styles)(CustomizedTabs);
+export default withRouter(withStyles(styles)(CustomizedTabs));

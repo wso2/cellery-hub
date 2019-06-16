@@ -231,9 +231,6 @@ class Header extends React.Component {
                                             user
                                                 ? (
                                                     <React.Fragment>
-                                                        <MenuItem onClick={this.handleAccountPopoverClose}>
-                                                            My Profile
-                                                        </MenuItem>
                                                         <MenuItem onClick={() => AuthUtils.signOut(globalState)}>
                                                             Logout
                                                         </MenuItem>
