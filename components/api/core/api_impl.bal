@@ -427,12 +427,23 @@ returns http:Response {
     }
 }
 
+public function listOrgImages (http:Request listOrgImagesReq, string orgName, string imageName, string orderBy, int offset, int resultLimit)
+returns http:Response {
+    log:printDebug(io:sprintf("Listing images for orgName : %s, imageName : %s, orderBy : %s, offset : %d, limit : %d, ", orgName, imageName, orderBy, offset, resultLimit));
 
-public function listOrgImages (http:Request listOrgImagesReq, string orgName) returns http:Response {
-    // stub code - fill as necessary
-    http:Response listOrgImagesRes = new;
-    string listOrgImagesPayload = "Sample listOrgImages Response";
-    listOrgImagesRes.setTextPayload(listOrgImagesPayload);
+    json | error orgImagesListResult;
 
-	return listOrgImagesRes;
+    if (listOrgImagesReq.hasHeader(constants:AUTHENTICATED_USER)) {
+        orgImagesListResult = null;
+    } else {
+        log:printDebug("List org images request without an authenticated user");
+        orgImagesListResult = db:getPublicImagesOfanORG(orgName, imageName, orderBy, offset, resultLimit);
+    }
+
+	if (orgImagesListResult is json) {
+        return buildSuccessResponse(jsonResponse = orgImagesListResult);
+    }
+    else {
+        return buildUnknownErrorResponse();
+    }
 }

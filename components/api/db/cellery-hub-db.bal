@@ -224,3 +224,14 @@ returns json | error {
     }
     return check json.convert(olr);
 }
+
+public function getPublicImagesOfanORG(string orgName, string imageName, string orderBy, int offset, int resultLimit)
+returns json | error {
+    log:printDebug(io:sprintf("Performing image retrival from DB for org: %s, image: %s", orgName, imageName));
+    table<gen:OrgImagesListResponse> resTotal = check connection->select(SEARCH_ORG_IMAGES_TOTAL_COUNT, gen:Count, orgName, imageName);
+    json resTotalJson = check json.convert(resTotal);
+    int totalOrgs = check int.convert(resTotalJson[0]["count"]);
+    gen:OrgListResponse olr = {count:totalOrgs , data:[]};
+
+    return check json.convert(olr);
+}

@@ -488,7 +488,39 @@ service CelleryHubAPI on ep {
         path:"/images/{orgName}"
     }
     resource function listOrgImages (http:Caller outboundEp, http:Request _listOrgImagesReq, string orgName) returns error? {
-        http:Response _listOrgImagesRes = listOrgImages(_listOrgImagesReq, orgName);
+        map<string> queryParams = _listOrgImagesReq.getQueryParams();
+        int offset = 0;
+        int resultLimit = 10;
+        string imageName = "%";
+        string orderBy = "last-updated";
+        if (queryParams.hasKey(constants:OFFSET)) {
+            int | error offsetQueryParam = int.convert(queryParams.offset);
+            if (offsetQueryParam is int) {
+                offset = offsetQueryParam;
+            }
+        }
+        if (queryParams.hasKey(constants:RESULT_LIMIT)) {
+            int | error resultLimitQueryParam = int.convert(queryParams.
+            resultLimit);
+            if (resultLimitQueryParam is int) {
+                resultLimit = resultLimitQueryParam;
+                if (resultLimit > 25) {
+                    log:printDebug(io:sprintf("Requested result limit exeeded 25. Hense reset resultLimit to 25"));
+                    resultLimit = 25;
+                }
+            }
+        }
+        if (queryParams.hasKey(constants:IMAGE_NAME)) {
+            log:printDebug("imageName is present");
+            imageName = queryParams.imageName;
+            imageName = imageName.replace("*", "%");
+        }
+        if (queryParams.hasKey(constants:ORDER_BY)) {
+            log:printDebug("orderBy enum is present");
+            orderBy = queryParams.orderBy;
+        }
+
+        http:Response _listOrgImagesRes = listOrgImages(_listOrgImagesReq, orgName, imageName, orderBy, offset, resultLimit);
         error? x = outboundEp->respond(_listOrgImagesRes);
     }
 }
