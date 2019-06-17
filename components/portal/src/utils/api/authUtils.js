@@ -53,7 +53,7 @@ class AuthUtils {
      */
     static initiateHubLoginFlow(globalState, fidpOverride) {
         const clientId = globalState.get(StateHolder.CONFIG).idp.hubClientId;
-        this.initiateLoginFlow(globalState, fidpOverride, clientId, window.location.href.split("?")[0]);
+        this.initiateLoginFlow(globalState, fidpOverride, clientId, window.location.origin + window.location.pathname);
     }
 
     /**
