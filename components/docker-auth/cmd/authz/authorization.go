@@ -21,10 +21,9 @@ package main
 import (
 	"database/sql"
 	"fmt"
+	"github.com/cellery-io/cellery-hub/components/docker-auth/pkg/extension"
 	"log"
 	"os"
-
-	"github.com/cellery-io/cellery-hub/components/docker-auth/pkg/extension"
 )
 
 const logFile = "/extension-logs/authorization.log"
@@ -48,44 +47,44 @@ func dbConn() (*sql.DB, error) {
 func main() {
 	file, err := os.OpenFile(logFile, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
 	if err != nil {
-		log.Fatalf("Error opening file: %v", err)
+		log.Printf("Error opening file: %s\n", err)
 	}
 	defer func() {
 		err = file.Close()
 		if err != nil {
+			log.Printf("Error occurred  while closing the file : %s\n" , err)
 			os.Exit(2)
 		}
 	}()
 	if err != nil {
-		log.Println("Error occurred  while closing the file :", err)
 		os.Exit(extension.ErrorExitCode)
 	}
 	log.SetOutput(file)
-
-	log.Println("Authentication extension reached and access will be validated")
+	uuid, err := extension.GetUUID()
+	log.Printf("[%s] Authorization extension reached and access will be validated\n", uuid)
 	accessToken := extension.ReadStdIn()
 	db, err := dbConn()
 	if err != nil {
-		log.Println("Error occurred while establishing the mysql connection: ", err)
+		log.Printf("[%s] Error occurred while establishing the mysql connection : %s\n", uuid, err)
 		os.Exit(extension.ErrorExitCode)
 	}
-	isValid, err := extension.ValidateAccess(db, accessToken)
+	isValid, err := extension.ValidateAccess(db, accessToken, uuid)
 	if err != nil {
-		log.Println("Error occurred while validating the user :", err)
+		log.Printf("[%s] Error occurred while validating the user :%s\n", uuid, err)
 	}
 	if isValid {
 		err = db.Close()
 		if err != nil {
-			log.Println("Error occurred while closing the db connection :", err)
+			log.Printf("[%s] Error occurred while closing the db connection :%s\n", uuid, err)
 		}
-		log.Println("User access granted")
+		log.Printf("[%s] User access granted\n",uuid)
 		os.Exit(extension.SuccessExitCode)
 	} else {
 		err = db.Close()
 		if err != nil {
-			log.Println("Error occurred while closing the db connection :", err)
+			log.Printf("[%s] Error occurred while closing the db connection :%s\n", uuid, err)
 		}
-		log.Println("User access denied")
+		log.Printf("[%s] User access denied\n", uuid)
 		os.Exit(extension.ErrorExitCode)
 	}
 }

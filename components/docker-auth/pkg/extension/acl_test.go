@@ -34,6 +34,8 @@ import (
 
 var dbConnection *sql.DB
 
+const testUser = "testUser"
+
 func createConn() bool {
 	dbDriver := MYSQL_DRIVER
 	dbUser := "root"
@@ -162,7 +164,7 @@ func TestValidateAccess(t *testing.T) {
 			"\"Docker registry\",\"IP\":\"172.25.0.1\",\"Actions\":[\"pull\"],\"Labels\":null}"},
 	}
 	for _, value := range values {
-		isAuthorized, err := ValidateAccess(dbConnection, value.text)
+		isAuthorized, err := ValidateAccess(dbConnection, value.text, testUser)
 		if err != nil {
 			log.Println("Error while validating the access token :", err)
 		}
@@ -189,7 +191,7 @@ func TestInvalidAccess(t *testing.T) {
 			"\"Docker registry\",\"IP\":\"172.25.0.1\",\"Actions\":[\"push\",\"pull\"],\"Labels\":null}"},
 	}
 	for _, value := range values {
-		isAuthorized, err := ValidateAccess(dbConnection, value.text)
+		isAuthorized, err := ValidateAccess(dbConnection, value.text, testUser)
 		if err != nil {
 			log.Println("Error while validating the access token :", err)
 		}
@@ -208,7 +210,7 @@ func TestIsAuthorizedToPush(t *testing.T) {
 		{"admin.com", "cellery"},
 	}
 	for _, value := range values {
-		isAuthorized, err := isAuthorizedToPush(dbConnection, value.username, value.organization)
+		isAuthorized, err := isAuthorizedToPush(dbConnection, value.username, value.organization, testUser)
 		if !isAuthorized {
 			t.Error("Cannot authorize ", value.username, "for ", value.organization, " organization")
 		}
@@ -229,7 +231,7 @@ func TestIsAuthorizedToPull(t *testing.T) {
 		{"ibm.com", "cellery", "image"},
 	}
 	for _, value := range values {
-		isAuthorized, err := isAuthorizedToPull(dbConnection, value.username, value.organization, value.image)
+		isAuthorized, err := isAuthorizedToPull(dbConnection, value.username, value.organization, value.image, testUser)
 		if err != nil {
 			log.Println("Error while validating the access token :", err)
 		}
@@ -250,7 +252,7 @@ func TestCheckImage(t *testing.T) {
 		{"wso2.com", "image", "public", "push"},
 	}
 	for _, value := range values {
-		role, visib, err := checkImageAndRole(dbConnection, value.image, value.username)
+		role, visib, err := checkImageAndRole(dbConnection, value.image, value.username, testUser)
 		if err != nil {
 			log.Println("Error while validating the access token :", err)
 		}
@@ -271,7 +273,7 @@ func TestIsUserAvailable(t *testing.T) {
 		{"cellery", "admin.com"},
 	}
 	for _, value := range values {
-		isAvailable, err := isUserAvailable(dbConnection, value.organization, value.username)
+		isAvailable, err := isUserAvailable(dbConnection, value.organization, value.username, testUser)
 		if !isAvailable {
 			t.Error("For username " + value.username + " user is " + value.organization + " invalid")
 		}
@@ -290,7 +292,7 @@ func TestGetImageVisibility(t *testing.T) {
 		{"newImage", "private"},
 	}
 	for _, value := range values {
-		visibility, err := getImageVisibility(dbConnection, value.image)
+		visibility, err := getImageVisibility(dbConnection, value.image, testUser)
 		if err != nil {
 			log.Println("Error while validating the access token :", err)
 		}

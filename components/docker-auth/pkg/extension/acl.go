@@ -41,35 +41,35 @@ type AuthRequestInfo struct {
 	Labels  Labelstest
 }
 
-func ValidateAccess(db *sql.DB, accessToken string) (bool, error) {
+func ValidateAccess(db *sql.DB, accessToken string, uuid string) (bool, error) {
 	var authReqInfo AuthRequestInfo
 	err := json.Unmarshal([]byte(accessToken), &authReqInfo)
 	if err != nil {
-		log.Println("Unable to unmarshal the json :", err)
+		log.Printf("[%s] Unable to unmarshal the json :%s\n", uuid, err)
 		return false, err
 	}
-	log.Println("Required actions for the username are :", authReqInfo.Actions)
+	log.Printf("[%s] Required actions for the username are :%s\n", uuid, authReqInfo.Actions)
 	isPullOnly := true
 	if len(authReqInfo.Actions) == pushActionCount {
 		isPullOnly = false
 	}
-	organization, image, err := getOrganizationAndImage(authReqInfo.Name)
+	organization, image, err := getOrganizationAndImage(authReqInfo.Name, uuid)
 	if err != nil {
 		return false, err
 	}
-	log.Println("Image name is declared as :", image)
+	log.Printf("[%s] Image name is declared as :%s\n", uuid, image)
 	if isPullOnly {
-		log.Println("Received a pulling task")
-		return isAuthorizedToPull(db, authReqInfo.Account, organization, image)
+		log.Printf("[%s] Received a pulling task\n", uuid)
+		return isAuthorizedToPull(db, authReqInfo.Account, organization, image, uuid)
 	} else {
-		log.Println("Received a pushing task")
-		return isAuthorizedToPush(db, authReqInfo.Account, organization)
+		log.Printf("[%s] Received a pushing task\n", uuid)
+		return isAuthorizedToPush(db, authReqInfo.Account, organization, uuid)
 	}
 }
 
-func getOrganizationAndImage(imageFullName string) (string, string, error) {
+func getOrganizationAndImage(imageFullName string, uuid string) (string, string, error) {
 	tokens := strings.Split(imageFullName, "/")
-	log.Println("Organization and image info: ", tokens)
+	log.Printf("[%s] Organization and image info: %s\n", uuid, tokens)
 	if len(tokens) == 2 {
 		return tokens[0], tokens[1], nil
 	} else {
@@ -77,10 +77,10 @@ func getOrganizationAndImage(imageFullName string) (string, string, error) {
 	}
 }
 
-func checkImageAndRole(db *sql.DB, image, user string) (string, string, error) {
+func checkImageAndRole(db *sql.DB, image, user string, uuid string) (string, string, error) {
 	results, err := db.Query(getImageAndRoleQuery, image, user)
 	if err != nil {
-		log.Println("Error while calling the mysql query getImageAndRoleQuery:", err)
+		log.Printf("[%s] Error while calling the mysql query getImageAndRoleQuery : %s\n", uuid, err)
 		return "", "", err
 	}
 	var userRole string
@@ -88,70 +88,72 @@ func checkImageAndRole(db *sql.DB, image, user string) (string, string, error) {
 	if results.Next() {
 		err = results.Scan(&userRole, &visibility)
 		if err != nil {
-			log.Println("Error in retrieving the username role and visibility from the database :", err)
+			log.Printf("[%s] Error in retrieving the username role and visibility from the database :%s\n",
+				uuid, err)
 			return "", "", err
 		}
 	}
 	return userRole, visibility, errors.New("image not available")
 }
 
-func getImageVisibility(db *sql.DB, image string) (string, error) {
+func getImageVisibility(db *sql.DB, image string, uuid string) (string, error) {
 	var visibility = ""
 	results, err := db.Query(getVisibilityQuery, image)
 	if err != nil {
-		log.Println("Error while calling the mysql query getVisibilityQuery :", err)
+		log.Printf("[%s] Error while calling the mysql query getVisibilityQuery :%s\n", uuid, err)
 		return visibility, err
 	}
 	if results.Next() {
 		err = results.Scan(&visibility)
 	}
 	if err != nil {
-		log.Println("Error in retrieving the visibility from the database :", err)
+		log.Printf("[%s] Error in retrieving the visibility from the database :%s\n", uuid, err)
 		return visibility, err
 	}
+	log.Printf("[%s] Visibility of the image is :%s\n", uuid, visibility)
 	return visibility, nil
 }
 
-func isUserAvailable(db *sql.DB, organization, user string) (bool, error) {
+func isUserAvailable(db *sql.DB, organization, user string, uuid string) (bool, error) {
 	results, err := db.Query(getUserAvailabilityQuery, user, organization)
 	if err != nil {
-		log.Println("Error while calling the mysql query getUserAvailabilityQuery :", err)
+		log.Printf("[%s] Error while calling the mysql query getUserAvailabilityQuery :%s\n", uuid, err)
 		return false, err
 	}
 	return results.Next(), nil
 }
 
-func isAuthorizedToPull(db *sql.DB, user, organization, image string) (bool, error) {
+func isAuthorizedToPull(db *sql.DB, user, organization, image string, uuid string) (bool, error) {
+	log.Printf("[%s] %s user is trying to push the image %s for the organization %s\n",
+		uuid, user, image, organization)
 	// check if image PUBLIC
-	visibility, err := getImageVisibility(db, image)
+	visibility, err := getImageVisibility(db, image, uuid)
 	if strings.EqualFold(visibility, publicVisibility) {
 		return true, nil
 	}
-	userRole, visibility, err := checkImageAndRole(db, image, user)
-	log.Println("Visibility of the image :", image, "is", visibility,
-		"for the username", user)
+	userRole, visibility, err := checkImageAndRole(db, image, user, uuid)
 	if err != nil && err.Error() == "image not available" {
 		// Check whether the username exists in the organization when a fresh image come and tries to push
-		return isUserAvailable(db, organization, user)
+		return isUserAvailable(db, organization, user, uuid)
 	} else if err != nil {
-		log.Println("User does not have pulling rights")
+		log.Printf("[%s] User does not have pulling rights\n", uuid)
 		return false, err
 	}
 	// allows pulling if the visibility of the image is PUBLIC
 	if (userRole == userAdminRole) || (userRole == userPushRole) || (userRole == userPullRole) {
-		log.Println("User is allowed to pull the image")
+		log.Printf("[%s] User is allowed to pull the image\n", uuid)
 		return true, nil
 	} else {
-		log.Println("User does not have pulling rights")
+		log.Printf("[%s] User does not have pulling rights\n", uuid)
 		return false, err
 	}
 }
 
-func isAuthorizedToPush(db *sql.DB, user, organization string) (bool, error) {
-	log.Println("Trying to push to organization :", organization)
+func isAuthorizedToPush(db *sql.DB, user, organization string, uuid string) (bool, error) {
+	log.Printf("[%s] User %s is trying to push to organization :%s\n", uuid, user, organization)
 	results, err := db.Query(getUserRoleQuery, user, organization)
 	if err != nil {
-		log.Println("Error while calling the mysql query getUserRoleQuery :", err)
+		log.Printf("[%s] Error while calling the mysql query getUserRoleQuery :%s\n", uuid, err)
 		return false, err
 	}
 	if results.Next() {
@@ -159,15 +161,15 @@ func isAuthorizedToPush(db *sql.DB, user, organization string) (bool, error) {
 		// for each row, scan the result into our tag composite object
 		err = results.Scan(&userRole)
 		if err != nil {
-			log.Println("Error in retrieving the username role from the database :", err)
+			log.Printf("[%s] Error in retrieving the username role from the database :%s\n", uuid, err)
 			return false, err
 		}
-		log.Println("User role is declared as", userRole)
+		log.Printf("[%s] User role is declared as %s\n", uuid, userRole)
 		if (userRole == userAdminRole) || (userRole == userPushRole) {
-			log.Println("User is allowed to push the image")
+			log.Printf("[%s] User is allowed to push the image\n", uuid)
 			return true, nil
 		} else {
-			log.Println("User does not have push rights")
+			log.Printf("[%s] User does not have push rights\n", uuid)
 			return false, err
 		}
 	}
