@@ -22,6 +22,7 @@ import Divider from "@material-ui/core/Divider";
 import FormControl from "@material-ui/core/FormControl";
 import GetApp from "@material-ui/icons/GetApp";
 import Grid from "@material-ui/core/Grid";
+import IconButton from "@material-ui/core/IconButton";
 import Input from "@material-ui/core/Input";
 import InputAdornment from "@material-ui/core/InputAdornment";
 import List from "@material-ui/core/List";
@@ -44,9 +45,6 @@ const styles = (theme) => ({
     },
     formControl: {
         minWidth: "100%"
-    },
-    placeholderIcon: {
-        color: "#999"
     },
     table: {
         marginTop: theme.spacing(2),
@@ -149,11 +147,15 @@ class VersionList extends React.Component {
                         <Grid container>
                             <Grid item xs={12} sm={7} md={7}>
                                 <FormControl className={classes.formControl}>
-                                    <Input placeholder={"Search Version"} startAdornment={
-                                        <InputAdornment position={"start"}>
-                                            <SearchIcon className={classes.placeholderIcon}/>
-                                        </InputAdornment>
-                                    }/>
+                                    <Input placeholder={"Search Version"} type={"text"}
+                                        endAdornment={
+                                            <InputAdornment position={"end"}>
+                                                <IconButton aria-label={"Search Version"}>
+                                                    <SearchIcon/>
+                                                </IconButton>
+                                            </InputAdornment>
+                                        }
+                                    />
                                 </FormControl>
                             </Grid>
                             <Grid item xs={12} sm={1} md={1} />

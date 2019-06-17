@@ -22,6 +22,7 @@ import CreateOrg from "../../img/CreateOrg.jpg";
 import Divider from "@material-ui/core/Divider";
 import FormControl from "@material-ui/core/FormControl";
 import Grid from "@material-ui/core/Grid";
+import IconButton from "@material-ui/core/IconButton";
 import Input from "@material-ui/core/Input";
 import InputAdornment from "@material-ui/core/InputAdornment";
 import InputLabel from "@material-ui/core/InputLabel";
@@ -55,9 +56,6 @@ const styles = (theme) => ({
     secondaryText: {
         marginBottom: theme.spacing(2),
         marginTop: theme.spacing(2)
-    },
-    placeholderIcon: {
-        color: "#999999"
     },
     createOrgImg: {
         height: 170,
@@ -128,14 +126,14 @@ class MyOrgs extends React.Component {
                                         <Grid item xs={12} sm={4} md={4}>
                                             <FormControl className={classes.formControl}>
                                                 <InputLabel htmlFor={"search"}>Organization Name</InputLabel>
-                                                <Input
-                                                    id={"search"}
-                                                    startAdornment={
-                                                        <InputAdornment position={"start"}>
-                                                            <SearchIcon className={classes.placeholderIcon}/>
+                                                <Input id={"search"} placeholder={"Search Organization"}
+                                                    endAdornment={
+                                                        <InputAdornment position={"end"}>
+                                                            <IconButton aria-label={"Search Organization"}>
+                                                                <SearchIcon/>
+                                                            </IconButton>
                                                         </InputAdornment>
                                                     }
-                                                    placeholder={"Search Organization"}
                                                 />
                                             </FormControl>
                                         </Grid>

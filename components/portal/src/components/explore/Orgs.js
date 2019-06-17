@@ -20,6 +20,7 @@ import Constants from "../../utils/constants";
 import FormControl from "@material-ui/core/FormControl";
 import FormHelperText from "@material-ui/core/FormHelperText";
 import Grid from "@material-ui/core/Grid";
+import IconButton from "@material-ui/core/IconButton";
 import Input from "@material-ui/core/Input";
 import InputAdornment from "@material-ui/core/InputAdornment";
 import InputLabel from "@material-ui/core/InputLabel";
@@ -40,9 +41,6 @@ const styles = (theme) => ({
         marginTop: theme.spacing(4),
         marginBottom: theme.spacing(1),
         minWidth: "100%"
-    },
-    placeholderIcon: {
-        color: "#999999"
     }
 });
 
@@ -158,11 +156,15 @@ class Orgs extends React.Component {
                         <InputLabel shrink htmlFor={"search-label-placeholder"}/>
                         <Input id={"search"} placeholder={"Search Organization"} value={search.orgName.value}
                             onChange={this.handleOrgNameSearchChange} onKeyDown={this.handleOrgNameSearchKeyDown}
-                            startAdornment={
-                                <InputAdornment position={"start"}>
-                                    <SearchIcon className={classes.placeholderIcon}/>
+                            endAdornment={
+                                <InputAdornment position={"end"}>
+                                    <IconButton aria-label={"Search Organization"}
+                                        onClick={this.handleOrgNameSearchKeyDown}>
+                                        <SearchIcon/>
+                                    </IconButton>
                                 </InputAdornment>
-                            }/>
+                            }
+                        />
                         {search.orgName.error ? <FormHelperText>{search.orgName.error}</FormHelperText> : null}
                     </FormControl>
                 </Grid>

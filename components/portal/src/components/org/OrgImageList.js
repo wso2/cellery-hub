@@ -18,6 +18,7 @@
 
 import FormControl from "@material-ui/core/FormControl";
 import Grid from "@material-ui/core/Grid";
+import IconButton from "@material-ui/core/IconButton";
 import ImageList from "../common/ImageList";
 import Input from "@material-ui/core/Input";
 import InputAdornment from "@material-ui/core/InputAdornment";
@@ -31,9 +32,6 @@ const styles = (theme) => ({
         marginTop: theme.spacing(4),
         marginBottom: theme.spacing(1),
         minWidth: "100%"
-    },
-    placeholderIcon: {
-        color: "#999999"
     }
 });
 
@@ -72,12 +70,15 @@ class OrgImageList extends React.Component {
                 <Grid container>
                     <Grid item xs={12} sm={4} md={4}>
                         <FormControl className={classes.formControl}>
-                            <Input id={"search"} placeholder={"Search Image"}
-                                startAdornment={
-                                    <InputAdornment position={"start"}>
-                                        <SearchIcon className={classes.placeholderIcon}/>
+                            <Input placeholder={"Search Organization"} type={"text"}
+                                endAdornment={
+                                    <InputAdornment position={"end"}>
+                                        <IconButton aria-label={"Search Organization"}>
+                                            <SearchIcon/>
+                                        </IconButton>
                                     </InputAdornment>
-                                }/>
+                                }
+                            />
                         </FormControl>
                     </Grid>
                     <Grid item xs={12} sm={12} md={12}>

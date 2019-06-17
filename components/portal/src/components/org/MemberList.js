@@ -18,6 +18,7 @@
 
 import FormControl from "@material-ui/core/FormControl";
 import Grid from "@material-ui/core/Grid";
+import IconButton from "@material-ui/core/IconButton";
 import Input from "@material-ui/core/Input";
 import InputAdornment from "@material-ui/core/InputAdornment";
 import MenuItem from "@material-ui/core/MenuItem";
@@ -34,9 +35,6 @@ const styles = (theme) => ({
     },
     formControl: {
         minWidth: "100%"
-    },
-    placeholderIcon: {
-        color: "#999999"
     },
     table: {
         marginTop: theme.spacing(2),
@@ -116,10 +114,12 @@ class MemberList extends React.Component {
                     <Grid container>
                         <Grid item xs={12} sm={4} md={4}>
                             <FormControl className={classes.formControl}>
-                                <Input id={"search"} placeholder={"Search Member"}
-                                    startAdornment={
-                                        <InputAdornment position={"start"}>
-                                            <SearchIcon className={classes.placeholderIcon}/>
+                                <Input placeholder={"Search Member"} type={"text"}
+                                    endAdornment={
+                                        <InputAdornment position={"end"}>
+                                            <IconButton aria-label={"Search Member"}>
+                                                <SearchIcon/>
+                                            </IconButton>
                                         </InputAdornment>
                                     }/>
                             </FormControl>
