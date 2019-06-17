@@ -177,6 +177,7 @@ public function getImageByImageName(http:Request getImageRequest, string orgName
         }
         if (imageResults.hasNext()) {
             gen:Image image = <gen:Image>imageResults.getNext();
+            imageResults.close();
             table<gen:StringRecord> | error keywordsResult = db:getImageKeywords(image.imageId);
             string[] keywords = [];
             if (keywordsResult is table<gen:StringRecord>) {
@@ -188,6 +189,7 @@ public function getImageByImageName(http:Request getImageRequest, string orgName
                     keywords[keyWorkdsCount] = keyword.value;
                     keyWorkdsCount += 1;
                 }
+                keywordsResult.close();
             } else {
                 log:printError("Error while converting payload to json. Labels will be empty : image ID :" + imageName, err = keywordsResult);
             }
@@ -258,12 +260,14 @@ int offset, int resultLimit) returns http:Response {
             responseArray[counter] = result;
             counter += 1;
         }
+        artifactListResults.close();
         if (counter > 0) {
             table<gen:Count> | error countResult = db:getArtifactListLength(artifactImageId, artifactVersion);
             if (countResult is table<gen:Count>) {
                 log:printDebug("Successfully fetched length of the list");
                 gen:Count countObj = <gen:Count>countResult.getNext();
                 listLength = countObj.count;
+                countResult.close();
             } else {
                 log:printError("Error while counting number of artifacts for image " + imageName, err = countResult);
             }
@@ -360,13 +364,15 @@ returns http:Response {
                     err = userinfoResponse);
                 }
             }
+            userResults.close();
             table<gen:Count> | error countResults = db:getMemberCountOfOrg(orgName);
             if (countResults is table<gen:Count>) {
                 if (countResults.hasNext()) {
                     gen:Count countFromDB = <gen:Count> countResults.getNext();
                     userCount = countFromDB.count;
                 }
-            }
+                countResults.close();
+            }            
             gen:UserListResponse userInfoListResponse = {
                 count: userCount,
                 users: users

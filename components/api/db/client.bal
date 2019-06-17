@@ -23,6 +23,8 @@ mysql:Client connection = new ({
         name: config:getAsString("database.default"),
         username: config:getAsString("database.user"),
         password: config:getAsString("database.password"),
+        poolOptions: { maximumPoolSize:config:getAsInt("database.maximumPoolSize"), 
+                       autoCommit:true},
         dbOptions: {
                 useSSL: false,
                 allowPublicKeyRetrieval: true

@@ -30,6 +30,7 @@ public function getOrganization (string orgName) returns json | error {
         gen:OrgResponse orgRes = check gen:OrgResponse.convert(res.getNext());
         json resPayload = check json.convert(orgRes);
         log:printDebug(io:sprintf("Fetching data for organization \'%s\' from REGISTRY_ORGANIZATION is successful", orgName));
+        res.close();
         return resPayload;       
     } else {
         log:printDebug(io:sprintf("The requested organization \'%s\' was not found in REGISTRY_ORGANIZATION", orgName));
@@ -54,6 +55,7 @@ public function getOrganizationCount(string userId) returns int | error {
     json jsonConversionRet = check json.convert(selectRet);
     log:printDebug(io:sprintf("Response from organization count query from DB: %s", check string.convert(jsonConversionRet)));
     int value = check int.convert(jsonConversionRet[0]["COUNT(ORG_NAME)"]);
+    selectRet.close();
     log:printDebug(io:sprintf("Count organiations for user : %s : %d", userId, value));
     return value;
 }
@@ -132,6 +134,7 @@ function buildJsonPayloadForGetArtifact(table<record {}> res, string orgName, st
     } else if (res.count() == 0) {
         log:printDebug(io:sprintf("The requested artifact \'%s/%s:%s\' was not found in REGISTRY_ORGANIZATION",
                                     orgName, imageName, artifactVersion));
+        res.close();
         return null;
     } else {
         string errMsg = io:sprintf("Found more than one result for artifact GET: Number of results : %s", res.count());
@@ -160,8 +163,9 @@ returns table<gen:Count> | error {
 public function searchOrganizations(string orgName, int offset, int resultLimit) returns json | error {
     log:printDebug(io:sprintf("Performing data retreival on REGISTRY_ORGANIZATION table, Org name : \'%s\': ", orgName));
     table<record {}> resTotal = check connection->select(SEARCH_ORGS_TOTAL_COUNT, gen:Count, orgName);
-    json resTotalJson = check json.convert(resTotal);
+    json resTotalJson = check json.convert(resTotal);    
     int totalOrgs = check int.convert(resTotalJson[0]["count"]);
+    resTotal.close();
     gen:OrgListResponse olr = {count:totalOrgs , data:[]};
     if (totalOrgs > 0){
         log:printDebug(io:sprintf("%d organization(s) found with the name \'%s\'", totalOrgs, orgName));
@@ -171,13 +175,15 @@ public function searchOrganizations(string orgName, int offset, int resultLimit)
         foreach var fd in resImgCount{
             imageCountMap[fd.orgName] = fd.imageCount;
         }
-        table<gen:OrgListResponseAtom> res = check connection->select(SEARCH_ORGS_QUERY, gen:OrgListResponseAtom, orgName, 
+        resImgCount.close();
+        table<gen:OrgListResponseAtom> resOrgListAtom = check connection->select(SEARCH_ORGS_QUERY, gen:OrgListResponseAtom, orgName, 
         resultLimit, offset, loadToMemory = true);
-        foreach int i in 0...res.count()-1{
-            gen:OrgListResponseAtom olra = check gen:OrgListResponseAtom.convert(res.getNext());
+        foreach int i in 0...resOrgListAtom.count()-1{
+            gen:OrgListResponseAtom olra = check gen:OrgListResponseAtom.convert(resOrgListAtom.getNext());
             olr.data[i] = olra;
             olr.data[i]["imageCount"] = <int>imageCountMap[olra.orgName];
         }
+        resOrgListAtom.close();
     } else {
         log:printDebug(io:sprintf("No organization found with the name \'%s\'", orgName));
     }
@@ -191,6 +197,7 @@ returns json | error {
     table<record {}> resTotal = check connection->select(SEARCH_USER_ORGS_TOTAL_COUNT, gen:Count, orgName, userId);
     json resTotalJson = check json.convert(resTotal);
     int totalOrgs = check int.convert(resTotalJson[0]["count"]);
+    resTotal.close();
     gen:OrgListResponse olr = {count:totalOrgs , data:[]};
     if (totalOrgs > 0){
         log:printDebug(io:sprintf("%d organization(s) found with the orgName \'%s\' for userId %s", totalOrgs, orgName, userId));
@@ -200,16 +207,18 @@ returns json | error {
         foreach var fd in resImgCount{
             imageCountMap[fd.orgName] = fd.imageCount;
         }
-        table<gen:OrgListResponseAtom> res = check connection->select(SEARCH_USER_ORGS_QUERY, gen:OrgListResponseAtom, orgName, userId,
+        resImgCount.close();
+        table<gen:OrgListResponseAtom> resOrgListAtom = check connection->select(SEARCH_USER_ORGS_QUERY, gen:OrgListResponseAtom, orgName, userId,
         resultLimit, offset, loadToMemory = true);        
-        foreach int i in 0...res.count()-1{
-            gen:OrgListResponseAtom olra = check gen:OrgListResponseAtom.convert(res.getNext());
+        foreach int i in 0...resOrgListAtom.count()-1{
+            gen:OrgListResponseAtom olra = check gen:OrgListResponseAtom.convert(resOrgListAtom.getNext());
             olr.data[i] = olra;
             if (imageCountMap[olra.orgName] is ()){
                 imageCountMap[olra.orgName] = 0;
             }
             olr.data[i]["imageCount"] = <int>imageCountMap[olra.orgName];
         }
+        resOrgListAtom.close();
     } else {
         log:printDebug(io:sprintf("No organization found for userId %s, with the orgName \'%s\'",userId, orgName));
     }
