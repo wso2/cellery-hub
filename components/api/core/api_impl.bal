@@ -66,15 +66,8 @@ public function getTokens (http:Request getTokensReq) returns http:Response {
 public function listOrgs(http:Request listOrgsReq, string orgName, int offset, int resultLimit) returns http:Response {
     json | error res = db:searchOrganizations(orgName, offset, resultLimit);
     if (res is json) {
-        if (res != null) {
-            log:printDebug(io:sprintf("Successfully retrieved organization(s) for org name \'%s\'", orgName));
-            return buildSuccessResponse(jsonResponse = res);
-        } else {
-            string errMsg = "No matching organization found. ";
-            string errDes = io:sprintf("There are no organization(s) for org name \'%s\'", orgName);
-            log:printError(errMsg + errDes);
-            return buildErrorResponse(http:NOT_FOUND_404, constants:API_ERROR_CODE, errMsg, errDes);
-        }
+        log:printDebug(io:sprintf("Received json payload for org name \'%s\'", orgName));
+        return buildSuccessResponse(jsonResponse = res);
     } else {
         log:printError("Unable to perform search on organizations", err = res);
         return buildUnknownErrorResponse();
@@ -113,7 +106,7 @@ public function createOrg(http:Request createOrgReq, gen:OrgCreateRequest create
                     log:printDebug(io:sprintf("Retrying creating organization \'%s\' for transaction %s", createOrgsBody.orgName,
                     transactions:getCurrentTransactionId()));
                 } committed {
-                    log:printDebug(io:sprintf("Creating Organization \'%s\'successful for transaction %s", createOrgsBody.orgName,
+                    log:printDebug(io:sprintf("Creating Organization \'%s\' successful for transaction %s", createOrgsBody.orgName,
                     transactions:getCurrentTransactionId()));
                 } aborted {
                     log:printError(io:sprintf("Creating Organization \'%s\' aborted for transaction %s", createOrgsBody.orgName,
@@ -130,7 +123,7 @@ public function createOrg(http:Request createOrgReq, gen:OrgCreateRequest create
             return buildUnknownErrorResponse();
         }
     } else {
-        log:printError("Unauthenticated request : Username is not found");
+        log:printError("Unauthenticated request for createOrg: Username is not found");
         return buildErrorResponse(http:UNAUTHORIZED_401, constants:API_ERROR_CODE, "Unable to create organization",
                                                             "Unauthenticated request. Auth token is not provided");
     }
@@ -141,9 +134,9 @@ public function getOrg(http:Request getOrgReq, string orgName) returns http:Resp
     if (res is json) {
         if (res != null) {
             log:printDebug(io:sprintf("Successfully fetched organization \'%s\'", orgName));            
-            error? modifiedRes = updatePayloadWithUserInfo(untaint res, "author");            
-            if (modifiedRes is error) {
-                log:printError("Unexpected error occured while modifying getOrg response", err = modifiedRes);
+            error? err = updatePayloadWithUserInfo(untaint res, "author");            
+            if (err is error) {
+                log:printError("Error occured while adding userInfo to getOrg response", err = err);
                 return buildUnknownErrorResponse();
             } else {
                 log:printDebug("Successfully modified getOrg response with user info");
@@ -184,6 +177,7 @@ public function getImageByImageName(http:Request getImageRequest, string orgName
         }
         if (imageResults.hasNext()) {
             gen:Image image = <gen:Image>imageResults.getNext();
+            imageResults.close();
             table<gen:StringRecord> | error keywordsResult = db:getImageKeywords(image.imageId);
             string[] keywords = [];
             if (keywordsResult is table<gen:StringRecord>) {
@@ -195,6 +189,7 @@ public function getImageByImageName(http:Request getImageRequest, string orgName
                     keywords[keyWorkdsCount] = keyword.value;
                     keyWorkdsCount += 1;
                 }
+                keywordsResult.close();
             } else {
                 log:printError("Error while converting payload to json. Labels will be empty : image ID :" + imageName, err = keywordsResult);
             }
@@ -265,12 +260,14 @@ int offset, int resultLimit) returns http:Response {
             responseArray[counter] = result;
             counter += 1;
         }
+        artifactListResults.close();
         if (counter > 0) {
             table<gen:Count> | error countResult = db:getArtifactListLength(artifactImageId, artifactVersion);
             if (countResult is table<gen:Count>) {
                 log:printDebug("Successfully fetched length of the list");
                 gen:Count countObj = <gen:Count>countResult.getNext();
                 listLength = countObj.count;
+                countResult.close();
             } else {
                 log:printError("Error while counting number of artifacts for image " + imageName, err = countResult);
             }
@@ -309,9 +306,9 @@ public function getArtifact (http:Request getArtifactReq, string orgName, string
             log:printDebug(io:sprintf("Successfully fetched artifact \'%s/%s:%s\' ", orgName, imageName, artifactVersion));
             string userId = res.lastAuthor.toString();
             log:printDebug("Last Author\'s User ID :"+ userId);
-            error? modifiedRes = updatePayloadWithUserInfo(untaint res, "lastAuthor");            
-            if (modifiedRes is error) {
-                log:printError("Unexpected error occured while modifying getArtifact response", err = modifiedRes);
+            error? err = updatePayloadWithUserInfo(untaint res, "lastAuthor");            
+            if (err is error) {
+                log:printError("Error occured while adding userInfo to getArtifact response", err = err);
                 return buildUnknownErrorResponse();                
             } else {
                 log:printDebug(io:sprintf("Successfully modified getArtifact response for user id \'%s\'", userId));
@@ -367,13 +364,15 @@ returns http:Response {
                     err = userinfoResponse);
                 }
             }
+            userResults.close();
             table<gen:Count> | error countResults = db:getMemberCountOfOrg(orgName);
             if (countResults is table<gen:Count>) {
                 if (countResults.hasNext()) {
                     gen:Count countFromDB = <gen:Count> countResults.getNext();
                     userCount = countFromDB.count;
                 }
-            }
+                countResults.close();
+            }            
             gen:UserListResponse userInfoListResponse = {
                 count: userCount,
                 users: users
@@ -396,5 +395,34 @@ returns http:Response {
         log:printError("get org user request without an authenticated user");
         return buildErrorResponse(http:UNAUTHORIZED_401, constants:API_ERROR_CODE, "Unable to fetch organization users",
         "Unauthenticated request. No valid token is not provided");
+    }
+}
+
+# Search all organizations the user is a member of.
+# 
+# + getUserOrgsReq - received request which contains header
+# + userId - userId of user whose organizations are being search 
+# + orgName - regex for search organization
+# + offset - offset value
+# + resultLimit - resultLimit value
+# + return - http response which cater to the request
+public function getUserOrgs (http:Request getUserOrgsReq, string userId,  string orgName, int offset, int resultLimit) 
+returns http:Response {
+    if (getUserOrgsReq.hasHeader(constants:AUTHENTICATED_USER)) {
+        string apiUserId = getUserOrgsReq.getHeader(constants:AUTHENTICATED_USER);
+        log:printDebug(io:sprintf("User %s is fetching organizations of user with the userId %s for orgName \'%s\'",
+        apiUserId, userId, orgName));
+        json | error res = db:searchUserOrganizations(userId, apiUserId, orgName, offset, resultLimit);
+        if (res is json) {
+            log:printDebug(io:sprintf("Received json payload for userId %s and org name \'%s\'",userId, orgName));
+            return buildSuccessResponse(jsonResponse = res);           
+        } else {
+            log:printError("Unable to perform search on user\'s organizations", err = res);
+            return buildUnknownErrorResponse();
+        }
+    } else {
+        log:printError("Unauthenticated request for getUserOrgs: Username is not found");
+        return buildErrorResponse(http:UNAUTHORIZED_401, constants:API_ERROR_CODE, "Unable to retrieve user\'s organizations",
+                                                            "Unauthenticated request. Auth token is not provided");
     }
 }

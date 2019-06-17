@@ -33,3 +33,7 @@ password="admin"
 
 [b7a.log]
 level="DEBUG"
+
+[b7a.sql]
+connection.auto.commit=true
+max.pool.size=100

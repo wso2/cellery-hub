@@ -367,4 +367,75 @@ service CelleryHubAPI on ep {
         http:Response _getArtifactRes = getOrganizationUsers(_orgUserRequest, untaint orgName, offset, resultLimit);
         error? x = outboundEp->respond(_getArtifactRes);
     }
+
+    @openapi:ResourceInfo {
+        summary: "Get user\'s organizations",
+        parameters: [
+            {
+                name: "orgName",
+                inInfo: "query",
+                paramType: "string",
+                description: "Name of the organization",
+                allowEmptyValue: ""
+            },
+            {
+                name: "limit",
+                inInfo: "query",
+                paramType: "int",
+                description: "Number of results returned for pagination",
+                required: true,
+                allowEmptyValue: ""
+            },
+            {
+                name: "offset",
+                inInfo: "query",
+                paramType: "int",
+                description: "Offset of the result set returned for pagination",
+                required: true,
+                allowEmptyValue: ""
+            },
+            {
+                name: "userId",
+                inInfo: "path",
+                paramType: "string",
+                description: "UserId of the user",
+                required: true,
+                allowEmptyValue: ""
+            }
+        ]
+    }
+    @http:ResourceConfig {
+        methods:["GET"],
+        path:"/orgs/users/{userId}"
+    }
+    resource function getUserOrgs (http:Caller outboundEp, http:Request _getUserOrgsReq, string userId) returns error? {
+        map<string> queryParams = _getUserOrgsReq.getQueryParams();
+        int offset = 0;
+        int resultLimit = 10;
+        string orgName = "%";
+        if (queryParams.hasKey(constants:OFFSET)) {
+            int | error offsetQueryParam = int.convert(queryParams.offset);
+            if (offsetQueryParam is int) {
+                offset = offsetQueryParam;
+            }
+        }
+        if (queryParams.hasKey(constants:RESULT_LIMIT)) {
+            int | error resultLimitQueryParam = int.convert(queryParams.
+            resultLimit);
+            if (resultLimitQueryParam is int) {
+                resultLimit = resultLimitQueryParam;
+                if (resultLimit > 25) {
+                    log:printDebug(io:sprintf("Requested result limit exeeded 25. Hense reset resultLimit to 25"));
+                    resultLimit = 25;
+                }
+            }
+        }
+        if (queryParams.hasKey(constants:ORG_NAME)) {
+            log:printDebug("orgName is present");
+            orgName = queryParams.orgName;
+            orgName = orgName.replace("*", "%");
+        }
+        http:Response _getUserOrgsRes = getUserOrgs(_getUserOrgsReq, userId, orgName, offset, resultLimit);
+        error? x = outboundEp->respond(_getUserOrgsRes);
+    }
 }
