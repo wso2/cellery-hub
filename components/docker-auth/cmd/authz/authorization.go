@@ -21,9 +21,10 @@ package main
 import (
 	"database/sql"
 	"fmt"
-	"github.com/cellery-io/cellery-hub/components/docker-auth/pkg/extension"
 	"log"
 	"os"
+
+	"github.com/cellery-io/cellery-hub/components/docker-auth/pkg/extension"
 )
 
 const logFile = "/extension-logs/authorization.log"
@@ -52,7 +53,7 @@ func main() {
 	defer func() {
 		err = file.Close()
 		if err != nil {
-			log.Printf("Error occurred  while closing the file : %s\n" , err)
+			log.Printf("Error occurred  while closing the file : %s\n", err)
 			os.Exit(2)
 		}
 	}()
@@ -77,7 +78,7 @@ func main() {
 		if err != nil {
 			log.Printf("[%s] Error occurred while closing the db connection :%s\n", uuid, err)
 		}
-		log.Printf("[%s] User access granted\n",uuid)
+		log.Printf("[%s] User access granted\n", uuid)
 		os.Exit(extension.SuccessExitCode)
 	} else {
 		err = db.Close()

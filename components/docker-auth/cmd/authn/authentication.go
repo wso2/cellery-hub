@@ -22,7 +22,6 @@ import (
 	"crypto/tls"
 	"encoding/json"
 	"fmt"
-	"github.com/golang/glog"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -115,9 +114,6 @@ func main() {
 	if err != nil {
 		log.Printf("Error in generating the uuid : %s\n", err)
 	}
-
-	glog.Info("File ", file)
-	glog.Flush()
 	log.Printf("[%s] Authentication extension reached and token will be validated\n", uuid)
 	text := extension.ReadStdIn()
 	log.Printf("[%s] Payload received from CLI\n", uuid)
