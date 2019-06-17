@@ -433,7 +433,9 @@ returns http:Response {
     imageName, orderBy, offset, resultLimit));
     json | error orgImagesListResult;
     if (listOrgImagesReq.hasHeader(constants:AUTHENTICATED_USER)) {
-        orgImagesListResult = null;
+        string userId = listOrgImagesReq.getHeader(constants:AUTHENTICATED_USER);
+        log:printDebug(io:sprintf("List org images request with an authenticated user : %s", userId));        
+        orgImagesListResult = db:getUserImagesOfanORG(userId, orgName, imageName, orderBy, offset, resultLimit);
     } else {
         log:printDebug("List org images request with an unauthenticated user");
         orgImagesListResult = db:getPublicImagesOfanORG(orgName, imageName, orderBy, offset, resultLimit);

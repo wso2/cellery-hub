@@ -228,27 +228,36 @@ returns json | error {
 public function getPublicImagesOfanORG(string orgName, string imageName, string orderBy, int offset, int resultLimit)
 returns json | error {
     log:printDebug(io:sprintf("Performing image retrival from DB for org: %s, image: %s", orgName, imageName));
-    table<gen:OrgImagesListResponse> resTotal = check connection->select(SEARCH_ORG_IMAGES_TOTAL_COUNT, gen:Count, orgName, imageName, loadToMemory = true);
-    if (resTotal.count() > 0) {
-        json resTotalJson = check json.convert(resTotal);
-        int totalOrgs = check int.convert(resTotalJson[0]["count"]);
-        gen:OrgImagesListResponse oilr = {count:totalOrgs , data:[]};
-        if (totalOrgs > 0){
-            log:printDebug(io:sprintf("%d images found with the imageName \'%s\' for orgName %s", totalOrgs, imageName, orgName));        
-            table<gen:OrgImagesListResponseAtom> res = check connection->select(SEARCH_ORG_IMAGES_QUERY, gen:OrgImagesListResponseAtom, 
-            orgName, imageName, loadToMemory = true);        
-            foreach int i in 0...res.count()-1{
-                gen:OrgImagesListResponseAtom oilra = check gen:OrgImagesListResponseAtom.convert(res.getNext());
-                oilr.data[i] = oilra;
-            }
-        } else {
-            log:printDebug(io:sprintf("No organization found for imageName %s, in the orgName \'%s\'",imageName, orgName));
+    table<gen:OrgImagesListResponse> resTotal = check connection->select(SEARCH_ORG_IMAGES_TOTAL_COUNT, gen:Count, orgName, imageName);
+    json resTotalJson = check json.convert(resTotal);
+    int totalOrgs = check int.convert(resTotalJson[0]["count"]);
+    gen:OrgImagesListResponse oilr = {count:totalOrgs , data:[]};
+    if (totalOrgs > 0){
+        log:printDebug(io:sprintf("%d images found with the imageName \'%s\' for orgName %s", totalOrgs, imageName, orgName));        
+        table<gen:OrgImagesListResponseAtom> res = check connection->select(SEARCH_ORG_IMAGES_QUERY, gen:OrgImagesListResponseAtom, 
+        orgName, imageName, loadToMemory = true);        
+        foreach int i in 0...res.count()-1{
+            gen:OrgImagesListResponseAtom oilra = check gen:OrgImagesListResponseAtom.convert(res.getNext());
+            oilr.data[i] = oilra;
         }
-        return check json.convert(oilr);
     } else {
-        string errMsg = io:sprintf("No organization found with the name \'%s\'", orgName);
-        log:printDebug(errMsg);
-        error er = error(errMsg);
-        return er;
-    }    
+        log:printDebug(io:sprintf("No image found for the orgName \'%s\' with the image name \'%s\'", orgName, imageName));
+    }
+    return check json.convert(oilr);   
+}
+
+public function getUserImagesOfanORG(string userId, string orgName, string imageName, string orderBy, int offset, int resultLimit)
+returns json | error {
+    log:printDebug(io:sprintf("Performing image retrival from DB for org: %s, image: %s", orgName, imageName));
+    table<gen:OrgImagesListResponse> resTotal = check connection->select(SEARCH_ORG_IMAGES_FOR_USER_TOTAL_COUNT, gen:Count, 
+    orgName, imageName, userId, loadToMemory = true);
+    json resTotalJson = check json.convert(resTotal);
+    int totalOrgs = check int.convert(resTotalJson[0]["count"]);
+    gen:OrgImagesListResponse oilr = {count:totalOrgs , data:[]};
+    if (totalOrgs > 0){
+        
+    } else {
+        log:printDebug(io:sprintf("No organization found for imageName %s, in the orgName \'%s\'",imageName, orgName));
+    }
+    return check json.convert(oilr);
 }
