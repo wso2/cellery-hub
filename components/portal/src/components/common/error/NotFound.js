@@ -18,7 +18,7 @@
 
 import ArrowBack from "@material-ui/icons/ArrowBack";
 import Button from "@material-ui/core/Button/Button";
-import ErrorOutline from "@material-ui/icons/ErrorOutline";
+import CelleryError from "../../../img/celleryError.jpg";
 import Home from "@material-ui/icons/Home";
 import React from "react";
 import {withRouter} from "react-router-dom";
@@ -38,10 +38,9 @@ const styles = (theme) => ({
         margin: "auto",
         textAlign: "center"
     },
-    notFoundContentIndicator: {
-        margin: theme.spacing.unit * 3,
-        fontSize: "4em",
-        color: "#6e6e6e"
+    unknownErrorImg: {
+        marginTop: theme.spacing.unit * 5,
+        height: 150
     },
     notFoundTitle: {
         margin: theme.spacing.unit,
@@ -66,9 +65,9 @@ const styles = (theme) => ({
 const NotFound = ({classes, history, title, description, showNavigationButtons}) => (
     <div className={classes.notFoundContainer}>
         <div className={classes.notFound}>
-            <ErrorOutline className={classes.notFoundContentIndicator}/>
+            <img src={CelleryError} className={classes.unknownErrorImg} alt={"Not Found Error"}/>
             <div className={classes.notFoundTitle}>
-                {title ? title : "Unable to Find What You were Looking For"}
+                {title ? title : "Unable to Find What You were Looking for"}
             </div>
             {
                 description

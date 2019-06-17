@@ -18,7 +18,7 @@
 
 import ArrowBack from "@material-ui/icons/ArrowBack";
 import Button from "@material-ui/core/Button/Button";
-import ErrorOutline from "@material-ui/icons/ErrorOutline";
+import CelleryError from "../../../img/celleryError.jpg";
 import Home from "@material-ui/icons/Home";
 import React from "react";
 import {withRouter} from "react-router-dom";
@@ -38,10 +38,9 @@ const styles = (theme) => ({
         margin: "auto",
         textAlign: "center"
     },
-    unknownErrorContentIndicator: {
-        margin: theme.spacing.unit * 3,
-        fontSize: "4em",
-        color: "#6E6E6E"
+    unknownErrorImg: {
+        marginTop: theme.spacing.unit * 5,
+        height: 150
     },
     unknownErrorTitle: {
         margin: theme.spacing.unit,
@@ -69,7 +68,7 @@ const styles = (theme) => ({
 const UnknownError = ({classes, history, title, description, showNavigationButtons}) => (
     <div className={classes.unknownErrorContainer}>
         <div className={classes.unknownError}>
-            <ErrorOutline className={classes.unknownErrorContentIndicator}/>
+            <img src={CelleryError} className={classes.unknownErrorImg} alt={"Unknown Error"}/>
             <div className={classes.unknownErrorTitle}>
                 {title ? title : "Something Went Wrong"}
             </div>
