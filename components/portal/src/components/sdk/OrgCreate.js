@@ -118,7 +118,7 @@ class OrgCreate extends React.Component {
             NotificationUtils.hideLoadingOverlay(globalState);
         }).catch((err) => {
             let errorMessage;
-            if (err instanceof HubApiError) {
+            if (err instanceof HubApiError && err.getMessage()) {
                 errorMessage = err.getMessage();
             } else {
                 errorMessage = "Failed to create organization";
@@ -165,11 +165,16 @@ class OrgCreate extends React.Component {
                         self.setState({
                             isOrgVerified: true
                         });
-                    } else {
+                    } else if (err.getMessage()) {
                         self.setState({
                             isOrgVerified: false
                         });
                         errorMessage = err.getMessage();
+                    } else {
+                        self.setState({
+                            isOrgVerified: false
+                        });
+                        errorMessage = `Failed to verify if Organization ${orgNameToBeCreated} exists`;
                     }
                 } else {
                     self.setState({

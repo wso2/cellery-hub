@@ -29,6 +29,7 @@ import IconButton from "@material-ui/core/IconButton";
 import Input from "@material-ui/core/Input";
 import InputAdornment from "@material-ui/core/InputAdornment";
 import NotificationUtils from "../../utils/common/notificationUtils";
+import ReCAPTCHA from "react-google-recaptcha";
 import React from "react";
 import {withStyles} from "@material-ui/core/styles/index";
 import HttpUtils, {HubApiError} from "../../utils/api/httpUtils";
@@ -38,6 +39,9 @@ import * as PropTypes from "prop-types";
 const styles = (theme) => ({
     dialogActions: {
         marginBottom: theme.spacing(2)
+    },
+    captchaContainer: {
+        marginTop: theme.spacing(2)
     }
 });
 
@@ -48,9 +52,21 @@ class OrgCreateDialog extends React.Component {
         this.state = {
             orgNameToBeCreated: "",
             orgNameErrorMessage: "",
-            isOrgVerified: false
+            isOrgVerified: false,
+            reCaptchaVerifiedToken: null
         };
     }
+
+    handleOnCaptchaVerify = (token) => {
+        this.setState({
+            reCaptchaVerifiedToken: token
+        });
+    };
+
+    handleOnCaptchaVerifyError = () => {
+        const {globalState} = this.props;
+        NotificationUtils.showNotification("Failed to verify Captcha", NotificationUtils.Levels.ERROR, globalState);
+    };
 
     handleOrgNameInputChange = (event) => {
         const orgName = event.currentTarget.value;
@@ -71,12 +87,15 @@ class OrgCreateDialog extends React.Component {
     handleCreateOrg = () => {
         const self = this;
         const {globalState, onClose} = self.props;
-        const {orgNameToBeCreated} = self.state;
+        const {orgNameToBeCreated, reCaptchaVerifiedToken} = self.state;
         NotificationUtils.showLoadingOverlay(`Creating organization ${orgNameToBeCreated}`, globalState);
         HttpUtils.callHubAPI(
             {
                 url: "/orgs",
                 method: "POST",
+                headers: {
+                    [Constants.Header.CELLERY_HUB_CAPTCHA]: reCaptchaVerifiedToken
+                },
                 data: {
                     orgName: orgNameToBeCreated
                 }
@@ -87,8 +106,12 @@ class OrgCreateDialog extends React.Component {
             NotificationUtils.hideLoadingOverlay(globalState);
         }).catch((err) => {
             let errorMessage;
-            if (err instanceof HubApiError) {
-                errorMessage = err.getMessage();
+            if (err instanceof HubApiError && err.getMessage()) {
+                if (err.getStatusCode() === 429) {
+                    errorMessage = "Too Many Requests. Please try again later.";
+                } else {
+                    errorMessage = err.getMessage();
+                }
             } else {
                 errorMessage = "Failed to create organization";
             }
@@ -123,11 +146,16 @@ class OrgCreateDialog extends React.Component {
                         self.setState({
                             isOrgVerified: true
                         });
-                    } else {
+                    } else if (err.getMessage()) {
                         self.setState({
                             isOrgVerified: false
                         });
                         errorMessage = err.getMessage();
+                    } else {
+                        self.setState({
+                            isOrgVerified: false
+                        });
+                        errorMessage = `Failed to verify if Organization ${orgNameToBeCreated} exists`;
                     }
                 } else {
                     self.setState({
@@ -144,9 +172,10 @@ class OrgCreateDialog extends React.Component {
     };
 
     render() {
-        const {classes, open, onClose} = this.props;
-        const {isOrgVerified, orgNameToBeCreated, orgNameErrorMessage} = this.state;
+        const {classes, globalState, open, onClose} = this.props;
+        const {isOrgVerified, orgNameToBeCreated, orgNameErrorMessage, reCaptchaVerifiedToken} = this.state;
 
+        const reCaptchaSiteKey = globalState.get(StateHolder.CONFIG).reCaptchaSiteKey;
         return (
             <div>
                 <Dialog open={open} onClose={onClose} aria-labelledby={"form-dialog-title"} fullWidth>
@@ -167,13 +196,17 @@ class OrgCreateDialog extends React.Component {
                             />
                             {orgNameErrorMessage ? <FormHelperText>{orgNameErrorMessage}</FormHelperText> : null}
                         </FormControl>
+                        <ReCAPTCHA sitekey={reCaptchaSiteKey} onChange={this.handleOnCaptchaVerify}
+                            onErrored={this.handleOnCaptchaVerifyError} className={classes.captchaContainer}/>
                     </DialogContent>
                     <DialogActions className={classes.dialogActions}>
                         <Button onClick={onClose} size={"small"}>
                             Cancel
                         </Button>
                         <Button onClick={this.handleCreateOrg} color={"primary"} size={"small"}
-                            disabled={!isOrgVerified || !orgNameToBeCreated || orgNameErrorMessage}>
+                            disabled={
+                                !isOrgVerified || !orgNameToBeCreated || orgNameErrorMessage || !reCaptchaVerifiedToken
+                            }>
                             Create
                         </Button>
                     </DialogActions>

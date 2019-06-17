@@ -34,6 +34,12 @@ const Constants = {
     SortingOrder: {
         MOST_POPULAR: "most-popular",
         RECENTLY_UPDATED: "recently-updated"
+    },
+    KeyCode: {
+        ENTER: 13
+    },
+    Header: {
+        CELLERY_HUB_CAPTCHA: "g-recaptcha-response"
     }
 };
 

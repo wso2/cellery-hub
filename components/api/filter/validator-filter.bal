@@ -31,7 +31,7 @@ cache:Cache cache = new(expiryTimeMillis = 259200000);
 public type validateRequestFilter object {
     public function filterRequest(http:Caller caller, http:Request request,
     http:FilterContext context) returns boolean {
-        log:printDebug("Request was intercepted to validate the token ......");
+        log:printDebug("Request was intercepted to validate the token");
         if(request.hasHeader(constants:AUTHENTICATED_USER)) {
             request.removeHeader(constants:AUTHENTICATED_USER);
         }
@@ -135,7 +135,7 @@ function isExpired(int timeVal) returns boolean {
     if (timeNow/1000 < timeVal) {
         return false;
     } else {
-        log:printDebug(io:sprintf("The system time is %d and the expiry time is %d  ", 
+        log:printDebug(io:sprintf("The system time is %d and the expiry time is %d",
         timeNow/1000, timeVal));
         return true;
     }

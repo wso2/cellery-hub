@@ -67,40 +67,25 @@ const styles = (theme) => ({
 
 class ImageList extends React.Component {
 
-    constructor(props) {
-        super(props);
-        this.state = {
-            pageNo: props.defaultPageNo,
-            rowsPerPage: props.defaultRowsPerPage
-        };
-    }
-
     handleImageClick = (orgName, imageName) => {
         const {history} = this.props;
         history.push(`/images/${orgName}/${imageName}`);
     };
 
-    handleChangePageNo = (newPageNo) => {
-        const {onPageChange} = this.props;
-        const {rowsPerPage} = this.state;
-        this.setState({
-            pageNo: newPageNo
-        });
+    handleChangePageNo = (event, newPageNo) => {
+        const {onPageChange, rowsPerPage} = this.props;
         onPageChange(rowsPerPage, newPageNo);
     };
 
-    handleChangeRowsPerPage = (newRowsPerPage) => {
-        const {onPageChange} = this.props;
-        const {pageNo} = this.state;
-        this.setState({
-            rowsPerPage: newRowsPerPage
-        });
-        onPageChange(newRowsPerPage, pageNo);
+    handleChangeRowsPerPage = (event) => {
+        const {onPageChange, pageNo, rowsPerPage} = this.props;
+        const newRowsPerPage = event.target.value;
+        const newPageNo = (pageNo * rowsPerPage) / newRowsPerPage;
+        onPageChange(newRowsPerPage, newPageNo);
     };
 
     render = () => {
-        const {classes, pageData, totalCount} = this.props;
-        const {pageNo, rowsPerPage} = this.state;
+        const {classes, totalCount, pageNo, rowsPerPage, pageData} = this.props;
         return (
             <React.Fragment>
                 <List component={"nav"}>
@@ -151,8 +136,9 @@ ImageList.propTypes = {
         goBack: PropTypes.func.isRequired
     }),
     classes: PropTypes.object.isRequired,
-    defaultPageNo: PropTypes.number.isRequired,
-    defaultRowsPerPage: PropTypes.number.isRequired,
+    pageNo: PropTypes.number.isRequired,
+    rowsPerPage: PropTypes.number.isRequired,
+    onPageChange: PropTypes.func.isRequired,
     totalCount: PropTypes.number.isRequired,
     pageData: PropTypes.arrayOf(PropTypes.shape({
         orgName: PropTypes.string.isRequired,
@@ -162,8 +148,7 @@ ImageList.propTypes = {
         lastAuthor: PropTypes.string.isRequired,
         updatedTimestamp: PropTypes.number.isRequired,
         visibility: PropTypes.string.isRequired
-    })).isRequired,
-    onPageChange: PropTypes.func.isRequired
+    })).isRequired
 };
 
 export default withStyles(styles)(withRouter(ImageList));

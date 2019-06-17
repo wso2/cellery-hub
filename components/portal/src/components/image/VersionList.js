@@ -99,9 +99,9 @@ class VersionList extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            pageNo: 0,
-            rowsPerPage: 10,
-            sort: "updated"
+            pageNo: props.defaultPageNo,
+            rowsPerPage: props.defaultRowsPerPage,
+            sort: Constants.SortingOrder.RECENTLY_UPDATED
         };
     }
 
@@ -112,7 +112,7 @@ class VersionList extends React.Component {
         history.push(`/images/${orgName}/${imageName}/${version}`);
     };
 
-    handleChangePageNo = (newPageNo) => {
+    handleChangePageNo = (event, newPageNo) => {
         const {onPageChange} = this.props;
         const {rowsPerPage} = this.state;
         this.setState({
@@ -121,13 +121,16 @@ class VersionList extends React.Component {
         onPageChange(rowsPerPage, newPageNo);
     };
 
-    handleChangeRowsPerPage = (newRowsPerPage) => {
+    handleChangeRowsPerPage = (event) => {
         const {onPageChange} = this.props;
-        const {pageNo} = this.state;
+        const {pageNo, rowsPerPage} = this.state;
+        const newRowsPerPage = event.target.value;
+        const newPageNo = (pageNo * rowsPerPage) / newRowsPerPage;
         this.setState({
+            pageNo: newPageNo,
             rowsPerPage: newRowsPerPage
         });
-        onPageChange(newRowsPerPage, pageNo);
+        onPageChange(newRowsPerPage, newPageNo);
     };
 
     handleSortChange = (event) => {
@@ -139,7 +142,6 @@ class VersionList extends React.Component {
     render = () => {
         const {classes} = this.props;
         const {pageNo, rowsPerPage, sort} = this.state;
-
         return (
             <div className={classes.content}>
                 <div className={classes.container}>
@@ -160,9 +162,12 @@ class VersionList extends React.Component {
                                     <FormControl className={classes.formControl}>
                                         <Select value={sort} onChange={this.handleSortChange} name={"sort"} displayEmpty
                                             input={<Input name={"sort"} id={"sort-label-placeholder"}/>}>
-                                            <MenuItem value={"updated"}>Recently Updated</MenuItem>
-                                            <MenuItem value={"pulls"}>Most No of Pulls</MenuItem>
-                                            <MenuItem value={"a-z"}>A-Z</MenuItem>
+                                            <MenuItem value={Constants.SortingOrder.RECENTLY_UPDATED}>
+                                                Recently Updated
+                                            </MenuItem>
+                                            <MenuItem value={Constants.SortingOrder.MOST_POPULAR}>
+                                                Most No of Pulls
+                                            </MenuItem>
                                         </Select>
                                     </FormControl>
                                 </form>
@@ -212,6 +217,14 @@ VersionList.propTypes = {
             imageName: PropTypes.string.isRequired
         })
     }).isRequired,
+    defaultPageNo: PropTypes.number.isRequired,
+    defaultRowsPerPage: PropTypes.number.isRequired,
+    totalCount: PropTypes.number.isRequired,
+    pageData: PropTypes.arrayOf(PropTypes.shape({
+        version: PropTypes.string.isRequired,
+        updatedTimestamp: PropTypes.string.isRequired,
+        pullCount: PropTypes.string
+    })).isRequired,
     onPageChange: PropTypes.func
 };
 

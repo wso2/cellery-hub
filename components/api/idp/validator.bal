@@ -22,7 +22,7 @@ import ballerina/log;
 import ballerina/time;
 import ballerina/io;
 
-public type TokenDetail record { 
+public type TokenDetail record {
     string username;
     int expiryTime;
 };
@@ -39,16 +39,16 @@ public function getTokenDetails(string token) returns (TokenDetail)|error {
     // we have to reinitialize the endpoint. Need to remove this after the bug on this in ballerina is fixed
     http:Client idpClientEP = getClientEP();
     var response = idpClientEP->post(config:getAsString(constants:IDP_INTROSPCET_VAR), req);
-    var isValid = false;
     if (response is http:Response) {
         if (response.statusCode < 200 && response.statusCode > 300){
             log:printError("Something went wrong while connecting to introspection endpoint");
         }
         json result = check response.getJsonPayload();
         log:printDebug(io:sprintf("Response json from the introspection endpoint is %s", check string.convert(result)));
-        isValid = check boolean.convert(result.active);
+        var isValid = check boolean.convert(result.active);
+        var fullyQualifiedUsername = check string.convert(result.username);
         TokenDetail tokenDetail = {
-            username: check string.convert(result.username),
+            username: fullyQualifiedUsername.split("@")[0],
             expiryTime: check int.convert(result.exp)
         };
         if (isValid) {

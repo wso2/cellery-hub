@@ -20,6 +20,7 @@ import Link from "@material-ui/core/Link";
 import React from "react";
 import Typography from "@material-ui/core/Typography";
 import {withStyles} from "@material-ui/core/styles";
+import withGlobalState, {StateHolder} from "../common/state";
 import * as PropTypes from "prop-types";
 
 const styles = (theme) => ({
@@ -39,15 +40,15 @@ const styles = (theme) => ({
 });
 
 const SignInSuccess = (props) => {
-    const {classes} = props;
-
+    const {classes, globalState} = props;
+    const hubPublicUrl = globalState.get(StateHolder.CONFIG).hubPublicUrl;
     return (
         <div className={classes.content}>
             <Typography component={"div"} variant={"h5"} className={classes.success}>
                 You are now authenticated with Cellery SDK!
             </Typography>
             <Typography component={"div"} className={classes.gotoHub}> You can go to&nbsp;
-                <Link target={"_blank"} href={"https://hub.cellery.io"}>Cellery Hub</Link> to manage your
+                <Link target={"_blank"} href={hubPublicUrl}>Cellery Hub</Link> to manage your
                 organizations and Cell images.
             </Typography>
         </div>
@@ -55,7 +56,8 @@ const SignInSuccess = (props) => {
 };
 
 SignInSuccess.propTypes = {
-    classes: PropTypes.object.isRequired
+    classes: PropTypes.object.isRequired,
+    globalState: PropTypes.instanceOf(StateHolder).isRequired
 };
 
-export default withStyles(styles)(SignInSuccess);
+export default withStyles(styles)(withGlobalState(SignInSuccess));

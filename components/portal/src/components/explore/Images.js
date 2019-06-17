@@ -16,6 +16,7 @@
  * under the License.
  */
 
+import Constants from "../../utils/constants";
 import FormControl from "@material-ui/core/FormControl";
 import Grid from "@material-ui/core/Grid";
 import ImageList from "../common/ImageList";
@@ -76,7 +77,7 @@ class Images extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            sort: "most-popular"
+            sort: Constants.SortingOrder.MOST_POPULAR
         };
     }
 
@@ -117,16 +118,14 @@ class Images extends React.Component {
                                 <InputLabel shrink htmlFor={"sort-label-placeholder"}>
                                     Sort
                                 </InputLabel>
-                                <Select
-                                    value={sort}
-                                    onChange={this.handleSortChange}
-                                    input={<Input name={"sort"} id={"sort-label-placeholder"}/>}
-                                    displayEmpty
-                                    name={"sort"}
-                                >
-                                    <MenuItem value={"most-popular"}>Most Popular</MenuItem>
-                                    <MenuItem value={"a-z"}>A-Z</MenuItem>
-                                    <MenuItem value={"updated"}>Recently Updated</MenuItem>
+                                <Select value={sort} displayEmpty name={"sort"} onChange={this.handleSortChange}
+                                    input={<Input name={"sort"} id={"sort-label-placeholder"}/>}>
+                                    <MenuItem value={Constants.SortingOrder.RECENTLY_UPDATED}>
+                                        Recently Updated
+                                    </MenuItem>
+                                    <MenuItem value={Constants.SortingOrder.MOST_POPULAR}>
+                                        Most No of Pulls
+                                    </MenuItem>
                                 </Select>
                             </FormControl>
                         </form>
