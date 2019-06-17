@@ -429,21 +429,21 @@ returns http:Response {
 
 public function listOrgImages (http:Request listOrgImagesReq, string orgName, string imageName, string orderBy, int offset, int resultLimit)
 returns http:Response {
-    log:printDebug(io:sprintf("Listing images for orgName : %s, imageName : %s, orderBy : %s, offset : %d, limit : %d, ", orgName, imageName, orderBy, offset, resultLimit));
-
+    log:printDebug(io:sprintf("Listing images for orgName : %s, imageName : %s, orderBy : %s, offset : %d, limit : %d, ", orgName, 
+    imageName, orderBy, offset, resultLimit));
     json | error orgImagesListResult;
-
     if (listOrgImagesReq.hasHeader(constants:AUTHENTICATED_USER)) {
         orgImagesListResult = null;
     } else {
-        log:printDebug("List org images request without an authenticated user");
+        log:printDebug("List org images request with an unauthenticated user");
         orgImagesListResult = db:getPublicImagesOfanORG(orgName, imageName, orderBy, offset, resultLimit);
     }
-
-	if (orgImagesListResult is json) {
+	if (orgImagesListResult is json) {        
         return buildSuccessResponse(jsonResponse = orgImagesListResult);
     }
     else {
+        log:printError(io:sprintf("Error occured while retrieving images with name \'%s\' for organization \'%s\'", imageName, orgName), 
+        err = orgImagesListResult);
         return buildUnknownErrorResponse();
     }
 }
