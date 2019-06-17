@@ -37,9 +37,8 @@ public type CaptchaRequestFilter object {
         }
         boolean hasUserId = request.hasHeader(constants:AUTHENTICATED_USER);
         if (!hasUserId) {
-            log:printDebug("No authenticated user found. Hence blocking from captcha valve");
-            checkpanic caller->respond(getRateLimitResponse());
-            return false;
+            log:printDebug("No authenticated user found. Hence passing through from captcha valve");
+            return true;
         }
         string userId = request.getHeader(constants:AUTHENTICATED_USER);
 
