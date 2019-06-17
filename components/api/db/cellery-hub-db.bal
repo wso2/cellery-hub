@@ -241,7 +241,7 @@ returns json | error {
             oilr.data[i] = oilra;
         }
     } else {
-        log:printDebug(io:sprintf("No image found for the orgName \'%s\' with the image name \'%s\'", orgName, imageName));
+        log:printDebug(io:sprintf("No images found for the orgName \'%s\' with the image name \'%s\'", orgName, imageName));
     }
     return check json.convert(oilr);   
 }
@@ -255,9 +255,17 @@ returns json | error {
     int totalOrgs = check int.convert(resTotalJson[0]["count"]);
     gen:OrgImagesListResponse oilr = {count:totalOrgs , data:[]};
     if (totalOrgs > 0){
-        
+        log:printDebug(io:sprintf("%d images found with the imageName \'%s\' for orgName %s and userId %s", totalOrgs, imageName, 
+        orgName, userId));        
+        table<gen:OrgImagesListResponseAtom> res = check connection->select(SEARCH_ORG_IMAGES_FOR_USER_QUERY, gen:OrgImagesListResponseAtom, 
+        orgName, imageName, userId, loadToMemory = true);        
+        foreach int i in 0...res.count()-1{
+            gen:OrgImagesListResponseAtom oilra = check gen:OrgImagesListResponseAtom.convert(res.getNext());
+            oilr.data[i] = oilra;
+        }        
     } else {
-        log:printDebug(io:sprintf("No organization found for imageName %s, in the orgName \'%s\'",imageName, orgName));
+        log:printDebug(io:sprintf("No images found for the orgName \'%s\' with the image name \'%s\' for userId %s", orgName, 
+        imageName, userId));
     }
     return check json.convert(oilr);
 }
