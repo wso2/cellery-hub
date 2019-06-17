@@ -65,6 +65,9 @@ const FederatedIdpSelect = (props) => {
     if (params.fidp) {
         AuthUtils.initiateSdkLoginFlow(globalState, params.fidp, redirectUrl);
         return null;
+    } else if (AuthUtils.getDefaultFIdP()) {
+        AuthUtils.initiateSdkLoginFlow(globalState, null, redirectUrl);
+        return null;
     }
     return (
         <div className={classes.content}>

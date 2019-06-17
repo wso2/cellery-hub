@@ -76,9 +76,8 @@ class Orgs extends React.Component {
         const orgName = event.currentTarget.value;
         let errorMessage = "";
         if (orgName) {
-            if (!new RegExp(`^${Constants.Pattern.CELLERY_ID}$`).test(orgName)) {
-                errorMessage = "Organization name can only contain lower case letters, numbers and dashes"
-                    + " and should be surrounded by lower case letters and numbers";
+            if (!new RegExp(`^${Constants.Pattern.PARTIAL_CELLERY_ID}$`).test(orgName)) {
+                errorMessage = "Organization name can only contain lower case letters, numbers and dashes";
             }
         }
         this.setState((prevState) => ({
@@ -90,6 +89,11 @@ class Orgs extends React.Component {
                 }
             }
         }));
+    };
+
+    handleSearchButtonClick = () => {
+        const {pagination} = this.state;
+        this.searchOrgs(pagination.rowsPerPage, pagination.pageNo);
     };
 
     handleOrgNameSearchKeyDown = (event) => {
@@ -117,7 +121,7 @@ class Orgs extends React.Component {
         const queryParams = {
             orgName: search.orgName.value ? `*${search.orgName.value}*` : "*",
             resultLimit: rowsPerPage,
-            offset: pageNo
+            offset: pageNo * rowsPerPage
         };
         NotificationUtils.showLoadingOverlay("Fetching organizations", globalState);
         HttpUtils.callHubAPI(
@@ -126,10 +130,10 @@ class Orgs extends React.Component {
                 method: "GET"
             },
             globalState
-        ).then((data) => {
+        ).then((response) => {
             self.setState({
-                totalCount: data.count,
-                orgs: data.data
+                totalCount: response.count,
+                orgs: response.data
             });
             NotificationUtils.hideLoadingOverlay(globalState);
         }).catch((err) => {
@@ -148,7 +152,7 @@ class Orgs extends React.Component {
 
     render() {
         const {classes} = this.props;
-        const {totalCount, orgs, search} = this.state;
+        const {totalCount, orgs, search, pagination} = this.state;
         return (
             <Grid container>
                 <Grid item xs={12} sm={4} md={4}>
@@ -159,7 +163,7 @@ class Orgs extends React.Component {
                             endAdornment={
                                 <InputAdornment position={"end"}>
                                     <IconButton aria-label={"Search Organization"}
-                                        onClick={this.handleOrgNameSearchKeyDown}>
+                                        onClick={this.handleSearchButtonClick}>
                                         <SearchIcon/>
                                     </IconButton>
                                 </InputAdornment>
@@ -170,7 +174,7 @@ class Orgs extends React.Component {
                 </Grid>
                 <Grid item xs={12} sm={12} md={12}>
                     <OrgList pageData={orgs} onPageChange={this.handlePageChange} totalCount={totalCount}
-                        rowsPerPage={Orgs.DEFAULT_ROWS_PER_PAGE} pageNo={Orgs.DEFAULT_PAGE_NO}/>
+                        rowsPerPage={pagination.rowsPerPage} pageNo={pagination.pageNo}/>
                 </Grid>
             </Grid>
         );

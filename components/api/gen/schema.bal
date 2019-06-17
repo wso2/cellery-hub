@@ -60,7 +60,7 @@ public type ArtifactListResponse record {
 
 public type ArtifactListArrayResponse record {
    int count;
-   ArtifactListResponse [] artifacts;
+   ArtifactListResponse[] data;
 };
 
 public type Image record {
@@ -91,17 +91,17 @@ public type StringRecord record {
 };
 
 public type OrgListResponse record {
-    int count; 
+    int count;
     OrgListResponseAtom[] data;
 };
 
-public type OrgListResponseAtom record { 
+public type OrgListResponseAtom record {
     string orgName;
     string description;
     int membersCount;
 };
 
-public type OrgListResponseImageCount record { 
+public type OrgListResponseImageCount record {
     string orgName;
     int imageCount;
 };

@@ -133,15 +133,15 @@ public function getOrg(http:Request getOrgReq, string orgName) returns http:Resp
     json | error res = db:getOrganization(orgName);
     if (res is json) {
         if (res != null) {
-            log:printDebug(io:sprintf("Successfully fetched organization \'%s\'", orgName));            
-            error? err = updatePayloadWithUserInfo(untaint res, "author");            
+            log:printDebug(io:sprintf("Successfully fetched organization \'%s\'", orgName));
+            error? err = updatePayloadWithUserInfo(untaint res, "author");
             if (err is error) {
                 log:printError("Error occured while adding userInfo to getOrg response", err = err);
                 return buildUnknownErrorResponse();
             } else {
                 log:printDebug("Successfully modified getOrg response with user info");
-                return buildSuccessResponse(jsonResponse = res);                
-            }            
+                return buildSuccessResponse(jsonResponse = res);
+            }
         } else {
             string errDes = io:sprintf("There is no organization named \'%s\'", orgName);
             log:printError("Unable to fetch organization" + " : " + errDes);
@@ -275,7 +275,7 @@ int offset, int resultLimit) returns http:Response {
 
         gen:ArtifactListArrayResponse response = {
             count: listLength,
-            artifacts: responseArray
+            data: responseArray
         };
         json | error resPayload =  json.convert(response);
         if (resPayload is json) {
@@ -306,14 +306,14 @@ public function getArtifact (http:Request getArtifactReq, string orgName, string
             log:printDebug(io:sprintf("Successfully fetched artifact \'%s/%s:%s\' ", orgName, imageName, artifactVersion));
             string userId = res.lastAuthor.toString();
             log:printDebug("Last Author\'s User ID :"+ userId);
-            error? err = updatePayloadWithUserInfo(untaint res, "lastAuthor");            
+            error? err = updatePayloadWithUserInfo(untaint res, "lastAuthor");
             if (err is error) {
                 log:printError("Error occured while adding userInfo to getArtifact response", err = err);
-                return buildUnknownErrorResponse();                
+                return buildUnknownErrorResponse();
             } else {
                 log:printDebug(io:sprintf("Successfully modified getArtifact response for user id \'%s\'", userId));
                 return buildSuccessResponse(jsonResponse = res);
-            } 
+            }
         } else {
             string errMsg = "Unable to fetch artifact. ";
             string errDes = io:sprintf("There is no artifact named \'%s/%s:%s\'" ,orgName, imageName, artifactVersion);
@@ -372,7 +372,7 @@ returns http:Response {
                     userCount = countFromDB.count;
                 }
                 countResults.close();
-            }            
+            }
             gen:UserListResponse userInfoListResponse = {
                 count: userCount,
                 users: users
@@ -399,14 +399,14 @@ returns http:Response {
 }
 
 # Search all organizations the user is a member of.
-# 
+#
 # + getUserOrgsReq - received request which contains header
-# + userId - userId of user whose organizations are being search 
+# + userId - userId of user whose organizations are being search
 # + orgName - regex for search organization
 # + offset - offset value
 # + resultLimit - resultLimit value
 # + return - http response which cater to the request
-public function getUserOrgs (http:Request getUserOrgsReq, string userId,  string orgName, int offset, int resultLimit) 
+public function getUserOrgs (http:Request getUserOrgsReq, string userId,  string orgName, int offset, int resultLimit)
 returns http:Response {
     if (getUserOrgsReq.hasHeader(constants:AUTHENTICATED_USER)) {
         string apiUserId = getUserOrgsReq.getHeader(constants:AUTHENTICATED_USER);
@@ -415,7 +415,7 @@ returns http:Response {
         json | error res = db:searchUserOrganizations(userId, apiUserId, orgName, offset, resultLimit);
         if (res is json) {
             log:printDebug(io:sprintf("Received json payload for userId %s and org name \'%s\'",userId, orgName));
-            return buildSuccessResponse(jsonResponse = res);           
+            return buildSuccessResponse(jsonResponse = res);
         } else {
             log:printError("Unable to perform search on user\'s organizations", err = res);
             return buildUnknownErrorResponse();
