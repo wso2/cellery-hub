@@ -369,7 +369,7 @@ service CelleryHubAPI on ep {
     }
 
     @openapi:ResourceInfo {
-        summary: "Get user&#x27;s organizations",
+        summary: "Get user\'s organizations",
         parameters: [
             {
                 name: "orgName",
