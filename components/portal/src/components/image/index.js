@@ -302,7 +302,8 @@ class Image extends React.Component {
                                                                 : <React.Fragment>
                                                                     <Lock className={classes.elementIcon}/>
                                                                     <Typography variant={"subtitle2"} color={"inherit"}
-                                                                        className={classes.elementText}>
+                                                                        className={classNames(classes.elementText,
+                                                                            classes.visibility)}>
                                                                         {imageData.visibility.toLowerCase()}
                                                                     </Typography>
                                                                 </React.Fragment>

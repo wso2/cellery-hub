@@ -19,6 +19,7 @@
 import Constants from "../../utils/constants";
 import FormControl from "@material-ui/core/FormControl";
 import Grid from "@material-ui/core/Grid";
+import IconButton from "@material-ui/core/IconButton";
 import ImageList from "../common/ImageList";
 import Input from "@material-ui/core/Input";
 import InputAdornment from "@material-ui/core/InputAdornment";
@@ -35,9 +36,6 @@ const styles = (theme) => ({
         marginTop: theme.spacing(4),
         marginBottom: theme.spacing(1),
         minWidth: "100%"
-    },
-    placeholderIcon: {
-        color: "#999999"
     }
 });
 
@@ -100,14 +98,14 @@ class Images extends React.Component {
                     <Grid item xs={12} sm={4} md={4}>
                         <FormControl className={classes.formControl}>
                             <InputLabel shrink htmlFor={"search-label-placeholder"}/>
-                            <Input
-                                id={"search"}
-                                startAdornment={
-                                    <InputAdornment position={"start"}>
-                                        <SearchIcon className={classes.placeholderIcon}/>
+                            <Input id={"search"} placeholder={"Search Image"}
+                                endAdornment={
+                                    <InputAdornment position={"end"}>
+                                        <IconButton aria-label={"Search Image"}>
+                                            <SearchIcon/>
+                                        </IconButton>
                                     </InputAdornment>
                                 }
-                                placeholder={"Search Image"}
                             />
                         </FormControl>
                     </Grid>
