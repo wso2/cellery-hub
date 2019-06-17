@@ -203,7 +203,7 @@ returns json | error {
         log:printDebug(io:sprintf("%d organization(s) found with the orgName \'%s\' for userId %s", totalOrgs, orgName, userId));
         map<any> imageCountMap = {};
         table<gen:OrgListResponseImageCount> resImgCount = check connection->select(SEARCH_USER_ORGS_QUERY_IMAGE_COUNT, 
-        gen:OrgListResponseImageCount, userId, orgName, userId, orgName, apiUserId, orgName, resultLimit, offset);
+        gen:OrgListResponseImageCount, apiUserId, orgName, userId, orgName, resultLimit, offset);
         foreach var fd in resImgCount{
             imageCountMap[fd.orgName] = fd.imageCount;
         }
