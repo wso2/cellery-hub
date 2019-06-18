@@ -81,51 +81,60 @@ public function listOrgs(http:Request listOrgsReq, string orgName, int offset, i
 # + return - http response which cater to the request
 public function createOrg(http:Request createOrgReq, gen:OrgCreateRequest createOrgsBody) returns http:Response {
     if (createOrgReq.hasHeader(constants:AUTHENTICATED_USER)) {
-        boolean | error isMatch = createOrgsBody.orgName.matches("^[a-z0-9]+(-[a-z0-9]+)*$");
-        if (isMatch is boolean){
-            if (isMatch) {
-                log:printDebug(io:sprintf("\'%s\' is a valid organization name", createOrgsBody.orgName));
-                string userId = createOrgReq.getHeader(constants:AUTHENTICATED_USER);
-                if (createOrgsBody.defaultVisibility == "") {
-                    createOrgsBody.defaultVisibility = constants:DEFAULT_IMAGE_VISIBILITY;
-                }
-                http:Response ? resp = ();
-                transaction {
-                    var transactionId = transactions:getCurrentTransactionId();
-                    log:printDebug("Started transaction " + transactionId + " for creating organization " + createOrgsBody.orgName);
-
-                    json|error orgRes = db:insertOrganization(userId, createOrgsBody);
-                    if (orgRes is error) {
-                        log:printError(io:sprintf("Unexpected error occured while inserting organization %s", untaint createOrgsBody.orgName), err = orgRes);
-                        abort;
-                    } else {
-                        log:printDebug(io:sprintf("New organization \'%s\' added to REGISTRY_ORGANIZATION. Author : %s", createOrgsBody.orgName, userId));
-                        resp = addOrgUserMapping(userId, createOrgsBody.orgName, untaint constants:ROLE_ADMIN);
+        boolean | error orgNameAvailability = db:getOrganizationAvailability(createOrgsBody.orgName);
+        if (orgNameAvailability is boolean && orgNameAvailability){
+            boolean | error isMatch = createOrgsBody.orgName.matches("^[a-z0-9]+(-[a-z0-9]+)*$");
+            if (isMatch is boolean){
+                if (isMatch) {
+                    log:printDebug(io:sprintf("\'%s\' is a valid organization name", createOrgsBody.orgName));
+                    string userId = createOrgReq.getHeader(constants:AUTHENTICATED_USER);
+                    if (createOrgsBody.defaultVisibility == "") {
+                        createOrgsBody.defaultVisibility = constants:DEFAULT_IMAGE_VISIBILITY;
                     }
-                } onretry {
-                    log:printDebug(io:sprintf("Retrying creating organization \'%s\' for transaction %s", createOrgsBody.orgName,
-                    transactions:getCurrentTransactionId()));
-                } committed {
-                    log:printDebug(io:sprintf("Creating Organization \'%s\' successful for transaction %s", createOrgsBody.orgName,
-                    transactions:getCurrentTransactionId()));
-                } aborted {
-                    log:printError(io:sprintf("Creating Organization \'%s\' aborted for transaction %s", createOrgsBody.orgName,
-                    transactions:getCurrentTransactionId()));
+                    http:Response ? resp = ();
+                    transaction {
+                        var transactionId = transactions:getCurrentTransactionId();
+                        log:printDebug("Started transaction " + transactionId + " for creating organization " + createOrgsBody.orgName);
+
+                        json|error orgRes = db:insertOrganization(userId, createOrgsBody);
+                        if (orgRes is error) {
+                            log:printError(io:sprintf("Unexpected error occured while inserting organization %s", untaint createOrgsBody.orgName), err = orgRes);
+                            abort;
+                        } else {
+                            log:printDebug(io:sprintf("New organization \'%s\' added to REGISTRY_ORGANIZATION. Author : %s", createOrgsBody.orgName, userId));
+                            resp = addOrgUserMapping(userId, createOrgsBody.orgName, untaint constants:ROLE_ADMIN);
+                        }
+                    } onretry {
+                        log:printDebug(io:sprintf("Retrying creating organization \'%s\' for transaction %s", createOrgsBody.orgName,
+                        transactions:getCurrentTransactionId()));
+                    } committed {
+                        log:printDebug(io:sprintf("Creating Organization \'%s\' successful for transaction %s", createOrgsBody.orgName,
+                        transactions:getCurrentTransactionId()));
+                    } aborted {
+                        log:printError(io:sprintf("Creating Organization \'%s\' aborted for transaction %s", createOrgsBody.orgName,
+                        transactions:getCurrentTransactionId()));
+                    }
+                    return resp ?: buildUnknownErrorResponse();
+                } else {
+                    log:printError(io:sprintf("Insertion denied : \'%s\' is an invalid organization name", createOrgsBody.orgName));
+                    return buildErrorResponse(http:METHOD_NOT_ALLOWED_405, constants:API_ERROR_CODE, "Unable to create organization",
+                    "Organization name is not valid");
                 }
-                return resp ?: buildUnknownErrorResponse();
             } else {
-                log:printError(io:sprintf("Insertion denied : \'%s\' is an invalid organization name", createOrgsBody.orgName));
-                return buildErrorResponse(http:METHOD_NOT_ALLOWED_405, constants:API_ERROR_CODE, "Unable to create organization",
-                "Organization name is not valid");
+                log:printError("Unable to create organization", err = isMatch);
             }
-        } else {
-            log:printError("Unable to create organization", err = isMatch);
-            return buildUnknownErrorResponse();
+        } else if (orgNameAvailability is boolean && !orgNameAvailability) {
+            log:printError(io:sprintf("Organization creation failed : orgName \'%s\' is already taken", createOrgsBody.orgName));
+            return buildErrorResponse(http:METHOD_NOT_ALLOWED_405, constants:API_ERROR_CODE, "Unable to create organization",
+            "Organization name is already taken");
+        } else if (orgNameAvailability is error) {
+            log:printError("Error occured while checking the orgName availability", err = orgNameAvailability);
         }
+        return buildUnknownErrorResponse();
     } else {
         log:printError("Unauthenticated request for createOrg: Username is not found");
         return buildErrorResponse(http:UNAUTHORIZED_401, constants:API_ERROR_CODE, "Unable to create organization",
-                                                            "Unauthenticated request. Auth token is not provided");
+        "Unauthenticated request. Auth token is not provided");
     }
 }
 

@@ -23,7 +23,7 @@ import cellery_hub_api/gen;
 import ballerina/io;
 import ballerina/encoding;
 
-public function getOrganization (string orgName) returns json | error {
+public function getOrganization(string orgName) returns json | error {
     log:printDebug(io:sprintf("Performing data retreival on REGISTRY_ORGANIZATION table, Org name : \'%s\': ", orgName));
     table<record {}> res =  check connection->select(GET_ORG_QUERY, gen:OrgResponse, orgName, loadToMemory = true);
     if (res.count() == 1) {
@@ -34,7 +34,22 @@ public function getOrganization (string orgName) returns json | error {
         return resPayload;       
     } else {
         log:printDebug(io:sprintf("The requested organization \'%s\' was not found in REGISTRY_ORGANIZATION", orgName));
+        res.close();
         return null;
+    }
+}
+
+public function getOrganizationAvailability(string orgName) returns boolean | error {
+    log:printDebug(io:sprintf("Checking orgName avialability on REGISTRY_ORGANIZATION table for Org name : \'%s\': ", orgName));
+    table<record {}> res =  check connection->select(GET_ORG_QUERY, gen:OrgResponse, orgName, loadToMemory = true);
+    if (res.count() == 0) {
+        log:printDebug(io:sprintf("Organization name \'%s\' is not exists in REGISTRY_ORGANIZATION", orgName));
+        res.close();
+        return true;       
+    } else {
+        log:printDebug(io:sprintf("Organization \'%s\' is already existing in REGISTRY_ORGANIZATION", orgName));
+        res.close();
+        return false;
     }
 }
 
