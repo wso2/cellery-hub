@@ -427,6 +427,15 @@ returns http:Response {
     }
 }
 
+# Search all images belong to a given organization
+#
+# + listOrgImagesReq - received request which contains header 
+# + orgName - organization name which seaerching images should belong to
+# + imageName - regex for search images
+# + orderBy - orderBy enum value 
+# + offset - offset value 
+# + resultLimit - esultLimit value 
+# + return - http response which cater to the request
 public function listOrgImages (http:Request listOrgImagesReq, string orgName, string imageName, string orderBy, int offset, int resultLimit)
 returns http:Response {
     log:printDebug(io:sprintf("Listing images for orgName : %s, imageName : %s, orderBy : %s, offset : %d, limit : %d, ", orgName, 

@@ -146,4 +146,3 @@ public const string SEARCH_ORG_IMAGES_FOR_USER_QUERY = "SELECT REGISTRY_ARTIFACT
                                     REGISTRY_ARTIFACT_IMAGE.VISIBILITY = \"PUBLIC\" OR REGISTRY_ARTIFACT_IMAGE.ORG_NAME IN (
                                     SELECT REGISTRY_ORG_USER_MAPPING.ORG_NAME FROM REGISTRY_ORG_USER_MAPPING WHERE USER_UUID = ?))
                                     GROUP BY REGISTRY_ARTIFACT_IMAGE.IMAGE_NAME";
-                                    

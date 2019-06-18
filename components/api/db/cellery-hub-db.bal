@@ -231,15 +231,17 @@ returns json | error {
     table<gen:OrgImagesListResponse> resTotal = check connection->select(SEARCH_ORG_IMAGES_TOTAL_COUNT, gen:Count, orgName, imageName);
     json resTotalJson = check json.convert(resTotal);
     int totalOrgs = check int.convert(resTotalJson[0]["count"]);
+    resTotal.close();
     gen:OrgImagesListResponse oilr = {count:totalOrgs , data:[]};
     if (totalOrgs > 0){
-        log:printDebug(io:sprintf("%d images found with the imageName \'%s\' for orgName %s", totalOrgs, imageName, orgName));        
-        table<gen:OrgImagesListResponseAtom> res = check connection->select(SEARCH_ORG_IMAGES_QUERY, gen:OrgImagesListResponseAtom, 
+        log:printDebug(io:sprintf("%d images found with the imageName \'%s\' for orgName %s", totalOrgs, imageName, orgName));
+        string searchQuery = SEARCH_ORG_IMAGES_QUERY + " ORDER BY " +orderBy+ " DESC LIMIT " +resultLimit+ " OFFSET " +offset; 
+        table<gen:OrgImagesListResponseAtom> resData = check connection->select(searchQuery, gen:OrgImagesListResponseAtom, 
         orgName, imageName, loadToMemory = true);        
-        foreach int i in 0...res.count()-1{
-            gen:OrgImagesListResponseAtom oilra = check gen:OrgImagesListResponseAtom.convert(res.getNext());
-            oilr.data[i] = oilra;
+        foreach int i in 0...resData.count()-1{
+            oilr.data[i] =  check gen:OrgImagesListResponseAtom.convert(resData.getNext());
         }
+        resData.close();
     } else {
         log:printDebug(io:sprintf("No images found for the orgName \'%s\' with the image name \'%s\'", orgName, imageName));
     }
@@ -253,16 +255,18 @@ returns json | error {
     orgName, imageName, userId, loadToMemory = true);
     json resTotalJson = check json.convert(resTotal);
     int totalOrgs = check int.convert(resTotalJson[0]["count"]);
+    resTotal.close();
     gen:OrgImagesListResponse oilr = {count:totalOrgs , data:[]};
     if (totalOrgs > 0){
         log:printDebug(io:sprintf("%d images found with the imageName \'%s\' for orgName %s and userId %s", totalOrgs, imageName, 
-        orgName, userId));        
-        table<gen:OrgImagesListResponseAtom> res = check connection->select(SEARCH_ORG_IMAGES_FOR_USER_QUERY, gen:OrgImagesListResponseAtom, 
+        orgName, userId));
+        string searchQuery = SEARCH_ORG_IMAGES_FOR_USER_QUERY + " ORDER BY " +orderBy+ " DESC LIMIT " +resultLimit+ " OFFSET " +offset;        
+        table<gen:OrgImagesListResponseAtom> resData = check connection->select(searchQuery, gen:OrgImagesListResponseAtom, 
         orgName, imageName, userId, loadToMemory = true);        
-        foreach int i in 0...res.count()-1{
-            gen:OrgImagesListResponseAtom oilra = check gen:OrgImagesListResponseAtom.convert(res.getNext());
-            oilr.data[i] = oilra;
-        }        
+        foreach int i in 0...resData.count()-1{
+            oilr.data[i] = check gen:OrgImagesListResponseAtom.convert(resData.getNext());
+        }
+        resData.close();        
     } else {
         log:printDebug(io:sprintf("No images found for the orgName \'%s\' with the image name \'%s\' for userId %s", orgName, 
         imageName, userId));

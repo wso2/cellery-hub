@@ -516,11 +516,14 @@ service CelleryHubAPI on ep {
             imageName = imageName.replace("*", "%");
         }
         if (queryParams.hasKey(constants:ORDER_BY)) {
-            log:printDebug("orderBy enum is present");
             orderBy = queryParams.orderBy;
+            if (orderBy.equalsIgnoreCase("last-updated")) {
+                orderBy = "UPDATED_DATE";
+            } else {
+                orderBy = "PULL_COUNT";
+            } 
         }
-
-        http:Response _listOrgImagesRes = listOrgImages(_listOrgImagesReq, orgName, imageName, orderBy, offset, resultLimit);
+        http:Response _listOrgImagesRes = listOrgImages(_listOrgImagesReq, orgName, imageName, untaint orderBy, untaint offset, untaint resultLimit);
         error? x = outboundEp->respond(_listOrgImagesRes);
     }
 }
