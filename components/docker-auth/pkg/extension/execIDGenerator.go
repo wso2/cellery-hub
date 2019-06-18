@@ -6,7 +6,7 @@ import (
 	"log"
 )
 
-func GetUUID() (string, error) {
+func GetExecID() (string, error) {
 	b := make([]byte, 16)
 	_, err := rand.Read(b)
 	if err != nil {

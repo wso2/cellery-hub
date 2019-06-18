@@ -46,6 +46,10 @@ func dbConn() (*sql.DB, error) {
 }
 
 func main() {
+	err := os.MkdirAll("/extension-logs", os.ModePerm)
+	if err != nil {
+		log.Println("Error creating the file :", err)
+	}
 	file, err := os.OpenFile(logFile, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
 	if err != nil {
 		log.Printf("Error opening file: %s\n", err)
@@ -61,31 +65,31 @@ func main() {
 		os.Exit(extension.ErrorExitCode)
 	}
 	log.SetOutput(file)
-	uuid, err := extension.GetUUID()
-	log.Printf("[%s] Authorization extension reached and access will be validated\n", uuid)
+	execId, err := extension.GetExecID()
+	log.Printf("[%s] Authorization extension reached and access will be validated\n", execId)
 	accessToken := extension.ReadStdIn()
 	db, err := dbConn()
 	if err != nil {
-		log.Printf("[%s] Error occurred while establishing the mysql connection : %s\n", uuid, err)
+		log.Printf("[%s] Error occurred while establishing the mysql connection : %s\n", execId, err)
 		os.Exit(extension.ErrorExitCode)
 	}
-	isValid, err := extension.ValidateAccess(db, accessToken, uuid)
+	isValid, err := extension.ValidateAccess(db, accessToken, execId)
 	if err != nil {
-		log.Printf("[%s] Error occurred while validating the user :%s\n", uuid, err)
+		log.Printf("[%s] Error occurred while validating the user :%s\n", execId, err)
 	}
 	if isValid {
 		err = db.Close()
 		if err != nil {
-			log.Printf("[%s] Error occurred while closing the db connection :%s\n", uuid, err)
+			log.Printf("[%s] Error occurred while closing the db connection :%s\n", execId, err)
 		}
-		log.Printf("[%s] User access granted\n", uuid)
+		log.Printf("[%s] User access granted\n", execId)
 		os.Exit(extension.SuccessExitCode)
 	} else {
 		err = db.Close()
 		if err != nil {
-			log.Printf("[%s] Error occurred while closing the db connection :%s\n", uuid, err)
+			log.Printf("[%s] Error occurred while closing the db connection :%s\n", execId, err)
 		}
-		log.Printf("[%s] User access denied\n", uuid)
+		log.Printf("[%s] User access denied\n", execId)
 		os.Exit(extension.ErrorExitCode)
 	}
 }
