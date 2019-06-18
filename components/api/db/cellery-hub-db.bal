@@ -99,12 +99,6 @@ public function getPublicArtifact(string orgName, string imageName, string artif
     return buildJsonPayloadForGetArtifact(res, orgName, imageName, artifactVersion);
 }
 
-public function getArtifactListLength(string imageId, string artifactVersion) returns table<gen:Count> | error {
-    log:printDebug(io:sprintf("Retriving artifact count for image ID : %s and image version %s", imageId, artifactVersion));
-    table<gen:Count> res = check connection->select(GET_ARTIFACT_COUNT, gen:Count, imageId, artifactVersion, loadToMemory = true);
-    return res;
-}
-
 public function getImageKeywords(string imageId) returns table<gen:StringRecord> | error {
     log:printDebug(io:sprintf("Retriving keywords of image with id : %s", imageId));
     table<gen:StringRecord> res = check connection->select(GET_KEYWORDS_OF_IMAGE_BY_IMAGE_ID, gen:StringRecord, imageId, loadToMemory = true);

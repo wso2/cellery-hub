@@ -219,6 +219,15 @@ public function getImageByImageName(http:Request getImageRequest, string orgName
     return buildUnknownErrorResponse();
 }
 
+# Search all artifacts with given image and artifact version in a given organization
+#
+# + offset - offset value
+# + resultLimit - resultLimit value
+# + getImageRequest - recevied getImage request
+# + orgName - Organization name
+# + imageName - Image Name
+# + artifactVersion - Exact Artifact version or a regex of artifact version
+# + return - Return Value Description
 public function getArtifactsOfImage(http:Request getImageRequest, string orgName, string imageName, string artifactVersion,
 int offset, int resultLimit) returns http:Response {
 
@@ -238,57 +247,41 @@ int offset, int resultLimit) returns http:Response {
 
     if (artifactListResults is table<gen:ArtifactListResponse>) {
         log:printDebug("Number of results found for list image ======== : " + artifactListResults.count());
-
-        if(artifactListResults.count() == 0) {
-            string errMsg = "No image found with given image name and organization";
-            log:printError(errMsg);
-            return buildErrorResponse(http:NOT_FOUND_404, constants:API_ERROR_CODE, errMsg, errMsg);
-        } else if (artifactListResults.count() > 1) {
-            log:printError("Found more than one result for artifact list: Number of results : " + artifactListResults.count());
-            return buildUnknownErrorResponse();
-        }
-
         gen:ArtifactListResponse[] responseArray = [];
         int counter = 0;
-        int listLength = 0;
-        string artifactImageId = "";
-        while (artifactListResults.hasNext()) {
-            gen:ArtifactListResponse result = <gen:ArtifactListResponse> artifactListResults.getNext();
-            if (artifactImageId == "") {
-                artifactImageId = result.artifactImageId;
-            }
-            responseArray[counter] = result;
-            counter += 1;
-        }
-        artifactListResults.close();
-        if (counter > 0) {
-            table<gen:Count> | error countResult = db:getArtifactListLength(artifactImageId, artifactVersion);
-            if (countResult is table<gen:Count>) {
-                log:printDebug("Successfully fetched length of the list");
-                gen:Count countObj = <gen:Count>countResult.getNext();
-                listLength = countObj.count;
-                countResult.close();
-            } else {
-                log:printError("Error while counting number of artifacts for image " + imageName, err = countResult);
+        gen:ArtifactListArrayResponse response = {
+            count: 0,
+            data: responseArray
+        };
+
+        if(artifactListResults.count() == 0) {
+            log:printError("No image found with given image name and organization");
+        } else {
+            log:printError(io:sprintf("Found %d result(s) for artifact list", artifactListResults.count()));
+            string artifactImageId = "";
+            while (artifactListResults.hasNext()) {
+                gen:ArtifactListResponse result = <gen:ArtifactListResponse> artifactListResults.getNext();
+                responseArray[counter] = result;
+                counter += 1;
             }
         }
 
-        gen:ArtifactListArrayResponse response = {
-            count: listLength,
-            data: responseArray
-        };
+        response.count = artifactListResults.count();
+        response.data = responseArray;
+        artifactListResults.close();
         json | error resPayload =  json.convert(response);
         if (resPayload is json) {
             log:printInfo(resPayload.toString());
             return buildSuccessResponse(jsonResponse = resPayload);
         } else {
             log:printError("Error while converting payload to json" + imageName, err = resPayload);
+            return buildUnknownErrorResponse();
         }
 
     } else {
         log:printError("Error while retriving image" + imageName, err = artifactListResults);
+        return buildUnknownErrorResponse();
     }
-    return buildUnknownErrorResponse();
 }
 
 public function getArtifact (http:Request getArtifactReq, string orgName, string imageName, string artifactVersion) returns http:Response {
