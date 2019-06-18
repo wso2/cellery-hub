@@ -166,8 +166,8 @@
                             <goal>build</goal>
                         </goals>
                         <configuration>
-                            <repository>wso2cellery/cellery-hub-idp</repository>
-                            <tag>5.7.0</tag>
+                            <repository>${docker.repo.name}/cellery-hub-idp</repository>
+                            <tag>${docker.image.tag}</tag>
                         </configuration>
                     </execution>
                 </executions>
@@ -178,5 +178,8 @@
     <properties>
         <docker.hub.identity.customization.version>0.0.1-SNAPSHOT</docker.hub.identity.customization.version>
         <docker.hub.github.authenticator.version>1.0.1</docker.hub.github.authenticator.version>
+
+        <docker.repo.name>wso2cellery</docker.repo.name>
+        <docker.image.tag>5.7.0</docker.image.tag>
     </properties>
 </project>
