@@ -290,7 +290,7 @@ class ImageVersion extends React.Component {
                                                             Last Updated on&nbsp;
                                                             {moment(versionData.updatedTimestamp)
                                                                 .format(Constants.Format.DATE_TIME)}
-                                                            &nbsp;by {versionData.lastAuthor}
+                                                            &nbsp;by {versionData.lastAuthor.displayName}
                                                         </Typography>
                                                     </div>
 

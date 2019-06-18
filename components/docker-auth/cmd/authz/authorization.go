@@ -24,8 +24,6 @@ import (
 	"log"
 	"os"
 
-	"github.com/golang/glog"
-
 	"github.com/cellery-io/cellery-hub/components/docker-auth/pkg/extension"
 )
 
@@ -48,7 +46,6 @@ func dbConn() (*sql.DB, error) {
 }
 
 func main() {
-	glog.Info("Authentication extension reached and access will be validated")
 	file, err := os.OpenFile(logFile, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
 	if err != nil {
 		log.Fatalf("Error opening file: %v", err)
@@ -64,6 +61,8 @@ func main() {
 		os.Exit(extension.ErrorExitCode)
 	}
 	log.SetOutput(file)
+
+	log.Println("Authentication extension reached and access will be validated")
 	accessToken := extension.ReadStdIn()
 	db, err := dbConn()
 	if err != nil {

@@ -22,7 +22,9 @@ const Constants = {
         ERROR: "#ff443d"
     },
     Pattern: {
-        CELLERY_ID: "[a-z0-9]+(-[a-z0-9]+)*"
+        CELLERY_ID: "[a-z0-9]+(-[a-z0-9]+)*",
+        PARTIAL_CELLERY_ID: "[-a-z0-9]+",
+        PARTIAL_IMAGE_VERSION: "[-.a-z0-9]+"
     },
     Format: {
         DATE_TIME: "DD MMM YYYY, hh:mm:ss A"

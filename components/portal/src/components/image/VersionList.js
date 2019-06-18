@@ -20,6 +20,7 @@ import AccessTime from "@material-ui/icons/AccessTime";
 import Constants from "../../utils/constants";
 import Divider from "@material-ui/core/Divider";
 import FormControl from "@material-ui/core/FormControl";
+import FormHelperText from "@material-ui/core/FormHelperText";
 import GetApp from "@material-ui/icons/GetApp";
 import Grid from "@material-ui/core/Grid";
 import IconButton from "@material-ui/core/IconButton";
@@ -29,6 +30,7 @@ import List from "@material-ui/core/List";
 import ListItem from "@material-ui/core/ListItem";
 import ListItemText from "@material-ui/core/ListItemText";
 import MenuItem from "@material-ui/core/MenuItem";
+import NotificationUtils from "../../utils/common/notificationUtils";
 import React from "react";
 import SearchIcon from "@material-ui/icons/Search";
 import Select from "@material-ui/core/Select";
@@ -36,6 +38,8 @@ import TablePagination from "@material-ui/core/TablePagination";
 import Typography from "@material-ui/core/Typography";
 import {withRouter} from "react-router-dom";
 import {withStyles} from "@material-ui/core/styles";
+import HttpUtils, {HubApiError} from "../../utils/api/httpUtils";
+import withGlobalState, {StateHolder} from "../common/state";
 import * as PropTypes from "prop-types";
 import * as moment from "moment";
 
@@ -79,28 +83,33 @@ const styles = (theme) => ({
     }
 });
 
-const data = [
-    {
-        version: "1.0.1",
-        updatedTimestamp: "2019-03-30T05:11:54-0500",
-        pullCount: 4
-    },
-    {
-        version: "2.0.1",
-        updatedTimestamp: "2018-05-12T05:11:54-0500",
-        pullCount: 2
-    }
-];
-
 class VersionList extends React.Component {
+
+    static DEFAULT_ROWS_PER_PAGE = 5;
+    static DEFAULT_PAGE_NO = 0;
 
     constructor(props) {
         super(props);
         this.state = {
-            pageNo: props.defaultPageNo,
-            rowsPerPage: props.defaultRowsPerPage,
-            sort: Constants.SortingOrder.RECENTLY_UPDATED
+            totalCount: 0,
+            versions: [],
+            search: {
+                version: {
+                    value: "",
+                    error: ""
+                }
+            },
+            sort: Constants.SortingOrder.RECENTLY_UPDATED,
+            pagination: {
+                pageNo: VersionList.DEFAULT_PAGE_NO,
+                rowsPerPage: VersionList.DEFAULT_ROWS_PER_PAGE
+            }
         };
+    }
+
+    componentDidMount() {
+        const {pagination, sort} = this.state;
+        this.searchVersions(pagination.rowsPerPage, pagination.pageNo, sort);
     }
 
     handleVersionClick = (version) => {
@@ -110,52 +119,139 @@ class VersionList extends React.Component {
         history.push(`/images/${orgName}/${imageName}/${version}`);
     };
 
+    handleVersionSearchChange = (event) => {
+        const version = event.currentTarget.value;
+        let errorMessage = "";
+        if (version) {
+            if (!new RegExp(`^${Constants.Pattern.PARTIAL_IMAGE_VERSION}$`).test(version)) {
+                errorMessage = "Version can only contain lower case letters, numbers, dashes and dots";
+            }
+        }
+        this.setState((prevState) => ({
+            search: {
+                ...prevState.search,
+                version: {
+                    value: version,
+                    error: errorMessage
+                }
+            }
+        }));
+    };
+
+    handleVersionSearchKeyDown = (event) => {
+        if (event.keyCode === Constants.KeyCode.ENTER) {
+            const {pagination, sort} = this.state;
+            this.searchVersions(pagination.rowsPerPage, pagination.pageNo, sort);
+        }
+    };
+
+    handleSearchButtonClick = () => {
+        const {pagination, sort} = this.state;
+        this.searchVersions(pagination.rowsPerPage, pagination.pageNo, sort);
+    };
+
     handleChangePageNo = (event, newPageNo) => {
-        const {onPageChange} = this.props;
-        const {rowsPerPage} = this.state;
-        this.setState({
-            pageNo: newPageNo
-        });
-        onPageChange(rowsPerPage, newPageNo);
+        const {pagination, sort} = this.state;
+        this.setState((prevState) => ({
+            pagination: {
+                ...prevState.pagination,
+                pageNo: newPageNo
+            }
+        }));
+        this.searchVersions(pagination.rowsPerPage, newPageNo, sort);
     };
 
     handleChangeRowsPerPage = (event) => {
-        const {onPageChange} = this.props;
-        const {pageNo, rowsPerPage} = this.state;
+        const {pagination, sort} = this.state;
         const newRowsPerPage = event.target.value;
-        const newPageNo = (pageNo * rowsPerPage) / newRowsPerPage;
-        this.setState({
-            pageNo: newPageNo,
-            rowsPerPage: newRowsPerPage
-        });
-        onPageChange(newRowsPerPage, newPageNo);
+        const newPageNo = (pagination.pageNo * pagination.rowsPerPage) / newRowsPerPage;
+        this.setState((prevState) => ({
+            pagination: {
+                ...prevState.pagination,
+                pageNo: newPageNo,
+                rowsPerPage: newRowsPerPage
+            }
+        }));
+        this.searchVersions(newRowsPerPage, newPageNo, sort);
     };
 
     handleSortChange = (event) => {
+        const {pagination} = this.state;
+        const newSort = event.target.value;
         this.setState({
-            sort: event.target.value
+            sort: newSort
+        });
+        this.searchVersions(pagination.rowsPerPage, pagination.pageNo, newSort);
+    };
+
+    searchVersions = (rowsPerPage, pageNo, newSort) => {
+        const self = this;
+        const {globalState, match} = self.props;
+        const {search} = self.state;
+        const orgName = match.params.orgName;
+        const imageName = match.params.imageName;
+
+        const queryParams = {
+            artifactVersion: search.version.value ? `*${search.version.value}*` : "*",
+            orderBy: newSort,
+            resultLimit: rowsPerPage,
+            offset: pageNo * rowsPerPage
+        };
+        NotificationUtils.showLoadingOverlay("Fetching versions", globalState);
+        HttpUtils.callHubAPI(
+            {
+                url: `/artifacts/${orgName}/${imageName}/${HttpUtils.generateQueryParamString(queryParams)}`,
+                method: "GET"
+            },
+            globalState
+        ).then((response) => {
+            self.setState({
+                totalCount: response.count,
+                versions: response.data
+            });
+            NotificationUtils.hideLoadingOverlay(globalState);
+        }).catch((err) => {
+            let errorMessage;
+            if (err instanceof HubApiError && err.getMessage()) {
+                errorMessage = err.getMessage();
+            } else {
+                errorMessage = "Failed to fetch versions";
+            }
+            NotificationUtils.hideLoadingOverlay(globalState);
+            if (errorMessage) {
+                NotificationUtils.showNotification(errorMessage, NotificationUtils.Levels.ERROR, globalState);
+            }
         });
     };
 
     render = () => {
         const {classes} = this.props;
-        const {pageNo, rowsPerPage, sort} = this.state;
+        const {pagination, sort, search, totalCount, versions} = this.state;
         return (
             <div className={classes.content}>
                 <div className={classes.container}>
                     <div className={classes.searchFilters}>
                         <Grid container>
                             <Grid item xs={12} sm={7} md={7}>
-                                <FormControl className={classes.formControl}>
+                                <FormControl className={classes.formControl} error={search.version.error}>
                                     <Input placeholder={"Search Version"} type={"text"}
+                                        value={search.version.value}
+                                        onChange={this.handleVersionSearchChange}
+                                        onKeyDown={this.handleVersionSearchKeyDown}
                                         endAdornment={
                                             <InputAdornment position={"end"}>
-                                                <IconButton aria-label={"Search Version"}>
+                                                <IconButton aria-label={"Search Version"}
+                                                    onClick={this.handleSearchButtonClick}>
                                                     <SearchIcon/>
                                                 </IconButton>
                                             </InputAdornment>
                                         }
                                     />
+                                    {
+                                        search.version.error
+                                            ? <FormHelperText>{search.version.error}</FormHelperText>
+                                            : null
+                                    }
                                 </FormControl>
                             </Grid>
                             <Grid item xs={12} sm={1} md={1} />
@@ -176,31 +272,45 @@ class VersionList extends React.Component {
                             </Grid>
                         </Grid>
                     </div>
-                    <Grid container>
-                        <Grid item xs={12} sm={12} md={12}>
-                            <List component={"nav"}>
-                                {data.map((version) => (
-                                    <div key={version.version}>
-                                        <ListItem button onClick={() => this.handleVersionClick(version)}>
-                                            <ListItemText primary={version.version} className={classes.versionName}/>
-                                            <Typography variant={"caption"} className={classes.block}
-                                                color={"textPrimary"}>
-                                                <AccessTime className={classes.updated}/> Last Updated on&nbsp;
-                                                {moment(version.updatedTimestamp).format(Constants.Format.DATE_TIME)}
-                                            </Typography>
-                                            <GetApp className={classes.elementIcon}/>
-                                            <Typography variant={"subtitle2"} color={"inherit"}
-                                                className={classes.elementText}>{version.pullCount}</Typography>
-                                        </ListItem>
-                                        <Divider/>
-                                    </div>
-                                ))}
-                            </List>
-                            <TablePagination component={"nav"} page={pageNo} rowsPerPage={rowsPerPage}
-                                count={data.length} onChangePage={this.handleChangePageNo}
-                                onChangeRowsPerPage={this.handleChangeRowsPerPage}/>
-                        </Grid>
-                    </Grid>
+                    {
+                        versions && versions.length > 0
+                            ? (
+                                <Grid container>
+                                    <Grid item xs={12} sm={12} md={12}>
+                                        <List component={"nav"}>
+                                            {
+                                                versions.map((versionDatum) => (
+                                                    <div key={versionDatum.version}>
+                                                        <ListItem button onClick={() => this.handleVersionClick(
+                                                            versionDatum.artifactVersion)}>
+                                                            <ListItemText primary={versionDatum.artifactVersion}
+                                                                className={classes.versionName}/>
+                                                            <Typography variant={"caption"} className={classes.block}
+                                                                color={"textPrimary"}>
+                                                                <AccessTime className={classes.updated}/>&nbsp;
+                                                                Last Updated on {moment(versionDatum.updatedTimestamp)
+                                                                    .format(Constants.Format.DATE_TIME)}
+                                                            </Typography>
+                                                            <GetApp className={classes.elementIcon}/>
+                                                            <Typography variant={"subtitle2"} color={"inherit"}
+                                                                className={classes.elementText}>
+                                                                {versionDatum.pullCount}
+                                                            </Typography>
+                                                        </ListItem>
+                                                        <Divider/>
+                                                    </div>
+                                                ))
+                                            }
+                                        </List>
+                                        <TablePagination component={"nav"} page={pagination.pageNo}
+                                            rowsPerPage={pagination.rowsPerPage} rowsPerPageOptions={[5, 10, 25]}
+                                            count={totalCount} onChangePage={this.handleChangePageNo}
+                                            onChangeRowsPerPage={this.handleChangeRowsPerPage}/>
+                                    </Grid>
+                                </Grid>
+                            )
+                            : null
+                    }
                 </div>
             </div>
         );
@@ -210,6 +320,7 @@ class VersionList extends React.Component {
 
 VersionList.propTypes = {
     classes: PropTypes.object.isRequired,
+    globalState: PropTypes.instanceOf(StateHolder).isRequired,
     history: PropTypes.shape({
         goBack: PropTypes.func.isRequired
     }),
@@ -218,16 +329,7 @@ VersionList.propTypes = {
             orgName: PropTypes.string.isRequired,
             imageName: PropTypes.string.isRequired
         })
-    }).isRequired,
-    defaultPageNo: PropTypes.number.isRequired,
-    defaultRowsPerPage: PropTypes.number.isRequired,
-    totalCount: PropTypes.number.isRequired,
-    pageData: PropTypes.arrayOf(PropTypes.shape({
-        version: PropTypes.string.isRequired,
-        updatedTimestamp: PropTypes.string.isRequired,
-        pullCount: PropTypes.string
-    })).isRequired,
-    onPageChange: PropTypes.func
+    }).isRequired
 };
 
-export default withStyles(styles)(withRouter(VersionList));
+export default withStyles(styles)(withRouter(withGlobalState(VersionList)));

@@ -262,7 +262,7 @@ docker.$(API): build.$(API)
 
 .PHONY: docker.$(IDENTITY_SERVER_CUSTOMIZATION)
 docker.$(IDENTITY_SERVER_CUSTOMIZATION): build.$(IDENTITY_SERVER_CUSTOMIZATION)
-	mvn clean install -f docker/identity-server/pom.xml
+	mvn clean install -f docker/identity-server/pom.xml -Ddocker.repo.name=$(DOCKER_REPO) -Ddocker.image.tag=5.7.0
 
 .PHONY: docker.$(DEPLOYMENT_INIT)
 docker.$(DEPLOYMENT_INIT): build.$(DEPLOYMENT_INIT)
@@ -288,7 +288,7 @@ docker-push.$(API):
 
 .PHONY: docker-push.$(IDENTITY_SERVER_CUSTOMIZATION)
 docker-push.$(IDENTITY_SERVER_CUSTOMIZATION):
-	docker push $(DOCKER_REPO)/cellery-hub-idp:$(VERSION)
+	docker push $(DOCKER_REPO)/cellery-hub-idp:5.7.0
 
 .PHONY: docker-push.$(DEPLOYMENT_INIT)
 docker-push.$(DEPLOYMENT_INIT):
