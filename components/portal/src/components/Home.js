@@ -30,8 +30,7 @@ import GoogleLogo from "../img/GoogleLogo";
 import Grid from "@material-ui/core/Grid";
 import HttpUtils from "../utils/api/httpUtils";
 import Link from "@material-ui/core/Link";
-import Menu from "@material-ui/core/Menu";
-import MenuItem from "@material-ui/core/MenuItem";
+import NavBar from "./appLayout/NavBar";
 import React from "react";
 import Toolbar from "@material-ui/core/Toolbar";
 import Typography from "@material-ui/core/Typography";
@@ -75,18 +74,6 @@ const styles = (theme) => ({
         height: 60,
         verticalAlign: "middle",
         paddingRight: 2
-    },
-    navButton: {
-        "&:hover": {
-            backgroundColor: "transparent",
-            color: "#57595d"
-        },
-        "&:focus": {
-            backgroundColor: "transparent"
-        },
-        "&:active": {
-            backgroundColor: "transparent"
-        }
     },
     toolbar: {
         paddingLeft: 0,
@@ -156,25 +143,6 @@ const styles = (theme) => ({
 
 class Home extends React.Component {
 
-    constructor(props) {
-        super(props);
-        this.state = {
-            accountPopoverElement: null
-        };
-    }
-
-    handleAccountPopoverOpen = (event) => {
-        this.setState({
-            accountPopoverElement: event.currentTarget
-        });
-    };
-
-    handleAccountPopoverClose = () => {
-        this.setState({
-            accountPopoverElement: null
-        });
-    };
-
     /**
      * @typedef {AuthUtils.FederatedIdP.GOOGLE|AuthUtils.FederatedIdP.GITHUB} FederatedIdPType
      */
@@ -194,8 +162,6 @@ class Home extends React.Component {
 
     render = () => {
         const {classes} = this.props;
-        const {accountPopoverElement} = this.state;
-        const isAccountPopoverOpen = Boolean(accountPopoverElement);
 
         return <React.Fragment>
             <div className={classes.root}>
@@ -218,37 +184,7 @@ class Home extends React.Component {
                             <Grid item xs={12} sm={6} md={6}>
                                 <AppBar position={"static"} className={classes.appbar}>
                                     <Toolbar className={classes.toolbar}>
-                                        <Button disableTouchRipple={true} color={"inherit"} href={"/explore"}
-                                            className={classes.navButton}>EXPLORE</Button>
-                                        <div>
-                                            <Button disableTouchRipple={true} color={"inherit"}
-                                                className={classes.navButton} aria-haspopup={"true"}
-                                                onClick={this.handleAccountPopoverOpen}>SIGN IN/ SIGN UP</Button>
-                                            <Menu id={"user-info-appbar"} anchorEl={accountPopoverElement}
-                                                anchorOrigin={{
-                                                    vertical: "top",
-                                                    horizontal: "right"
-                                                }}
-                                                transformOrigin={{
-                                                    vertical: "top",
-                                                    horizontal: "right"
-                                                }}
-                                                open={isAccountPopoverOpen}
-                                                onClose={this.handleAccountPopoverClose}>
-                                                <MenuItem onClick={() => {
-                                                    this.handleSignIn(AuthUtils.FederatedIdP.GITHUB);
-                                                    this.handleAccountPopoverClose();
-                                                }}>
-                                                    <GithubLogo className={classes.leftIcon}/> Github
-                                                </MenuItem>
-                                                <MenuItem onClick={() => {
-                                                    this.handleSignIn(AuthUtils.FederatedIdP.GOOGLE);
-                                                    this.handleAccountPopoverClose();
-                                                }}>
-                                                    <GoogleLogo className={classes.leftIcon}/> Google
-                                                </MenuItem>
-                                            </Menu>
-                                        </div>
+                                        <NavBar/>
                                     </Toolbar>
                                 </AppBar>
                             </Grid>
