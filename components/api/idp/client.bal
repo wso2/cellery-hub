@@ -25,7 +25,8 @@ function getOidcProviderClientEP() returns http:Client {
             trustStore: {
                 path: config:getAsString("security.truststore"),
                 password: config:getAsString("security.truststorepass")
-            }
+            },
+            verifyHostname: false
         },
         auth: {
             scheme: http:BASIC_AUTH,
