@@ -57,45 +57,115 @@ const styles = (theme) => ({
     }
 });
 
-const FederatedIdpSelect = (props) => {
-    const {classes, globalState, location} = props;
+class FederatedIdpSelect extends React.Component {
 
-    const params = HttpUtils.parseQueryParams(location.search);
-    const redirectUrl = params.redirectUrl;
-    if (params.fidp) {
-        AuthUtils.initiateSdkLoginFlow(globalState, params.fidp, redirectUrl);
-        return null;
-    } else if (AuthUtils.getDefaultFIdP()) {
-        AuthUtils.initiateSdkLoginFlow(globalState, null, redirectUrl);
-        return null;
+    static REDIRECT_URL = "sdkSignInRedirectUrl";
+
+    constructor(props) {
+        super(props);
+        this.state = {
+            user: props.globalState.get(StateHolder.USER)
+        };
+        props.globalState.addListener(StateHolder.USER, this.handleUserChange);
     }
-    return (
-        <div className={classes.content}>
-            <Grid container spacing={4} direction={"row"} justify={"center"} alignItems={"center"}>
-                <Grid item xs={12} sm={4} md={4} className={classes.signInContainer}>
-                    <Typography component={"div"} variant={"h5"} className={classes.title}>
-                        Sign in
-                    </Typography>
-                    <Divider className={classes.divider}/>
-                    <Button fullWidth variant={"outlined"} size={"large"} className={classes.signInBtn} onClick={() => {
-                        AuthUtils.initiateSdkLoginFlow(globalState, AuthUtils.FederatedIdP.GITHUB, redirectUrl);
-                    }}>
-                        <GithubLogo className={classes.leftIcon}/>
-                        Sign in with Github
-                    </Button>
-                    <Button fullWidth variant={"outlined"} size={"large"} className={classes.signInBtn} onClick={() => {
-                        AuthUtils.initiateSdkLoginFlow(globalState, AuthUtils.FederatedIdP.GOOGLE, redirectUrl);
-                    }}>
-                        <GoogleLogo className={classes.leftIcon}/>
-                        Sign in with Google
-                    </Button>
-                </Grid>
-            </Grid>
-        </div>
-    );
-};
+
+    handleUserChange = (key, oldValue, newValue) => {
+        this.setState({
+            user: newValue
+        });
+    };
+
+    componentDidMount() {
+        this.handleUpdate();
+    }
+
+    componentDidUpdate(prevProps, prevState, snapshot) {
+        this.handleUpdate();
+    }
+
+    handleUpdate() {
+        const {history, globalState, location} = this.props;
+        const {user} = this.state;
+
+        const params = HttpUtils.parseQueryParams(location.search);
+        if (user) {
+            if (params.fidp) {
+                AuthUtils.initiateSdkLoginFlow(globalState, params.fidp, params.redirectUrl);
+            } else if (AuthUtils.getDefaultFIdP()) {
+                AuthUtils.initiateSdkLoginFlow(globalState, null, params.redirectUrl);
+            } else {
+                AuthUtils.removeUserFromBrowser(globalState);
+            }
+        } else if (sessionStorage.getItem(FederatedIdpSelect.REDIRECT_URL)) {
+            params.redirectUrl = sessionStorage.getItem(FederatedIdpSelect.REDIRECT_URL);
+            history.replace(`${location.pathname}${HttpUtils.generateQueryParamString(params)}`);
+            sessionStorage.removeItem(FederatedIdpSelect.REDIRECT_URL);
+        } else if (params.redirectUrl) {
+            sessionStorage.setItem(FederatedIdpSelect.REDIRECT_URL, params.redirectUrl);
+            if (params.fidp) {
+                AuthUtils.initiateSdkLoginFlow(globalState, params.fidp, params.redirectUrl);
+            } else if (AuthUtils.getDefaultFIdP()) {
+                AuthUtils.initiateSdkLoginFlow(globalState, null, params.redirectUrl);
+            } else {
+                // Do nothing (waiting for user to select IdP to login)
+            }
+        } else if (params.code) {
+            const oneTimeToken = params.code;
+            AuthUtils.retrieveTokens(oneTimeToken, globalState);
+        } else {
+            this.handleInvalidState();
+        }
+    }
+
+    handleInvalidState = () => {
+        const {history} = this.props;
+        history.replace("/");
+    };
+
+    render() {
+        const {classes, globalState, location} = this.props;
+        const {user} = this.state;
+
+        const params = HttpUtils.parseQueryParams(location.search);
+        const fidp = params.fidp ? params.fidp : AuthUtils.getDefaultFIdP();
+        return (
+            !fidp && !user
+                ? (
+                    <div className={classes.content}>
+                        <Grid container spacing={4} direction={"row"} justify={"center"} alignItems={"center"}>
+                            <Grid item xs={12} sm={4} md={4} className={classes.signInContainer}>
+                                <Typography component={"div"} variant={"h5"} className={classes.title}>
+                                    Sign in
+                                </Typography>
+                                <Divider className={classes.divider}/>
+                                <Button fullWidth variant={"outlined"} size={"large"} className={classes.signInBtn}
+                                    onClick={() => {
+                                        AuthUtils.initiateHubLoginFlow(globalState, AuthUtils.FederatedIdP.GITHUB);
+                                    }}>
+                                    <GithubLogo className={classes.leftIcon}/>
+                                    Sign in with Github
+                                </Button>
+                                <Button fullWidth variant={"outlined"} size={"large"} className={classes.signInBtn}
+                                    onClick={() => {
+                                        AuthUtils.initiateHubLoginFlow(globalState, AuthUtils.FederatedIdP.GOOGLE);
+                                    }}>
+                                    <GoogleLogo className={classes.leftIcon}/>
+                                    Sign in with Google
+                                </Button>
+                            </Grid>
+                        </Grid>
+                    </div>
+                )
+                : null
+        );
+    }
+
+}
 
 FederatedIdpSelect.propTypes = {
+    history: PropTypes.shape({
+        replace: PropTypes.func.isRequired
+    }).isRequired,
     classes: PropTypes.object.isRequired,
     globalState: PropTypes.instanceOf(StateHolder).isRequired,
     location: PropTypes.shape({
