@@ -20,6 +20,7 @@ import AccountCircle from "@material-ui/core/SvgIcon/SvgIcon";
 import AuthUtils from "../../utils/api/authUtils";
 import Avatar from "@material-ui/core/Avatar";
 import Button from "@material-ui/core/Button";
+import ButtonAppBarCollapse from "./ButtonAppBarCollapse";
 import GithubLogo from "../../img/GithubLogo";
 import GoogleLogo from "../../img/GoogleLogo";
 import HttpUtils from "../../utils/api/httpUtils";
@@ -45,11 +46,32 @@ const styles = (theme) => ({
             backgroundColor: "transparent"
         }
     },
+    navButtonCollapse: {
+        display: "block",
+        padding: "6px 16px"
+    },
     usernameBtn: {
-        textTransform: "none"
+        textTransform: "none",
+        display: "inline-flex",
+        color: "#57595d"
     },
     leftIcon: {
         marginRight: theme.spacing(1)
+    },
+    buttonBar: {
+        [theme.breakpoints.down("xs")]: {
+            display: "none"
+        },
+        margin: 10,
+        paddingLeft: 16,
+        right: 0,
+        position: "relative",
+        width: "100%",
+        background: "transparent"
+    },
+    root: {
+        position: "absolute",
+        right: 0
     }
 });
 
@@ -129,30 +151,153 @@ class NavBar extends React.Component {
         ];
 
         return (
-            <React.Fragment>
-                {
-                    user
-                        ? (
-                            <React.Fragment>
-                                <Button disableTouchRipple={true} color={"inherit"}
-                                    onClick={() => this.handleNavItemClick(pages[0])}
-                                    className={classes.navButton}>
-                                    Images
-                                </Button>
-                                <Button disableTouchRipple={true} color={"inherit"}
-                                    onClick={() => this.handleNavItemClick(pages[1])}
-                                    className={classes.navButton}>
-                                    Organisations
-                                </Button>
-                            </React.Fragment>
-                        )
-                        : null
-                }
-                <Button disableTouchRipple={true} color={"inherit"} className={classes.navButton}
-                    onClick={() => this.handleNavItemClick(pages[2])}>
-                    Explore
-                </Button>
-                <div>
+            <div className={classes.root}>
+                <ButtonAppBarCollapse>
+                    {
+                        user
+                            ? (
+                                <React.Fragment>
+                                    <Button disableTouchRipple={true} color={"inherit"}
+                                        onClick={() => this.handleNavItemClick(pages[0])}
+                                        className={classNames(classes.navButton, classes.navButtonCollapse)}>
+                                        My Images
+                                    </Button>
+                                    <Button disableTouchRipple={true} color={"inherit"}
+                                        onClick={() => this.handleNavItemClick(pages[1])}
+                                        className={classNames(classes.navButton, classes.navButtonCollapse)}>
+                                        My Organisations
+                                    </Button>
+                                </React.Fragment>
+                            )
+                            : null
+                    }
+                    <Button disableTouchRipple={true} color={"inherit"}
+                        onClick={() => this.handleNavItemClick(pages[2])}
+                        className={classNames(classes.navButton, classes.navButtonCollapse)}>
+                        Explore
+                    </Button>
+                    <React.Fragment>
+                        <Button disableTouchRipple={true} color={"inherit"} ria-haspopup={"true"}
+                            onClick={this.handleDocsPopoverOpen}
+                            className={classNames(classes.navButton, classes.navButtonCollapse)}>
+                            Docs</Button>
+                        <Menu id={"user-info"} anchorEl={docsPopoverElement}
+                            anchorOrigin={{
+                                vertical: "top",
+                                horizontal: "right"
+                            }}
+                            transformOrigin={{
+                                vertical: "top",
+                                horizontal: "right"
+                            }}
+                            open={isDocsPopoverOpen}
+                            onClose={this.handleDocsPopoverClose}>
+                            <MenuItem onClick={this.handleDocsPopoverClose}>
+                                Get stared with Cellery hub
+                            </MenuItem>
+                            <MenuItem onClick={this.handleDocsPopoverClose}>
+                                How to code cell
+                            </MenuItem>
+                        </Menu>
+                    </React.Fragment>
+                    {
+                        user
+                            ? (
+                                <React.Fragment>
+                                    <Button disableTouchRipple={true} color={"inherit"}
+                                        className={classNames(classes.usernameBtn, classes.navButtonCollapse,
+                                            classes.navButton)}
+                                        aria-haspopup={"true"} onClick={this.handleAccountPopoverOpen}>
+                                        {
+                                            user.avatarUrl
+                                                ? (
+                                                    <Avatar alt={user.username} src={user.avatarUrl}
+                                                        className={classes.leftIcon} />
+                                                )
+                                                : <AccountCircle className={classes.leftIcon}/>
+                                        }
+                                        {user.username}
+                                    </Button>
+                                    <Menu id={"user-info"} anchorEl={accountPopoverElement}
+                                        anchorOrigin={{
+                                            vertical: "top",
+                                            horizontal: "right"
+                                        }}
+                                        transformOrigin={{
+                                            vertical: "top",
+                                            horizontal: "right"
+                                        }}
+                                        open={isAccountPopoverOpen}
+                                        onClose={this.handleAccountPopoverClose}>
+                                        {
+                                            user
+                                                ? (
+                                                    <React.Fragment>
+                                                        <MenuItem onClick={() => AuthUtils.signOut(globalState)}>
+                                                        Logout
+                                                        </MenuItem>
+                                                    </React.Fragment>
+                                                )
+                                                : null
+                                        }
+                                    </Menu>
+                                </React.Fragment>
+                            )
+                            : (
+                                <React.Fragment>
+                                    <Button disableTouchRipple={true} color={"inherit"} aria-haspopup={"true"}
+                                        onClick={this.handleAccountPopoverOpen}
+                                        className={classNames(classes.navButton, classes.navButtonCollapse)}>
+                                        SIGN IN/ SIGN UP</Button>
+                                    <Menu id={"user-info-appbar"} anchorEl={accountPopoverElement}
+                                        anchorOrigin={{
+                                            vertical: "top",
+                                            horizontal: "right"
+                                        }}
+                                        transformOrigin={{
+                                            vertical: "top",
+                                            horizontal: "right"
+                                        }}
+                                        open={isAccountPopoverOpen}
+                                        onClose={this.handleAccountPopoverClose}>
+                                        <MenuItem onClick={() => {
+                                            this.handleSignIn(AuthUtils.FederatedIdP.GITHUB);
+                                            this.handleAccountPopoverClose();
+                                        }}>
+                                            <GithubLogo className={classes.leftIcon}/> Github
+                                        </MenuItem>
+                                        <MenuItem onClick={() => {
+                                            this.handleSignIn(AuthUtils.FederatedIdP.GOOGLE);
+                                            this.handleAccountPopoverClose();
+                                        }}>
+                                            <GoogleLogo className={classes.leftIcon}/> Google
+                                        </MenuItem>
+                                    </Menu>
+                                </React.Fragment>
+                            )
+                    }
+                </ButtonAppBarCollapse>
+                <div className={classes.buttonBar} id={"appbar-collapse"}>
+                    {
+                        user
+                            ? (
+                                <React.Fragment>
+                                    <Button disableTouchRipple={true} color={"inherit"}
+                                        onClick={() => this.handleNavItemClick(pages[0])} className={classes.navButton}>
+                                        My Images
+                                    </Button>
+                                    <Button disableTouchRipple={true} color={"inherit"}
+                                        onClick={() => this.handleNavItemClick(pages[1])} className={classes.navButton}>
+                                        My Organisations
+                                    </Button>
+                                </React.Fragment>
+                            )
+                            : null
+                    }
+                    <Button disableTouchRipple={true} color={"inherit"} className={classes.navButton}
+                        onClick={() => this.handleNavItemClick(pages[2])}>
+                        Explore
+                    </Button>
                     <Button disableTouchRipple={true} color={"inherit"}
                         className={classes.navButton} ria-haspopup={"true"}
                         onClick={this.handleDocsPopoverOpen}>Docs</Button>
@@ -174,82 +319,83 @@ class NavBar extends React.Component {
                             How to code cell
                         </MenuItem>
                     </Menu>
+                    {
+                        user
+                            ? (
+                                <React.Fragment>
+                                    <Button disableTouchRipple={true} color={"inherit"}
+                                        className={classNames(classes.usernameBtn, classes.navButton)}
+                                        aria-haspopup={"true"} onClick={this.handleAccountPopoverOpen}>
+                                        {
+                                            user.avatarUrl
+                                                ? (
+                                                    <Avatar alt={user.username} src={user.avatarUrl}
+                                                        className={classes.leftIcon} />
+                                                )
+                                                : <AccountCircle className={classes.leftIcon}/>
+                                        }
+                                        {user.username}
+                                    </Button>
+                                    <Menu id={"user-info"} anchorEl={accountPopoverElement}
+                                        anchorOrigin={{
+                                            vertical: "top",
+                                            horizontal: "right"
+                                        }}
+                                        transformOrigin={{
+                                            vertical: "top",
+                                            horizontal: "right"
+                                        }}
+                                        open={isAccountPopoverOpen}
+                                        onClose={this.handleAccountPopoverClose}>
+                                        {
+                                            user
+                                                ? (
+                                                    <React.Fragment>
+                                                        <MenuItem onClick={() => AuthUtils.signOut(globalState)}>
+                                                            Logout
+                                                        </MenuItem>
+                                                    </React.Fragment>
+                                                )
+                                                : null
+                                        }
+                                    </Menu>
+                                </React.Fragment>
+                            )
+                            : (
+                                <React.Fragment>
+                                    <Button disableTouchRipple={true} color={"inherit"}
+                                        className={classes.navButton} aria-haspopup={"true"}
+                                        onClick={this.handleAccountPopoverOpen}>SIGN IN/ SIGN UP</Button>
+                                    <Menu id={"user-info-appbar"} anchorEl={accountPopoverElement}
+                                        anchorOrigin={{
+                                            vertical: "top",
+                                            horizontal: "right"
+                                        }}
+                                        transformOrigin={{
+                                            vertical: "top",
+                                            horizontal: "right"
+                                        }}
+                                        open={isAccountPopoverOpen}
+                                        onClose={this.handleAccountPopoverClose}>
+                                        <MenuItem onClick={() => {
+                                            this.handleSignIn(AuthUtils.FederatedIdP.GITHUB);
+                                            this.handleAccountPopoverClose();
+                                        }}>
+                                            <GithubLogo className={classes.leftIcon}/> Github
+                                        </MenuItem>
+                                        <MenuItem onClick={() => {
+                                            this.handleSignIn(AuthUtils.FederatedIdP.GOOGLE);
+                                            this.handleAccountPopoverClose();
+                                        }}>
+                                            <GoogleLogo className={classes.leftIcon}/> Google
+                                        </MenuItem>
+                                    </Menu>
+                                </React.Fragment>
+
+                            )
+                    }
                 </div>
-                {
-                    user
-                        ? (
-                            <div>
-                                <Button disableTouchRipple={true} color={"inherit"}
-                                    className={classNames(classes.usernameBtn, classes.navButton)}
-                                    aria-haspopup={"true"} onClick={this.handleAccountPopoverOpen}>
-                                    {
-                                        user.avatarUrl
-                                            ? (
-                                                <Avatar alt={user.username} src={user.avatarUrl}
-                                                    className={classes.leftIcon} />
-                                            )
-                                            : <AccountCircle className={classes.leftIcon}/>
-                                    }
-                                    {user.username}
-                                </Button>
-                                <Menu id={"user-info"} anchorEl={accountPopoverElement}
-                                    anchorOrigin={{
-                                        vertical: "top",
-                                        horizontal: "right"
-                                    }}
-                                    transformOrigin={{
-                                        vertical: "top",
-                                        horizontal: "right"
-                                    }}
-                                    open={isAccountPopoverOpen}
-                                    onClose={this.handleAccountPopoverClose}>
-                                    {
-                                        user
-                                            ? (
-                                                <React.Fragment>
-                                                    <MenuItem onClick={() => AuthUtils.signOut(globalState)}>
-                                                    Logout
-                                                    </MenuItem>
-                                                </React.Fragment>
-                                            )
-                                            : null
-                                    }
-                                </Menu>
-                            </div>
-                        )
-                        : (
-                            <div>
-                                <Button disableTouchRipple={true} color={"inherit"}
-                                    className={classes.navButton} aria-haspopup={"true"}
-                                    onClick={this.handleAccountPopoverOpen}>SIGN IN/ SIGN UP</Button>
-                                <Menu id={"user-info-appbar"} anchorEl={accountPopoverElement}
-                                    anchorOrigin={{
-                                        vertical: "top",
-                                        horizontal: "right"
-                                    }}
-                                    transformOrigin={{
-                                        vertical: "top",
-                                        horizontal: "right"
-                                    }}
-                                    open={isAccountPopoverOpen}
-                                    onClose={this.handleAccountPopoverClose}>
-                                    <MenuItem onClick={() => {
-                                        this.handleSignIn(AuthUtils.FederatedIdP.GITHUB);
-                                        this.handleAccountPopoverClose();
-                                    }}>
-                                        <GithubLogo className={classes.leftIcon}/> Github
-                                    </MenuItem>
-                                    <MenuItem onClick={() => {
-                                        this.handleSignIn(AuthUtils.FederatedIdP.GOOGLE);
-                                        this.handleAccountPopoverClose();
-                                    }}>
-                                        <GoogleLogo className={classes.leftIcon}/> Google
-                                    </MenuItem>
-                                </Menu>
-                            </div>
-                        )
-                }
-            </React.Fragment>
+            </div>
         );
     }
 

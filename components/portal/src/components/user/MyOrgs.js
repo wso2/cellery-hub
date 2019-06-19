@@ -60,7 +60,8 @@ const styles = (theme) => ({
     },
     secondaryText: {
         marginBottom: theme.spacing(2),
-        marginTop: theme.spacing(2)
+        marginTop: theme.spacing(2),
+        textAlign: "center"
     },
     createOrgImg: {
         height: 170,
