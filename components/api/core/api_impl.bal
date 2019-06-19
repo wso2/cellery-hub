@@ -444,12 +444,12 @@ returns http:Response {
     if (listOrgImagesReq.hasHeader(constants:AUTHENTICATED_USER)) {
         string userId = listOrgImagesReq.getHeader(constants:AUTHENTICATED_USER);
         log:printDebug(io:sprintf("List org images request with an authenticated user : %s", userId));        
-        orgImagesListResult = db:getUserImagesOfanORG(userId, orgName, imageName, orderBy, offset, resultLimit);
+        orgImagesListResult = db:getUserImagesOfORG(userId, orgName, imageName, orderBy, offset, resultLimit);
     } else {
         log:printDebug("List org images request with an unauthenticated user");
-        orgImagesListResult = db:getPublicImagesOfanORG(orgName, imageName, orderBy, offset, resultLimit);
+        orgImagesListResult = db:getPublicImagesOfORG(orgName, imageName, orderBy, offset, resultLimit);
     }
-	if (orgImagesListResult is json) {        
+    if (orgImagesListResult is json) {
         return buildSuccessResponse(jsonResponse = orgImagesListResult);
     }
     else {

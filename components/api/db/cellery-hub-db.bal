@@ -166,7 +166,7 @@ public function searchOrganizations(string orgName, int offset, int resultLimit)
     json resTotalJson = check json.convert(resTotal);    
     int totalOrgs = check int.convert(resTotalJson[0]["count"]);
     resTotal.close();
-    gen:OrgListResponse olr = {count:totalOrgs , data:[]};
+    gen:OrgListResponse orgListResponse = {count:totalOrgs , data:[]};
     if (totalOrgs > 0){
         log:printDebug(io:sprintf("%d organization(s) found with the name \'%s\'", totalOrgs, orgName));
         map<any> imageCountMap = {};
@@ -176,18 +176,18 @@ public function searchOrganizations(string orgName, int offset, int resultLimit)
             imageCountMap[fd.orgName] = fd.imageCount;
         }
         resImgCount.close();
-        table<gen:OrgListResponseAtom> resOrgListAtom = check connection->select(SEARCH_ORGS_QUERY, gen:OrgListResponseAtom, orgName, 
+        table<gen:OrgListResponseAtom> resData = check connection->select(SEARCH_ORGS_QUERY, gen:OrgListResponseAtom, orgName, 
         resultLimit, offset, loadToMemory = true);
-        foreach int i in 0...resOrgListAtom.count()-1{
-            gen:OrgListResponseAtom olra = check gen:OrgListResponseAtom.convert(resOrgListAtom.getNext());
-            olr.data[i] = olra;
-            olr.data[i]["imageCount"] = <int>imageCountMap[olra.orgName];
+        foreach int i in 0...resData.count()-1{
+            gen:OrgListResponseAtom orgListResponseAtom = check gen:OrgListResponseAtom.convert(resData.getNext());
+            orgListResponse.data[i] = orgListResponseAtom;
+            orgListResponse.data[i]["imageCount"] = <int>imageCountMap[orgListResponseAtom.orgName];
         }
-        resOrgListAtom.close();
+        resData.close();
     } else {
         log:printDebug(io:sprintf("No organization found with the name \'%s\'", orgName));
     }
-    return check json.convert(olr);
+    return check json.convert(orgListResponse);
 }
 
 public function searchUserOrganizations(string userId, string apiUserId, string orgName, int offset, int resultLimit) 
@@ -198,7 +198,7 @@ returns json | error {
     json resTotalJson = check json.convert(resTotal);
     int totalOrgs = check int.convert(resTotalJson[0]["count"]);
     resTotal.close();
-    gen:OrgListResponse olr = {count:totalOrgs , data:[]};
+    gen:OrgListResponse orgListResponse = {count:totalOrgs , data:[]};
     if (totalOrgs > 0){
         log:printDebug(io:sprintf("%d organization(s) found with the orgName \'%s\' for userId %s", totalOrgs, orgName, userId));
         map<any> imageCountMap = {};
@@ -208,47 +208,49 @@ returns json | error {
             imageCountMap[fd.orgName] = fd.imageCount;
         }
         resImgCount.close();
-        table<gen:OrgListResponseAtom> resOrgListAtom = check connection->select(SEARCH_USER_ORGS_QUERY, gen:OrgListResponseAtom, orgName, userId,
+        table<gen:OrgListResponseAtom> resData = check connection->select(SEARCH_USER_ORGS_QUERY, gen:OrgListResponseAtom, orgName, userId,
         resultLimit, offset, loadToMemory = true);        
-        foreach int i in 0...resOrgListAtom.count()-1{
-            gen:OrgListResponseAtom olra = check gen:OrgListResponseAtom.convert(resOrgListAtom.getNext());
-            olr.data[i] = olra;
-            if (imageCountMap[olra.orgName] is ()){
-                imageCountMap[olra.orgName] = 0;
+        foreach int i in 0...resData.count()-1{
+            gen:OrgListResponseAtom orgListResponseAtom = check gen:OrgListResponseAtom.convert(resData.getNext());
+            orgListResponse.data[i] = orgListResponseAtom;
+            if (imageCountMap[orgListResponseAtom.orgName] is ()){
+                imageCountMap[orgListResponseAtom.orgName] = 0;
             }
-            olr.data[i]["imageCount"] = <int>imageCountMap[olra.orgName];
+            orgListResponse.data[i]["imageCount"] = <int>imageCountMap[orgListResponseAtom.orgName];
         }
-        resOrgListAtom.close();
+        resData.close();
     } else {
         log:printDebug(io:sprintf("No organization found for userId %s, with the orgName \'%s\'",userId, orgName));
     }
-    return check json.convert(olr);
+    return check json.convert(orgListResponse);
 }
 
-public function getPublicImagesOfanORG(string orgName, string imageName, string orderBy, int offset, int resultLimit)
+public function getPublicImagesOfORG(string orgName, string imageName, string orderBy, int offset, int resultLimit)
 returns json | error {
     log:printDebug(io:sprintf("Performing image retrival from DB for org: %s, image: %s", orgName, imageName));
     table<gen:OrgImagesListResponse> resTotal = check connection->select(SEARCH_ORG_IMAGES_TOTAL_COUNT, gen:Count, orgName, imageName);
     json resTotalJson = check json.convert(resTotal);
     int totalOrgs = check int.convert(resTotalJson[0]["count"]);
     resTotal.close();
-    gen:OrgImagesListResponse oilr = {count:totalOrgs , data:[]};
+    gen:OrgImagesListResponse orgImagesListResponse = {count:totalOrgs , data:[]};
     if (totalOrgs > 0){
         log:printDebug(io:sprintf("%d images found with the imageName \'%s\' for orgName %s", totalOrgs, imageName, orgName));
         string searchQuery = SEARCH_ORG_IMAGES_QUERY + " ORDER BY " +orderBy+ " DESC LIMIT " +resultLimit+ " OFFSET " +offset; 
         table<gen:OrgImagesListResponseAtom> resData = check connection->select(searchQuery, gen:OrgImagesListResponseAtom, 
-        orgName, imageName, loadToMemory = true);        
-        foreach int i in 0...resData.count()-1{
-            oilr.data[i] =  check gen:OrgImagesListResponseAtom.convert(resData.getNext());
+        orgName, imageName);        
+        int counter = 0;
+        foreach var item in resData {
+            orgImagesListResponse.data[counter] =  gen:OrgImagesListResponseAtom.convert(item);
+            counter += 1;
         }
         resData.close();
     } else {
         log:printDebug(io:sprintf("No images found for the orgName \'%s\' with the image name \'%s\'", orgName, imageName));
     }
-    return check json.convert(oilr);   
+    return check json.convert(orgImagesListResponse);   
 }
 
-public function getUserImagesOfanORG(string userId, string orgName, string imageName, string orderBy, int offset, int resultLimit)
+public function getUserImagesOfORG(string userId, string orgName, string imageName, string orderBy, int offset, int resultLimit)
 returns json | error {
     log:printDebug(io:sprintf("Performing image retrival from DB for org: %s, image: %s", orgName, imageName));
     table<gen:OrgImagesListResponse> resTotal = check connection->select(SEARCH_ORG_IMAGES_FOR_USER_TOTAL_COUNT, gen:Count, 
@@ -256,20 +258,22 @@ returns json | error {
     json resTotalJson = check json.convert(resTotal);
     int totalOrgs = check int.convert(resTotalJson[0]["count"]);
     resTotal.close();
-    gen:OrgImagesListResponse oilr = {count:totalOrgs , data:[]};
+    gen:OrgImagesListResponse orgImagesListResponse = {count:totalOrgs , data:[]};
     if (totalOrgs > 0){
         log:printDebug(io:sprintf("%d images found with the imageName \'%s\' for orgName %s and userId %s", totalOrgs, imageName, 
         orgName, userId));
         string searchQuery = SEARCH_ORG_IMAGES_FOR_USER_QUERY + " ORDER BY " +orderBy+ " DESC LIMIT " +resultLimit+ " OFFSET " +offset;        
         table<gen:OrgImagesListResponseAtom> resData = check connection->select(searchQuery, gen:OrgImagesListResponseAtom, 
-        orgName, imageName, userId, loadToMemory = true);        
-        foreach int i in 0...resData.count()-1{
-            oilr.data[i] = check gen:OrgImagesListResponseAtom.convert(resData.getNext());
+        orgName, imageName, userId);
+        int counter = 0;
+        foreach var item in resData {
+            orgImagesListResponse.data[counter] =  gen:OrgImagesListResponseAtom.convert(item);
+            counter += 1;
         }
         resData.close();        
     } else {
         log:printDebug(io:sprintf("No images found for the orgName \'%s\' with the image name \'%s\' for userId %s", orgName, 
         imageName, userId));
     }
-    return check json.convert(oilr);
+    return check json.convert(orgImagesListResponse);
 }

@@ -492,7 +492,7 @@ service CelleryHubAPI on ep {
         int offset = 0;
         int resultLimit = 10;
         string imageName = "%";
-        string orderBy = "last-updated";
+        string orderBy = constants:PULL_COUNT;
         if (queryParams.hasKey(constants:OFFSET)) {
             int | error offsetQueryParam = int.convert(queryParams.offset);
             if (offsetQueryParam is int) {
@@ -518,9 +518,9 @@ service CelleryHubAPI on ep {
         if (queryParams.hasKey(constants:ORDER_BY)) {
             orderBy = queryParams.orderBy;
             if (orderBy.equalsIgnoreCase("last-updated")) {
-                orderBy = "UPDATED_DATE";
+                orderBy = constants:UPDATED_DATE;
             } else {
-                orderBy = "PULL_COUNT";
+                orderBy = constants:PULL_COUNT;
             } 
         }
         http:Response _listOrgImagesRes = listOrgImages(_listOrgImagesReq, orgName, imageName, untaint orderBy, untaint offset, untaint resultLimit);
