@@ -526,4 +526,56 @@ service CelleryHubAPI on ep {
         http:Response _listOrgImagesRes = listOrgImages(_listOrgImagesReq, orgName, imageName, untaint orderBy, untaint offset, untaint resultLimit);
         error? x = outboundEp->respond(_listOrgImagesRes);
     }
+
+    @openapi:ResourceInfo {
+        summary: "Search images of any organization",
+        parameters: [
+            {
+                name: "orgName",
+                inInfo: "query",
+                paramType: "string",
+                description: "Name of the organization",
+                allowEmptyValue: ""
+            },
+            {
+                name: "imageName",
+                inInfo: "query",
+                paramType: "string",
+                description: "Name of the Image",
+                allowEmptyValue: ""
+            },
+            {
+                name: "orderBy",
+                inInfo: "query",
+                paramType: "string",
+                description: "Enum to oder result",
+                required: true,
+                allowEmptyValue: ""
+            },
+            {
+                name: "limit",
+                inInfo: "query",
+                paramType: "int",
+                description: "Number of results returned for pagination",
+                required: true,
+                allowEmptyValue: ""
+            },
+            {
+                name: "offset",
+                inInfo: "query",
+                paramType: "int",
+                description: "Offset of the result set returned for pagination",
+                required: true,
+                allowEmptyValue: ""
+            }
+        ]
+    }
+    @http:ResourceConfig {
+        methods:["GET"],
+        path:"/images"
+    }
+    resource function listImages (http:Caller outboundEp, http:Request _listImagesReq) returns error? {
+        http:Response _listImagesRes = listImages(_listImagesReq);
+        _ = outboundEp->respond(_listImagesRes);
+    }
 }

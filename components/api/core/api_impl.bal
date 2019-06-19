@@ -458,3 +458,12 @@ returns http:Response {
         return buildUnknownErrorResponse();
     }
 }
+
+public function listImages (http:Request _listImagesReq) returns http:Response {
+    // stub code - fill as necessary
+    http:Response _listImagesRes = new;
+    string _listImagesPayload = "Sample listImages Response";
+    _listImagesRes.setTextPayload(_listImagesPayload);
+
+	return _listImagesRes;
+}
