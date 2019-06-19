@@ -575,7 +575,48 @@ service CelleryHubAPI on ep {
         path:"/images"
     }
     resource function listImages (http:Caller outboundEp, http:Request _listImagesReq) returns error? {
-        http:Response _listImagesRes = listImages(_listImagesReq);
-        _ = outboundEp->respond(_listImagesRes);
+        map<string> queryParams = _listImagesReq.getQueryParams();
+        int offset = 0;
+        int resultLimit = 10;
+        string orgName = "%";
+        string imageName = "%";
+        string orderBy = constants:PULL_COUNT;
+        if (queryParams.hasKey(constants:OFFSET)) {
+            int | error offsetQueryParam = int.convert(queryParams.offset);
+            if (offsetQueryParam is int) {
+                offset = offsetQueryParam;
+            }
+        }
+        if (queryParams.hasKey(constants:RESULT_LIMIT)) {
+            int | error resultLimitQueryParam = int.convert(queryParams.
+            resultLimit);
+            if (resultLimitQueryParam is int) {
+                resultLimit = resultLimitQueryParam;
+                if (resultLimit > 25) {
+                    log:printDebug(io:sprintf("Requested result limit exeeded 25. Hense reset resultLimit to 25"));
+                    resultLimit = 25;
+                }
+            }
+        }
+        if (queryParams.hasKey(constants:ORG_NAME)) {
+            log:printDebug("orgName is present");
+            orgName = queryParams.orgName;
+            orgName = orgName.replace("*", "%");
+        }
+        if (queryParams.hasKey(constants:IMAGE_NAME)) {
+            log:printDebug("imageName is present");
+            imageName = queryParams.imageName;
+            imageName = imageName.replace("*", "%");
+        }
+        if (queryParams.hasKey(constants:ORDER_BY)) {
+            orderBy = queryParams.orderBy;
+            if (orderBy.equalsIgnoreCase("last-updated")) {
+                orderBy = constants:UPDATED_DATE;
+            } else {
+                orderBy = constants:PULL_COUNT;
+            } 
+        }
+        http:Response _listImagesRes = listImages(_listImagesReq, orgName, imageName, untaint orderBy, untaint offset, untaint resultLimit);
+        error? x = outboundEp->respond(_listImagesRes);
     }
 }

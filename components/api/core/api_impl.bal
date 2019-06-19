@@ -459,11 +459,34 @@ returns http:Response {
     }
 }
 
-public function listImages (http:Request _listImagesReq) returns http:Response {
-    // stub code - fill as necessary
-    http:Response _listImagesRes = new;
-    string _listImagesPayload = "Sample listImages Response";
-    _listImagesRes.setTextPayload(_listImagesPayload);
-
-	return _listImagesRes;
+# Search all images belong to any organization
+#
+# + listImagesReq - received request which contains header
+# + orgName - regex for organization name
+# + imageName - regex for search images
+# + orderBy - orderBy enum value
+# + offset - offset value
+# + resultLimit - esultLimit value
+# + return - http response which cater to the request
+public function listImages (http:Request listImagesReq, string orgName, string imageName, string orderBy, int offset, int resultLimit)
+returns http:Response {
+    log:printDebug(io:sprintf("Listing images for orgName : %s, imageName : %s, orderBy : %s, offset : %d, limit : %d, ", orgName, 
+    imageName, orderBy, offset, resultLimit));
+    json | error orgImagesListResult;
+    if (listImagesReq.hasHeader(constants:AUTHENTICATED_USER)) {
+        string userId = listImagesReq.getHeader(constants:AUTHENTICATED_USER);
+        log:printDebug(io:sprintf("List images request with an authenticated user : %s", userId));        
+        orgImagesListResult = db:getUserImages(userId, orgName, imageName, orderBy, offset, resultLimit);
+    } else {
+        log:printDebug("List images request with an unauthenticated user");
+        orgImagesListResult = db:getPublicImages(orgName, imageName, orderBy, offset, resultLimit);
+    }
+    if (orgImagesListResult is json) {
+        return buildSuccessResponse(jsonResponse = orgImagesListResult);
+    }
+    else {
+        log:printError(io:sprintf("Error occured while retrieving images with name \'%s\' for organization \'%s\'", imageName, orgName), 
+        err = orgImagesListResult);
+        return buildUnknownErrorResponse();
+    }
 }
