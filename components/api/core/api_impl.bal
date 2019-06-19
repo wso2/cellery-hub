@@ -125,7 +125,7 @@ public function createOrg(http:Request createOrgReq, gen:OrgCreateRequest create
             }
         } else if (orgNameAvailability is boolean && !orgNameAvailability) {
             log:printError(io:sprintf("Organization creation failed : orgName \'%s\' is already taken", createOrgsBody.orgName));
-            return buildErrorResponse(http:METHOD_NOT_ALLOWED_405, constants:API_ERROR_CODE, "Unable to create organization",
+            return buildErrorResponse(http:CONFLICT_409, constants:ENTRY_ALREADY_EXISTING_ERROR_CODE, "Unable to create organization",
             "Organization name is already taken");
         } else if (orgNameAvailability is error) {
             log:printError("Error occured while checking the orgName availability", err = orgNameAvailability);
@@ -327,7 +327,6 @@ public function getArtifact (http:Request getArtifactReq, string orgName, string
         return buildUnknownErrorResponse();
     }
 }
-
 
 public function getOrganizationUsers(http:Request _orgUserRequest, string orgName, int offset, int resultLimit)
 returns http:Response {

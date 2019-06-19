@@ -23,6 +23,8 @@ public const string G_CAPTCHA_RESPONSE = "g-recaptcha-response";
 public const string SET_COOKIE_HEADER = "Set-Cookie";
 
 public const int API_ERROR_CODE = 1;
+public const int ENTRY_ALREADY_EXISTING_ERROR_CODE = 2;
+
 public const string OFFSET = "offset";
 public const string RESULT_LIMIT = "resultLimit";
 public const string ARTIFACT_VERSION = "artifactVersion";
