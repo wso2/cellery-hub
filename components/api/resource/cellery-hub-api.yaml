@@ -123,7 +123,32 @@ paths:
           description: "Internal Server Error"
           schema:
             $ref: "#/definitions/ErrorResponse"
-            
+  /images/{orgName}:
+    get:
+      operationId: "listOrgImages"
+      summary: "Search images of a specific organization"
+      produces:
+        - "application/json"
+      parameters:
+        - $ref: "#/parameters/orgNamePathParam"
+        - $ref: "#/parameters/imageNameQueryParam"
+        - $ref: '#/parameters/orderByQueryParam'
+        - $ref: '#/parameters/limitQueryParam'
+        - $ref: '#/parameters/offsetQueryParam'
+      responses:
+        200:
+          description: "OK"
+          schema:
+            $ref: "#/definitions/OrgImagesListResponse"
+        405:
+          description: "Invalid Input"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+        500:
+          description: "Internal Server Error"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+
   /artifacts/{orgName}/{imageName}/{artifactVersion}:
     get:
       operationId: "getArtifact"
@@ -210,7 +235,13 @@ parameters:
     description: "Offset of the result set returned for pagination"
     required: true
     type: integer
-    
+  orderByQueryParam:
+    name: "orderBy"
+    in: "query"
+    description: "Enum to oder result"
+    required: true
+    type: "string"
+
 definitions:
   OrgCreateRequest:
     type: "object"
@@ -268,6 +299,29 @@ definitions:
         type: integer
       imageCount:
         type: integer
+  OrgImagesListResponse:
+    type: object
+    properties:
+      count:
+        type: integer
+        description: "total count of organizations"
+      data:
+        type: array
+        items:
+          $ref: '#/definitions/OrgImagesListResponseAtom'
+  OrgImagesListResponseAtom:
+    type: object
+    properties:
+      imageName:
+        type: string
+      description:
+        type: string
+      pullCount:
+        type: integer
+      updatedTimestamp:
+        type: string
+      visibility:
+        type: string
   ErrorResponse:
     type: "object"
     properties:
@@ -280,4 +334,3 @@ definitions:
       description:
         type: "string"
         description: "Description about the error occurred"
-        

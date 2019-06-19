@@ -426,3 +426,35 @@ returns http:Response {
                                                             "Unauthenticated request. Auth token is not provided");
     }
 }
+
+# Search all images belong to a given organization
+#
+# + listOrgImagesReq - received request which contains header 
+# + orgName - organization name which seaerching images should belong to
+# + imageName - regex for search images
+# + orderBy - orderBy enum value 
+# + offset - offset value 
+# + resultLimit - esultLimit value 
+# + return - http response which cater to the request
+public function listOrgImages (http:Request listOrgImagesReq, string orgName, string imageName, string orderBy, int offset, int resultLimit)
+returns http:Response {
+    log:printDebug(io:sprintf("Listing images for orgName : %s, imageName : %s, orderBy : %s, offset : %d, limit : %d, ", orgName, 
+    imageName, orderBy, offset, resultLimit));
+    json | error orgImagesListResult;
+    if (listOrgImagesReq.hasHeader(constants:AUTHENTICATED_USER)) {
+        string userId = listOrgImagesReq.getHeader(constants:AUTHENTICATED_USER);
+        log:printDebug(io:sprintf("List org images request with an authenticated user : %s", userId));        
+        orgImagesListResult = db:getUserImagesOfORG(userId, orgName, imageName, orderBy, offset, resultLimit);
+    } else {
+        log:printDebug("List org images request with an unauthenticated user");
+        orgImagesListResult = db:getPublicImagesOfORG(orgName, imageName, orderBy, offset, resultLimit);
+    }
+    if (orgImagesListResult is json) {
+        return buildSuccessResponse(jsonResponse = orgImagesListResult);
+    }
+    else {
+        log:printError(io:sprintf("Error occured while retrieving images with name \'%s\' for organization \'%s\'", imageName, orgName), 
+        err = orgImagesListResult);
+        return buildUnknownErrorResponse();
+    }
+}

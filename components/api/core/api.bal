@@ -438,4 +438,92 @@ service CelleryHubAPI on ep {
         http:Response _getUserOrgsRes = getUserOrgs(_getUserOrgsReq, userId, orgName, offset, resultLimit);
         error? x = outboundEp->respond(_getUserOrgsRes);
     }
+
+    @openapi:ResourceInfo {
+        summary: "Search images of a specific organization",
+        parameters: [
+            {
+                name: "orgName",
+                inInfo: "path",
+                paramType: "string",
+                description: "Name of the organization",
+                required: true,
+                allowEmptyValue: ""
+            },
+            {
+                name: "imageName",
+                inInfo: "query",
+                paramType: "string",
+                description: "Name of the Image",
+                allowEmptyValue: ""
+            },
+            {
+                name: "orderBy",
+                inInfo: "query",
+                paramType: "string",
+                description: "Enum to oder result",
+                required: true,
+                allowEmptyValue: ""
+            },
+            {
+                name: "limit",
+                inInfo: "query",
+                paramType: "int",
+                description: "Number of results returned for pagination",
+                required: true,
+                allowEmptyValue: ""
+            },
+            {
+                name: "offset",
+                inInfo: "query",
+                paramType: "int",
+                description: "Offset of the result set returned for pagination",
+                required: true,
+                allowEmptyValue: ""
+            }
+        ]
+    }
+    @http:ResourceConfig {
+        methods:["GET"],
+        path:"/images/{orgName}"
+    }
+    resource function listOrgImages (http:Caller outboundEp, http:Request _listOrgImagesReq, string orgName) returns error? {
+        map<string> queryParams = _listOrgImagesReq.getQueryParams();
+        int offset = 0;
+        int resultLimit = 10;
+        string imageName = "%";
+        string orderBy = constants:PULL_COUNT;
+        if (queryParams.hasKey(constants:OFFSET)) {
+            int | error offsetQueryParam = int.convert(queryParams.offset);
+            if (offsetQueryParam is int) {
+                offset = offsetQueryParam;
+            }
+        }
+        if (queryParams.hasKey(constants:RESULT_LIMIT)) {
+            int | error resultLimitQueryParam = int.convert(queryParams.
+            resultLimit);
+            if (resultLimitQueryParam is int) {
+                resultLimit = resultLimitQueryParam;
+                if (resultLimit > 25) {
+                    log:printDebug(io:sprintf("Requested result limit exeeded 25. Hense reset resultLimit to 25"));
+                    resultLimit = 25;
+                }
+            }
+        }
+        if (queryParams.hasKey(constants:IMAGE_NAME)) {
+            log:printDebug("imageName is present");
+            imageName = queryParams.imageName;
+            imageName = imageName.replace("*", "%");
+        }
+        if (queryParams.hasKey(constants:ORDER_BY)) {
+            orderBy = queryParams.orderBy;
+            if (orderBy.equalsIgnoreCase("last-updated")) {
+                orderBy = constants:UPDATED_DATE;
+            } else {
+                orderBy = constants:PULL_COUNT;
+            } 
+        }
+        http:Response _listOrgImagesRes = listOrgImages(_listOrgImagesReq, orgName, imageName, untaint orderBy, untaint offset, untaint resultLimit);
+        error? x = outboundEp->respond(_listOrgImagesRes);
+    }
 }

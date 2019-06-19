@@ -27,6 +27,8 @@ public const string OFFSET = "offset";
 public const string RESULT_LIMIT = "resultLimit";
 public const string ARTIFACT_VERSION = "artifactVersion";
 public const string ORG_NAME = "orgName";
+public const string IMAGE_NAME = "imageName";
+public const string ORDER_BY = "orderBy";
 
 public const string IDP_ENDPOINT_VAR = "idp.endpoint";
 public const string IDP_INTROSPCET_VAR = "idp.introspection.endpoint";
@@ -43,3 +45,5 @@ public const string TOKEN_COOKIE_KEY = "chpat";
 
 public const string ROLE_ADMIN = "admin";
 public const string DEFAULT_IMAGE_VISIBILITY = "PUBLIC";
+public const string PULL_COUNT = "PULL_COUNT";
+public const string UPDATED_DATE = "UPDATED_DATE";
