@@ -16,6 +16,9 @@
  * under the License.
  */
 
+import CelleryCmd from "../../img/celleryCmd.png";
+import CheckCircleOutline from "@material-ui/icons/CheckCircleOutlineRounded";
+import Grid from "@material-ui/core/Grid";
 import Link from "@material-ui/core/Link";
 import React from "react";
 import Typography from "@material-ui/core/Typography";
@@ -29,14 +32,30 @@ const styles = (theme) => ({
     },
     success: {
         paddingTop: theme.spacing(2),
-        fontWeight: 300
+        paddingBottom: theme.spacing(4)
     },
     gotoHub: {
         fontWeight: 400,
         paddingTop: theme.spacing(2),
-        fontSize: 18
+        color: "#464646",
+        textAlign: "center"
+    },
+    hubUrl: {
+        color: "#464646",
+        textDecoration: "underline"
+    },
+    celleryCmd: {
+        height: 85,
+        paddingTop: theme.spacing(2)
+    },
+    check: {
+        paddingTop: theme.spacing(2),
+        color: theme.palette.primary.main,
+        fontSize: "3.3rem"
+    },
+    nextTitle: {
+        color: "#464646"
     }
-
 });
 
 const SignInSuccess = (props) => {
@@ -44,13 +63,22 @@ const SignInSuccess = (props) => {
     const hubPublicUrl = globalState.get(StateHolder.CONFIG).hubPublicUrl;
     return (
         <div className={classes.content}>
-            <Typography component={"div"} variant={"h5"} className={classes.success}>
-                You are now authenticated with Cellery SDK!
-            </Typography>
-            <Typography component={"div"} className={classes.gotoHub}> You can go to&nbsp;
-                <Link target={"_blank"} href={hubPublicUrl}>Cellery Hub</Link> to manage your
-                organizations and Cell images.
-            </Typography>
+            <Grid container justify={"center"} direction={"column"} alignContent={"center"} alignItems={"center"}>
+                <CheckCircleOutline className={classes.check} fontSize={"large"}/>
+                <Typography component={"div"} variant={"h5"} className={classes.success}>
+                    You are now authenticated with Cellery SDK!
+                </Typography>
+                <Typography variant={"h6"} className={classes.nextTitle}>What&apos;s next?</Typography>
+                <img src={CelleryCmd} className={classes.celleryCmd} alt={"Cellery cmd"}/>
+                <div className={classes.gotoHub}>
+                    <Typography> Go back to your terminal and push your Cell images</Typography>
+                    <Typography component={"div"}> or</Typography>
+                    <Typography> Go to&nbsp;<Link target={"_blank"} href={hubPublicUrl} className={classes.hubUrl}>
+                        Cellery Hub</Link>&nbsp;to manage your organizations and Cell images.
+                    </Typography>
+                </div>
+
+            </Grid>
         </div>
     );
 };

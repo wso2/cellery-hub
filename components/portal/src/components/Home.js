@@ -174,14 +174,14 @@ class Home extends React.Component {
                     </Grid>
                     <Container maxWidth={"md"}>
                         <Grid container>
-                            <Grid item xs={12} sm={6} md={6}>
+                            <Grid item xs={8} sm={6} md={6}>
                                 <div className={classes.headerSubTitle}>
                                     <Typography className={classes.headerSubTitleContent}>
                                         A WSO2 Open Source Project
                                     </Typography>
                                 </div>
                             </Grid>
-                            <Grid item xs={12} sm={6} md={6}>
+                            <Grid item xs={4} sm={6} md={6}>
                                 <AppBar position={"static"} className={classes.appbar}>
                                     <Toolbar className={classes.toolbar}>
                                         <NavBar/>
