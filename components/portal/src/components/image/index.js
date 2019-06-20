@@ -273,14 +273,14 @@ class Image extends React.Component {
                                     <Grid container spacing={4}>
                                         <Grid item xs={12} sm={8} md={8}>
                                             <Grid container spacing={2}>
-                                                <Grid item xs={2} sm={2} md={2}>
+                                                <Grid item xs={4} sm={2} md={2}>
                                                     <Grid container justify={"center"}>
                                                         <div className={classes.imageContainer}>
                                                             <CellImage className={classes.cellImage}/>
                                                         </div>
                                                     </Grid>
                                                 </Grid>
-                                                <Grid item xs={10} sm={10} md={10}>
+                                                <Grid item xs={8} sm={10} md={10}>
                                                     <div className={classes.stats}>
                                                         <GetApp className={classes.elementIcon}/>
                                                         <Typography variant={"subtitle2"} color={"inherit"}

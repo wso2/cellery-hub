@@ -76,7 +76,8 @@ const styles = (theme) => ({
         marginRight: theme.spacing(1)
     },
     usernameBtn: {
-        textTransform: "none"
+        textTransform: "none",
+        color: "#57595d"
     }
 });
 
