@@ -20,6 +20,7 @@ package main
 
 import (
 	"crypto/tls"
+	"crypto/x509"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -94,13 +95,7 @@ func validateToken(inToken string, cert []byte, execId string) (bool, error) {
 
 func main() {
 	err := os.MkdirAll("/extension-logs", os.ModePerm)
-	if err != nil {
-		log.Println("Error creating the file :", err)
-	}
 	file, err := os.OpenFile(logFile, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
-	if err != nil {
-		log.Printf("Error opening file: %s\n", err)
-	}
 	defer func() {
 		err = file.Close()
 		if err != nil {
@@ -109,6 +104,7 @@ func main() {
 		}
 	}()
 	if err != nil {
+		log.Println("Error creating the file :", err)
 		os.Exit(extension.ErrorExitCode)
 	}
 	log.SetOutput(file)
@@ -154,12 +150,15 @@ func validateJWT(token string, username string, execId string) {
 	}
 
 	certificateInUse, err := readCert(idpCertEnvVar, execId)
+	if err != nil {
+		log.Printf("[%s] Unable to load idp cert file : %s\n", execId, err)
+	}
 
 	if iss == authTokenIssuerEnvVar {
 		certificateInUse, err = readCert(dockerAuthCertEnvVar, execId)
-	}
-	if err != nil {
-		log.Printf("[%s] Unable to load cert file : %s\n", execId, err)
+		if err != nil {
+			log.Printf("[%s] Unable to load docker auth file : %s\n", execId, err)
+		}
 	}
 
 	tokenValidity, err := validateToken(token, certificateInUse, execId)
@@ -213,8 +212,14 @@ func validateAccessToken(token string, providedUsername string, execId string) b
 	username, password := resolveCredentials(execId)
 	req.SetBasicAuth(username, password)
 	// todo Remove the the host verification turning off
-	http.DefaultTransport.(*http.Transport).TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
-	res, err := http.DefaultClient.Do(req)
+	certificateInUse, err := readCert(idpCertEnvVar, execId)
+	caCertPool := x509.NewCertPool()
+	caCertPool.AppendCertsFromPEM(certificateInUse)
+	tr := &http.Transport{
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+	}
+	client := &http.Client{Transport: tr}
+	res, err := client.Do(req)
 	if err != nil {
 		log.Printf("[%s] Error sending the request to the introspection endpoint : %s\n", execId, err)
 		os.Exit(extension.ErrorExitCode)
