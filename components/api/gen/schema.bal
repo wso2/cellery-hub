@@ -131,9 +131,23 @@ public type UserListResponse record {
     UserResponse[] users;
 };
 
+public type ImagesListResponse record { 
+    int count;
+    ImagesListResponseAtom[] data;
+};
+
 public type OrgImagesListResponse record { 
     int count;
     OrgImagesListResponseAtom[] data;
+};
+
+public type ImagesListResponseAtom record { 
+    string orgName;
+    string imageName;
+    string description;
+    int pullCount;
+    string updatedTeimstamp;
+    string visibility;
 };
 
 public type OrgImagesListResponseAtom record { 

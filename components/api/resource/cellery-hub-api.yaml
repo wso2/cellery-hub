@@ -123,6 +123,31 @@ paths:
           description: "Internal Server Error"
           schema:
             $ref: "#/definitions/ErrorResponse"
+  /images:
+    get:
+      operationId: "listImages"
+      summary: "Search images of any organization"
+      produces:
+      - "application/json"
+      parameters:
+      - $ref: "#/parameters/orgNameQueryParam"
+      - $ref: "#/parameters/imageNameQueryParam"
+      - $ref: '#/parameters/orderByQueryParam'
+      - $ref: '#/parameters/limitQueryParam'
+      - $ref: '#/parameters/offsetQueryParam'
+      responses:
+        200:
+          description: "OK"
+          schema:
+            $ref: "#/definitions/ImagesListResponse"
+        405:
+          description: "Invalid Input"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+        500:
+          description: "Internal Server Error"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
   /images/{orgName}:
     get:
       operationId: "listOrgImages"
@@ -299,6 +324,16 @@ definitions:
         type: integer
       imageCount:
         type: integer
+  ImagesListResponse:
+    type: object
+    properties:
+      count:
+        type: integer
+        description: "total count of organizations"
+      data:
+        type: array
+        items:
+          $ref: '#/definitions/ImagesListResponseAtom'
   OrgImagesListResponse:
     type: object
     properties:
@@ -309,6 +344,21 @@ definitions:
         type: array
         items:
           $ref: '#/definitions/OrgImagesListResponseAtom'
+  ImagesListResponseAtom:
+    type: object
+    properties:
+      orgName:
+        type: string
+      imageName:
+        type: string
+      description:
+        type: string
+      pullCount:
+        type: integer
+      updatedTeimstamp:
+        type: string
+      visibility:
+        type: string
   OrgImagesListResponseAtom:
     type: object
     properties:
