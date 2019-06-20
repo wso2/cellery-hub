@@ -173,7 +173,26 @@ paths:
           description: "Internal Server Error"
           schema:
             $ref: "#/definitions/ErrorResponse"
-
+  /images/{orgName}/{imageName}:
+    put:
+      operationId: "updateImage"
+      summary: "Update an existing image"
+      produces:
+      - "application/json"
+      parameters:
+      - $ref: "#/parameters/orgNamePathParam"
+      - $ref: "#/parameters/imageNamePathParam"
+      responses:
+        200:
+          description: "OK"
+        405:
+          description: "Invalid Input"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+        500:
+          description: "Internal Server Error"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
   /artifacts/{orgName}/{imageName}/{artifactVersion}:
     get:
       operationId: "getArtifact"

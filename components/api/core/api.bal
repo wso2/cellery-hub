@@ -619,4 +619,34 @@ service CelleryHubAPI on ep {
         http:Response _listImagesRes = listImages(_listImagesReq, orgName, imageName, untaint orderBy, untaint offset, untaint resultLimit);
         error? x = outboundEp->respond(_listImagesRes);
     }
+
+    @openapi:ResourceInfo {
+        summary: "Update an existing image",
+        parameters: [
+            {
+                name: "orgName",
+                inInfo: "path",
+                paramType: "string",
+                description: "Name of the organization",
+                required: true,
+                allowEmptyValue: ""
+            },
+            {
+                name: "imageName",
+                inInfo: "path",
+                paramType: "string",
+                description: "Name of the image",
+                required: true,
+                allowEmptyValue: ""
+            }
+        ]
+    }
+    @http:ResourceConfig {
+        methods:["PUT"],
+        path:"/images/{orgName}/{imageName}"
+    }
+    resource function updateImage (http:Caller outboundEp, http:Request _updateImageReq, string orgName, string imageName) returns error? {
+        http:Response _updateImageRes = updateImage(_updateImageReq, orgName, imageName);
+        _ = outboundEp->respond(_updateImageRes);
+    }
 }

@@ -491,3 +491,13 @@ returns http:Response {
         return buildUnknownErrorResponse();
     }
 }
+
+
+public function updateImage (http:Request _updateImageReq, string orgName, string imageName) returns http:Response {
+    // stub code - fill as necessary
+    http:Response _updateImageRes = new;
+    string _updateImagePayload = "Sample updateImage Response";
+    _updateImageRes.setTextPayload(_updateImagePayload);
+
+	return _updateImageRes;
+}
