@@ -23,7 +23,7 @@ import cellery_hub_api/gen;
 import ballerina/io;
 import ballerina/encoding;
 
-public function getOrganization (string orgName) returns json | error {
+public function getOrganization(string orgName) returns json | error {
     log:printDebug(io:sprintf("Performing data retreival on REGISTRY_ORGANIZATION table, Org name : \'%s\': ", orgName));
     table<record {}> res =  check connection->select(GET_ORG_QUERY, gen:OrgResponse, orgName, loadToMemory = true);
     if (res.count() == 1) {
@@ -34,7 +34,22 @@ public function getOrganization (string orgName) returns json | error {
         return resPayload;       
     } else {
         log:printDebug(io:sprintf("The requested organization \'%s\' was not found in REGISTRY_ORGANIZATION", orgName));
+        res.close();
         return null;
+    }
+}
+
+public function getOrganizationAvailability(string orgName) returns boolean | error {
+    log:printDebug(io:sprintf("Checking orgName avialability on REGISTRY_ORGANIZATION table for Org name : \'%s\': ", orgName));
+    table<record {}> res =  check connection->select(GET_ORG_QUERY, gen:OrgResponse, orgName, loadToMemory = true);
+    if (res.count() == 0) {
+        log:printDebug(io:sprintf("Organization name \'%s\' is not exists in REGISTRY_ORGANIZATION", orgName));
+        res.close();
+        return true;       
+    } else {
+        log:printDebug(io:sprintf("Organization \'%s\' is already existing in REGISTRY_ORGANIZATION", orgName));
+        res.close();
+        return false;
     }
 }
 
@@ -97,12 +112,6 @@ public function getPublicArtifact(string orgName, string imageName, string artif
     table<record {}> res = check connection->select(GET_ARTIFACT_FROM_IMG_NAME_N_VERSION, gen:ArtifactResponse, orgName, imageName,
                                                     artifactVersion, loadToMemory = true);
     return buildJsonPayloadForGetArtifact(res, orgName, imageName, artifactVersion);
-}
-
-public function getArtifactListLength(string imageId, string artifactVersion) returns table<gen:Count> | error {
-    log:printDebug(io:sprintf("Retriving artifact count for image ID : %s and image version %s", imageId, artifactVersion));
-    table<gen:Count> res = check connection->select(GET_ARTIFACT_COUNT, gen:Count, imageId, artifactVersion, loadToMemory = true);
-    return res;
 }
 
 public function getImageKeywords(string imageId) returns table<gen:StringRecord> | error {
