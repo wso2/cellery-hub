@@ -24,6 +24,7 @@ import ballerina/transactions;
 import cellery_hub_api/constants;
 import cellery_hub_api/db;
 import cellery_hub_api/idp;
+import ballerina/sql;
 
 # Get Auth Tokens.
 #
@@ -492,12 +493,39 @@ returns http:Response {
     }
 }
 
+# Update an existing image
+#
+# + updateImageReq - received request which contains header
+# + orgName - Organization name
+# + imageName - Image ID
+# + return - http response (200 if success, 405 or 500 otherwise)
+public function updateImage (http:Request updateImageReq, string orgName, string imageName, gen:ImageUpdateRequest updateImageBody) returns http:Response {
+    if (updateImageReq.hasHeader(constants:AUTHENTICATED_USER)) {
+        string userId = updateImageReq.getHeader(constants:AUTHENTICATED_USER);
+        log:printDebug(io:sprintf("%s is attempting to update image \'%s\' in organization %s", userId, imageName, orgName));
+        log:printDebug(updateImageBody.description);
+        sql:UpdateResult | error? updateImageRes = db:updateImage(orgName, imageName, updateImageBody.description, userId);
 
-public function updateImage (http:Request _updateImageReq, string orgName, string imageName) returns http:Response {
-    // stub code - fill as necessary
-    http:Response _updateImageRes = new;
-    string _updateImagePayload = "Sample updateImage Response";
-    _updateImageRes.setTextPayload(_updateImagePayload);
-
-	return _updateImageRes;
+        if (updateImageRes is sql:UpdateResult){
+            if (updateImageRes.updatedRowCount == 1) {
+                log:printDebug(io:sprintf("Image \'%s\' in organization \'%s\' is successfully updated. Author : %s", imageName, orgName, userId));
+                return buildSuccessResponse();
+            } else if (updateImageRes.updatedRowCount == 0){
+                log:printError(io:sprintf("Failed to update image \'%s\' in organization \'%s\' for Author %s : No matching records found",
+                imageName, orgName, userId));
+            } else {
+                log:printError(io:sprintf("Failed to update image \'%s\' in organization \'%s\' for Author %s : More than one matching records found",
+                imageName, orgName, userId));
+            }
+            return buildErrorResponse(http:EXPECTATION_FAILED_417, constants:API_ERROR_CODE, "Unable to update image", "");            
+        } else {
+            log:printError(io:sprintf("Unexpected error occured while updating image \'%s\' in organization %s", imageName, orgName),
+            err = updateImageRes);
+            return buildUnknownErrorResponse();
+        } 
+    } else {
+        log:printError("Unauthenticated request for updateImage: Username is not found");
+        return buildErrorResponse(http:UNAUTHORIZED_401, constants:API_ERROR_CODE, "Unable to update image",
+        "Unauthenticated request. Auth token is not provided");
+    }
 }

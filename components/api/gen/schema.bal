@@ -157,3 +157,7 @@ public type OrgImagesListResponseAtom record {
     string updatedTimestamp;
     string visibility;
 };
+
+public type ImageUpdateRequest record { 
+    string description;
+};

@@ -643,10 +643,12 @@ service CelleryHubAPI on ep {
     }
     @http:ResourceConfig {
         methods:["PUT"],
-        path:"/images/{orgName}/{imageName}"
+        path:"/images/{orgName}/{imageName}",
+        body:"_updateImageBody"
     }
-    resource function updateImage (http:Caller outboundEp, http:Request _updateImageReq, string orgName, string imageName) returns error? {
-        http:Response _updateImageRes = updateImage(_updateImageReq, orgName, imageName);
-        _ = outboundEp->respond(_updateImageRes);
+    resource function updateImage (http:Caller outboundEp, http:Request _updateImageReq, string orgName, string imageName, 
+    gen:ImageUpdateRequest _updateImageBody) returns error? {
+        http:Response _updateImageRes = updateImage(_updateImageReq, orgName, imageName, _updateImageBody);
+        error? x = outboundEp->respond(_updateImageRes);
     }
 }

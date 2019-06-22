@@ -182,6 +182,7 @@ paths:
       parameters:
       - $ref: "#/parameters/orgNamePathParam"
       - $ref: "#/parameters/imageNamePathParam"
+      - $ref: "#/parameters/imageUpdateBody"
       responses:
         200:
           description: "OK"
@@ -225,6 +226,13 @@ parameters:
     required: true
     schema:
       $ref: "#/definitions/OrgCreateRequest"
+  imageUpdateBody:
+    name: "image"
+    in: "body"
+    description: "Image which needs to be updated"
+    required: true
+    schema:
+      $ref: "#/definitions/ImageUpdateRequest"
   orgNamePathParam:
     name: "orgName"
     in: "path"
@@ -297,6 +305,11 @@ definitions:
       websiteUrl:
         type: "string"
       defaultVisibility:
+        type: "string"
+  ImageUpdateRequest:
+    type: "object"
+    properties:
+      description:
         type: "string"
   OrgResponse:
     type: "object"

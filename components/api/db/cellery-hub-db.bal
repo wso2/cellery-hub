@@ -339,3 +339,9 @@ returns json | error {
     }
     return check json.convert(imagesListResponse);
 }
+
+public function updateImage(string orgName, string imageName, string description, string userId) returns sql:UpdateResult | error? {
+    log:printInfo(io:sprintf("Performing update on image : %s in organization %s", imageName, orgName));
+    sql:UpdateResult res = check connection->update(UPDATE_IMAGE_QUERY, description, imageName, orgName, userId);
+    return res;
+}
