@@ -105,7 +105,6 @@ class ImageList extends React.Component {
                                                 color={"textPrimary"}>
                                                 <AccessTime className={classes.updated}/> Last Updated on&nbsp;
                                                 {moment(image.updatedTimestamp).format(Constants.Format.DATE_TIME)}
-                                                &nbsp;by {image.lastAuthor}
                                             </Typography>
                                         </React.Fragment>
                                     }/>

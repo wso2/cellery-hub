@@ -188,7 +188,7 @@ class Org extends React.Component {
                                             <div className={classes.stats}>
                                                 <Typography variant={"subtitle2"} color={"inherit"}
                                                     className={classes.elementText}>
-                                                    Created by {orgData.author.displayName} on&nbsp;
+                                                    Created by {orgData.firstAuthor.displayName} on&nbsp;
                                                     {moment(orgData.createdTimestamp)
                                                         .format(Constants.Format.DATE_TIME)}
                                                 </Typography>
