@@ -46,46 +46,50 @@ func dbConn() (*sql.DB, error) {
 }
 
 func main() {
+	err := os.MkdirAll("/extension-logs", os.ModePerm)
+	if err != nil {
+		log.Println("Error creating the file :", err)
+	}
 	file, err := os.OpenFile(logFile, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
 	if err != nil {
-		log.Fatalf("Error opening file: %v", err)
+		log.Printf("Error opening file: %s\n", err)
 	}
 	defer func() {
 		err = file.Close()
 		if err != nil {
+			log.Printf("Error occurred  while closing the file : %s\n", err)
 			os.Exit(2)
 		}
 	}()
 	if err != nil {
-		log.Println("Error occurred  while closing the file :", err)
 		os.Exit(extension.ErrorExitCode)
 	}
 	log.SetOutput(file)
-
-	log.Println("Authentication extension reached and access will be validated")
+	execId, err := extension.GetExecID()
+	log.Printf("[%s] Authorization extension reached and access will be validated\n", execId)
 	accessToken := extension.ReadStdIn()
 	db, err := dbConn()
 	if err != nil {
-		log.Println("Error occurred while establishing the mysql connection: ", err)
+		log.Printf("[%s] Error occurred while establishing the mysql connection : %s\n", execId, err)
 		os.Exit(extension.ErrorExitCode)
 	}
-	isValid, err := extension.ValidateAccess(db, accessToken)
+	isValid, err := extension.ValidateAccess(db, accessToken, execId)
 	if err != nil {
-		log.Println("Error occurred while validating the user :", err)
+		log.Printf("[%s] Error occurred while validating the user :%s\n", execId, err)
 	}
 	if isValid {
 		err = db.Close()
 		if err != nil {
-			log.Println("Error occurred while closing the db connection :", err)
+			log.Printf("[%s] Error occurred while closing the db connection :%s\n", execId, err)
 		}
-		log.Println("User access granted")
+		log.Printf("[%s] User access granted\n", execId)
 		os.Exit(extension.SuccessExitCode)
 	} else {
 		err = db.Close()
 		if err != nil {
-			log.Println("Error occurred while closing the db connection :", err)
+			log.Printf("[%s] Error occurred while closing the db connection :%s\n", execId, err)
 		}
-		log.Println("User access denied")
+		log.Printf("[%s] User access denied\n", execId)
 		os.Exit(extension.ErrorExitCode)
 	}
 }

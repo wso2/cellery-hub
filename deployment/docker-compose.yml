@@ -41,14 +41,13 @@ services:
     volumes:
       - ./docker-auth/conf:/conf
       - ./docker-auth/security:/security
-      - ./docker-auth/extension-logs:/extension-logs
     environment:
       - IDP_CERT=/security/idp.crt
       - REGISTRY_AUTH_TOKEN_ROOTCERTBUNDLE=/security/docker-auth-sign.crt
       - REGISTRY_AUTH_TOKEN_ISSUER="auth.registry.hub.cellery.io"
       - IS_JWT=false
-      - IDP_HOST=idp.hub.cellery.io
-      - IDP_PORT=9443
+      - IDP_END_POINT=https://idp.hub.cellery.io:9443
+      - INTROSPECTION_END_POINT=/oauth2/introspect
       - USERNAME=admin
       - PASSWORD=admin
       - MYSQL_USER=celleryhub
