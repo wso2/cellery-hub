@@ -123,7 +123,8 @@ class ImageList extends React.Component {
                     ))}
                 </List>
                 <TablePagination component={"nav"} page={pageNo} rowsPerPage={rowsPerPage} count={totalCount}
-                    onChangePage={this.handleChangePageNo} onChangeRowsPerPage={this.handleChangeRowsPerPage}/>
+                    onChangePage={this.handleChangePageNo} onChangeRowsPerPage={this.handleChangeRowsPerPage}
+                    rowsPerPageOptions={[5, 10, 25]}/>
             </React.Fragment>
         );
     }

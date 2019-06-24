@@ -175,7 +175,7 @@ class OrgImageList extends React.Component {
 
     render() {
         const {classes, match} = this.props;
-        const {search, sort, images} = this.state;
+        const {search, sort, images, totalCount, pagination} = this.state;
         const orgName = match.params.orgName;
 
         return (
@@ -220,7 +220,8 @@ class OrgImageList extends React.Component {
                     </Grid>
                     <Grid item xs={12} sm={12} md={12}>
                         <ImageList pageData={images.map((image) => ({...image, orgName: orgName}))}
-                            onPageChange={this.handlePageChange}/>
+                            onPageChange={this.handlePageChange} totalCount={totalCount}
+                            rowsPerPage={pagination.rowsPerPage} pageNo={pagination.pageNo}/>
                     </Grid>
                 </Grid>
             </React.Fragment>
