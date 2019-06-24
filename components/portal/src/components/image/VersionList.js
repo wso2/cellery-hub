@@ -184,7 +184,7 @@ class VersionList extends React.Component {
         this.searchVersions(pagination.rowsPerPage, pagination.pageNo, newSort);
     };
 
-    searchVersions = (rowsPerPage, pageNo, newSort) => {
+    searchVersions = (rowsPerPage, pageNo, sort) => {
         const self = this;
         const {globalState, match} = self.props;
         const {search} = self.state;
@@ -193,7 +193,7 @@ class VersionList extends React.Component {
 
         const queryParams = {
             artifactVersion: search.version.value ? `*${search.version.value}*` : "*",
-            orderBy: newSort,
+            orderBy: sort,
             resultLimit: rowsPerPage,
             offset: pageNo * rowsPerPage
         };

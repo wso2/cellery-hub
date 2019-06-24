@@ -196,8 +196,8 @@ paths:
         500:
           description: "Internal Server Error"
           schema:
-            $ref: "#/definitions/ErrorResponse" 
-            
+            $ref: "#/definitions/ErrorResponse"
+
 parameters:
   orgCreateBody:
     name: "organization"
@@ -286,7 +286,7 @@ definitions:
         type: "string"
       websiteUrl:
         type: "string"
-      author:
+      firstAuthor:
         type: "string"
       createdTimestamp:
         type: "string"

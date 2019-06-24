@@ -105,7 +105,6 @@ class ImageList extends React.Component {
                                                 color={"textPrimary"}>
                                                 <AccessTime className={classes.updated}/> Last Updated on&nbsp;
                                                 {moment(image.updatedTimestamp).format(Constants.Format.DATE_TIME)}
-                                                &nbsp;by {image.lastAuthor}
                                             </Typography>
                                         </React.Fragment>
                                     }/>
@@ -124,7 +123,8 @@ class ImageList extends React.Component {
                     ))}
                 </List>
                 <TablePagination component={"nav"} page={pageNo} rowsPerPage={rowsPerPage} count={totalCount}
-                    onChangePage={this.handleChangePageNo} onChangeRowsPerPage={this.handleChangeRowsPerPage}/>
+                    onChangePage={this.handleChangePageNo} onChangeRowsPerPage={this.handleChangeRowsPerPage}
+                    rowsPerPageOptions={[5, 10, 25]}/>
             </React.Fragment>
         );
     }

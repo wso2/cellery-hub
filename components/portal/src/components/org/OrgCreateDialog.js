@@ -22,12 +22,9 @@ import Dialog from "@material-ui/core/Dialog";
 import DialogActions from "@material-ui/core/DialogActions";
 import DialogContent from "@material-ui/core/DialogContent";
 import DialogTitle from "@material-ui/core/DialogTitle";
-import DoneAllRounded from "@material-ui/icons/DoneAllRounded";
 import FormControl from "@material-ui/core/FormControl";
 import FormHelperText from "@material-ui/core/FormHelperText";
-import IconButton from "@material-ui/core/IconButton";
 import Input from "@material-ui/core/Input";
-import InputAdornment from "@material-ui/core/InputAdornment";
 import NotificationUtils from "../../utils/common/notificationUtils";
 import ReCAPTCHA from "react-google-recaptcha";
 import React from "react";
@@ -52,9 +49,9 @@ class OrgCreateDialog extends React.Component {
         this.state = {
             orgNameToBeCreated: "",
             orgNameErrorMessage: "",
-            isOrgVerified: false,
             reCaptchaVerifiedToken: null
         };
+        this.reCaptchaInstance = React.createRef();
     }
 
     handleOnCaptchaVerify = (token) => {
@@ -79,7 +76,6 @@ class OrgCreateDialog extends React.Component {
         }
         this.setState({
             orgNameToBeCreated: orgName,
-            isOrgVerified: false,
             orgNameErrorMessage: errorMessage
         });
     };
@@ -106,74 +102,33 @@ class OrgCreateDialog extends React.Component {
             NotificationUtils.hideLoadingOverlay(globalState);
         }).catch((err) => {
             let errorMessage;
-            if (err instanceof HubApiError && err.getMessage()) {
+            if (err instanceof HubApiError) {
                 if (err.getStatusCode() === 429) {
                     errorMessage = "Too Many Requests. Please try again later.";
-                } else {
+                } else if (err.getErrorCode() === Constants.ApplicationErrorCode.ALREADY_EXISTS) {
+                    errorMessage = `Organization ${orgNameToBeCreated} already taken.`;
+                    self.setState({
+                        orgNameErrorMessage: errorMessage
+                    });
+                } else if (err.getMessage()) {
                     errorMessage = err.getMessage();
+                } else {
+                    errorMessage = "Failed to create organization";
                 }
             } else {
                 errorMessage = "Failed to create organization";
+            }
+            if (this.reCaptchaInstance && this.reCaptchaInstance.current) {
+                this.reCaptchaInstance.current.reset();
             }
             NotificationUtils.hideLoadingOverlay(globalState);
             NotificationUtils.showNotification(errorMessage, NotificationUtils.Levels.ERROR, globalState);
         });
     };
 
-    handleCheckAvailability = () => {
-        const self = this;
-        const {globalState} = self.props;
-        const {orgNameToBeCreated} = self.state;
-        if (orgNameToBeCreated) {
-            NotificationUtils.showLoadingOverlay(`Validating organization name "${orgNameToBeCreated}"`,
-                globalState);
-            HttpUtils.callHubAPI(
-                {
-                    url: `/orgs/${orgNameToBeCreated}`,
-                    method: "GET"
-                },
-                globalState
-            ).then(() => {
-                self.setState({
-                    isOrgVerified: true,
-                    orgNameErrorMessage: `Organization ${orgNameToBeCreated} is already taken`
-                });
-                NotificationUtils.hideLoadingOverlay(globalState);
-            }).catch((err) => {
-                let errorMessage;
-                if (err instanceof HubApiError) {
-                    if (err.getStatusCode() === 404) {
-                        self.setState({
-                            isOrgVerified: true
-                        });
-                    } else if (err.getMessage()) {
-                        self.setState({
-                            isOrgVerified: false
-                        });
-                        errorMessage = err.getMessage();
-                    } else {
-                        self.setState({
-                            isOrgVerified: false
-                        });
-                        errorMessage = `Failed to verify if Organization ${orgNameToBeCreated} exists`;
-                    }
-                } else {
-                    self.setState({
-                        isOrgVerified: false
-                    });
-                    errorMessage = `Failed to verify if Organization ${orgNameToBeCreated} exists`;
-                }
-                NotificationUtils.hideLoadingOverlay(globalState);
-                if (errorMessage) {
-                    NotificationUtils.showNotification(errorMessage, NotificationUtils.Levels.ERROR, globalState);
-                }
-            });
-        }
-    };
-
     render() {
         const {classes, globalState, open, onClose} = this.props;
-        const {isOrgVerified, orgNameToBeCreated, orgNameErrorMessage, reCaptchaVerifiedToken} = this.state;
+        const {orgNameToBeCreated, orgNameErrorMessage, reCaptchaVerifiedToken} = this.state;
 
         const reCaptchaSiteKey = globalState.get(StateHolder.CONFIG).reCaptchaSiteKey;
         return (
@@ -183,30 +138,19 @@ class OrgCreateDialog extends React.Component {
                     <DialogContent>
                         <FormControl fullWidth className={classes.orgTextField} error={orgNameErrorMessage}>
                             <Input value={orgNameToBeCreated} type={"text"} autoFocus
-                                onChange={this.handleOrgNameInputChange}
-                                endAdornment={
-                                    <InputAdornment position={"end"}>
-                                        <IconButton aria-label={"Check Organization Avaiability"}
-                                            onClick={this.handleCheckAvailability}
-                                            disabled={!orgNameToBeCreated || orgNameErrorMessage}>
-                                            <DoneAllRounded/>
-                                        </IconButton>
-                                    </InputAdornment>
-                                }
-                            />
+                                onChange={this.handleOrgNameInputChange}/>
                             {orgNameErrorMessage ? <FormHelperText>{orgNameErrorMessage}</FormHelperText> : null}
                         </FormControl>
                         <ReCAPTCHA sitekey={reCaptchaSiteKey} onChange={this.handleOnCaptchaVerify}
-                            onErrored={this.handleOnCaptchaVerifyError} className={classes.captchaContainer}/>
+                            ref={this.reCaptchaInstance} className={classes.captchaContainer}
+                            onErrored={this.handleOnCaptchaVerifyError}/>
                     </DialogContent>
                     <DialogActions className={classes.dialogActions}>
                         <Button onClick={onClose} size={"small"}>
                             Cancel
                         </Button>
                         <Button onClick={this.handleCreateOrg} color={"primary"} size={"small"}
-                            disabled={
-                                !isOrgVerified || !orgNameToBeCreated || orgNameErrorMessage || !reCaptchaVerifiedToken
-                            }>
+                            disabled={!orgNameToBeCreated || orgNameErrorMessage || !reCaptchaVerifiedToken}>
                             Create
                         </Button>
                     </DialogActions>

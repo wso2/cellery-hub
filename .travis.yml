@@ -9,6 +9,7 @@ services:
 cache:
   directories:
     - .autoconf
+    - $HOME/.m2
 before_install:
   - npm i -g npm
   - mkdir -p $HOME/gopath/src/github.com/cellery-io

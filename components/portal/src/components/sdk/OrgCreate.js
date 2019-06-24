@@ -24,13 +24,10 @@ import DialogActions from "@material-ui/core/DialogActions";
 import DialogContent from "@material-ui/core/DialogContent";
 import DialogContentText from "@material-ui/core/DialogContentText";
 import DialogTitle from "@material-ui/core/DialogTitle";
-import DoneAllRounded from "@material-ui/icons/DoneAll";
 import FormControl from "@material-ui/core/FormControl";
 import FormHelperText from "@material-ui/core/FormHelperText";
 import Grid from "@material-ui/core/Grid";
-import IconButton from "@material-ui/core/IconButton";
 import Input from "@material-ui/core/Input";
-import InputAdornment from "@material-ui/core/InputAdornment";
 import InputLabel from "@material-ui/core/InputLabel";
 import NotificationUtils from "../../utils/common/notificationUtils";
 import React from "react";
@@ -66,7 +63,6 @@ class OrgCreate extends React.Component {
         this.state = {
             orgNameToBeCreated: "",
             isDialogOpen: false,
-            isOrgVerified: false,
             errorMessage: ""
         };
     }
@@ -82,7 +78,6 @@ class OrgCreate extends React.Component {
         }
         this.setState({
             orgNameToBeCreated: orgName,
-            isOrgVerified: false,
             errorMessage: errorMessage
         });
     };
@@ -118,8 +113,17 @@ class OrgCreate extends React.Component {
             NotificationUtils.hideLoadingOverlay(globalState);
         }).catch((err) => {
             let errorMessage;
-            if (err instanceof HubApiError && err.getMessage()) {
-                errorMessage = err.getMessage();
+            if (err instanceof HubApiError) {
+                if (err.getErrorCode() === Constants.ApplicationErrorCode.ALREADY_EXISTS) {
+                    errorMessage = `Organization ${orgNameToBeCreated} already taken.`;
+                    self.setState({
+                        errorMessage: errorMessage
+                    });
+                } else if (err.getMessage()) {
+                    errorMessage = err.getMessage();
+                } else {
+                    errorMessage = "Failed to create organization";
+                }
             } else {
                 errorMessage = "Failed to create organization";
             }
@@ -139,60 +143,9 @@ class OrgCreate extends React.Component {
         AuthUtils.continueLoginFlow(globalState, params.sessionDataKey, skipOrgCheck);
     };
 
-    handleCheckAvailability = () => {
-        const self = this;
-        const {globalState} = self.props;
-        const {orgNameToBeCreated} = self.state;
-        if (orgNameToBeCreated) {
-            NotificationUtils.showLoadingOverlay(`Validating organization name "${orgNameToBeCreated}"`,
-                globalState);
-            HttpUtils.callHubAPI(
-                {
-                    url: `/orgs/${orgNameToBeCreated}`,
-                    method: "GET"
-                },
-                globalState
-            ).then(() => {
-                self.setState({
-                    isOrgVerified: true,
-                    errorMessage: `Organization ${orgNameToBeCreated} is already taken`
-                });
-                NotificationUtils.hideLoadingOverlay(globalState);
-            }).catch((err) => {
-                let errorMessage;
-                if (err instanceof HubApiError) {
-                    if (err.getStatusCode() === 404) {
-                        self.setState({
-                            isOrgVerified: true
-                        });
-                    } else if (err.getMessage()) {
-                        self.setState({
-                            isOrgVerified: false
-                        });
-                        errorMessage = err.getMessage();
-                    } else {
-                        self.setState({
-                            isOrgVerified: false
-                        });
-                        errorMessage = `Failed to verify if Organization ${orgNameToBeCreated} exists`;
-                    }
-                } else {
-                    self.setState({
-                        isOrgVerified: false
-                    });
-                    errorMessage = `Failed to verify if Organization ${orgNameToBeCreated} exists`;
-                }
-                NotificationUtils.hideLoadingOverlay(globalState);
-                if (errorMessage) {
-                    NotificationUtils.showNotification(errorMessage, NotificationUtils.Levels.ERROR, globalState);
-                }
-            });
-        }
-    };
-
     render = () => {
         const {classes} = this.props;
-        const {isDialogOpen, isOrgVerified, orgNameToBeCreated, errorMessage} = this.state;
+        const {isDialogOpen, orgNameToBeCreated, errorMessage} = this.state;
 
         return (
             <div className={classes.content}>
@@ -207,21 +160,11 @@ class OrgCreate extends React.Component {
                             <FormControl fullWidth className={classes.orgTextField} error={errorMessage}>
                                 <InputLabel htmlFor={"organization-name"}>Organization Name</InputLabel>
                                 <Input value={orgNameToBeCreated} type={"text"} fullWidth autoFocus
-                                    onChange={this.handleOrgInputChange}
-                                    endAdornment={
-                                        <InputAdornment position={"end"}>
-                                            <IconButton aria-label={"Check Organization Avaiability"}
-                                                onClick={this.handleCheckAvailability}
-                                                disabled={!orgNameToBeCreated || errorMessage}>
-                                                <DoneAllRounded/>
-                                            </IconButton>
-                                        </InputAdornment>
-                                    }
-                                />
+                                    onChange={this.handleOrgInputChange}/>
                                 {errorMessage ? <FormHelperText>{errorMessage}</FormHelperText> : null}
                             </FormControl>
                             <Button variant={"contained"} color={"primary"} onClick={this.handleCreateOrg}
-                                disabled={!isOrgVerified || !orgNameToBeCreated || errorMessage}>
+                                disabled={!orgNameToBeCreated || errorMessage}>
                                 Create Organization
                             </Button>
                             <Button variant={"outlined"} color={"default"} className={classes.skipBtn}

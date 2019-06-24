@@ -143,7 +143,7 @@ public function getOrg(http:Request getOrgReq, string orgName) returns http:Resp
     if (res is json) {
         if (res != null) {
             log:printDebug(io:sprintf("Successfully fetched organization \'%s\'", orgName));
-            error? err = updatePayloadWithUserInfo(untaint res, "author");
+            error? err = updatePayloadWithUserInfo(untaint res, "firstAuthor");
             if (err is error) {
                 log:printError("Error occured while adding userInfo to getOrg response", err = err);
                 return buildUnknownErrorResponse();
@@ -430,21 +430,21 @@ returns http:Response {
 
 # Search all images belong to a given organization
 #
-# + listOrgImagesReq - received request which contains header 
+# + listOrgImagesReq - received request which contains header
 # + orgName - organization name which seaerching images should belong to
 # + imageName - regex for search images
-# + orderBy - orderBy enum value 
-# + offset - offset value 
-# + resultLimit - esultLimit value 
+# + orderBy - orderBy enum value
+# + offset - offset value
+# + resultLimit - esultLimit value
 # + return - http response which cater to the request
 public function listOrgImages (http:Request listOrgImagesReq, string orgName, string imageName, string orderBy, int offset, int resultLimit)
 returns http:Response {
-    log:printDebug(io:sprintf("Listing images for orgName : %s, imageName : %s, orderBy : %s, offset : %d, limit : %d, ", orgName, 
+    log:printDebug(io:sprintf("Listing images for orgName : %s, imageName : %s, orderBy : %s, offset : %d, limit : %d, ", orgName,
     imageName, orderBy, offset, resultLimit));
     json | error orgImagesListResult;
     if (listOrgImagesReq.hasHeader(constants:AUTHENTICATED_USER)) {
         string userId = listOrgImagesReq.getHeader(constants:AUTHENTICATED_USER);
-        log:printDebug(io:sprintf("List org images request with an authenticated user : %s", userId));        
+        log:printDebug(io:sprintf("List org images request with an authenticated user : %s", userId));
         orgImagesListResult = db:getUserImagesOfORG(userId, orgName, imageName, orderBy, offset, resultLimit);
     } else {
         log:printDebug("List org images request with an unauthenticated user");
@@ -454,7 +454,7 @@ returns http:Response {
         return buildSuccessResponse(jsonResponse = orgImagesListResult);
     }
     else {
-        log:printError(io:sprintf("Error occured while retrieving images with name \'%s\' for organization \'%s\'", imageName, orgName), 
+        log:printError(io:sprintf("Error occured while retrieving images with name \'%s\' for organization \'%s\'", imageName, orgName),
         err = orgImagesListResult);
         return buildUnknownErrorResponse();
     }
@@ -471,12 +471,12 @@ returns http:Response {
 # + return - http response which cater to the request
 public function listImages (http:Request listImagesReq, string orgName, string imageName, string orderBy, int offset, int resultLimit)
 returns http:Response {
-    log:printDebug(io:sprintf("Listing images for orgName : %s, imageName : %s, orderBy : %s, offset : %d, limit : %d, ", orgName, 
+    log:printDebug(io:sprintf("Listing images for orgName : %s, imageName : %s, orderBy : %s, offset : %d, limit : %d, ", orgName,
     imageName, orderBy, offset, resultLimit));
     json | error orgImagesListResult;
     if (listImagesReq.hasHeader(constants:AUTHENTICATED_USER)) {
         string userId = listImagesReq.getHeader(constants:AUTHENTICATED_USER);
-        log:printDebug(io:sprintf("List images request with an authenticated user : %s", userId));        
+        log:printDebug(io:sprintf("List images request with an authenticated user : %s", userId));
         orgImagesListResult = db:getUserImages(userId, orgName, imageName, orderBy, offset, resultLimit);
     } else {
         log:printDebug("List images request with an unauthenticated user");
@@ -486,7 +486,7 @@ returns http:Response {
         return buildSuccessResponse(jsonResponse = orgImagesListResult);
     }
     else {
-        log:printError(io:sprintf("Error occured while retrieving images with name \'%s\' for organization \'%s\'", imageName, orgName), 
+        log:printError(io:sprintf("Error occured while retrieving images with name \'%s\' for organization \'%s\'", imageName, orgName),
         err = orgImagesListResult);
         return buildUnknownErrorResponse();
     }

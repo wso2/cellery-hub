@@ -31,7 +31,7 @@ public type OrgCreateRequest record {
 public type OrgResponse record {
     string description;
     string websiteUrl;
-    string author;
+    string firstAuthor;
     string createdTimestamp;
 };
 
@@ -131,17 +131,17 @@ public type UserListResponse record {
     UserResponse[] users;
 };
 
-public type ImagesListResponse record { 
+public type ImagesListResponse record {
     int count;
     ImagesListResponseAtom[] data;
 };
 
-public type OrgImagesListResponse record { 
+public type OrgImagesListResponse record {
     int count;
     OrgImagesListResponseAtom[] data;
 };
 
-public type ImagesListResponseAtom record { 
+public type ImagesListResponseAtom record {
     string orgName;
     string imageName;
     string description;
@@ -150,7 +150,7 @@ public type ImagesListResponseAtom record {
     string visibility;
 };
 
-public type OrgImagesListResponseAtom record { 
+public type OrgImagesListResponseAtom record {
     string imageName;
     string description;
     int pullCount;

@@ -24,7 +24,8 @@ const Constants = {
     Pattern: {
         CELLERY_ID: "[a-z0-9]+(-[a-z0-9]+)*",
         PARTIAL_CELLERY_ID: "[-a-z0-9]+",
-        PARTIAL_IMAGE_VERSION: "[-.a-z0-9]+"
+        PARTIAL_IMAGE_VERSION: "[-.a-z0-9]+",
+        PARTIAL_IMAGE_FQN: "((?:-?[a-z0-9]+)+)(?:/([a-z0-9]+[-a-z0-9]*))?"
     },
     Format: {
         DATE_TIME: "DD MMM YYYY, hh:mm:ss A"
@@ -42,6 +43,9 @@ const Constants = {
     },
     Header: {
         CELLERY_HUB_CAPTCHA: "g-recaptcha-response"
+    },
+    ApplicationErrorCode: {
+        ALREADY_EXISTS: 2
     }
 };
 
