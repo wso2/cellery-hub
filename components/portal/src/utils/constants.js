@@ -43,6 +43,9 @@ const Constants = {
     },
     Header: {
         CELLERY_HUB_CAPTCHA: "g-recaptcha-response"
+    },
+    ApplicationErrorCode: {
+        ALREADY_EXISTS: 2
     }
 };
 

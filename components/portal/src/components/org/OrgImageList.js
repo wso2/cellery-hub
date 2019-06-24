@@ -16,7 +16,6 @@
  * under the License.
  */
 
-import InputLabel from "@material-ui/core/InputLabel";
 import Constants from "../../utils/constants";
 import FormControl from "@material-ui/core/FormControl";
 import FormHelperText from "@material-ui/core/FormHelperText";
@@ -25,6 +24,7 @@ import IconButton from "@material-ui/core/IconButton";
 import ImageList from "../common/ImageList";
 import Input from "@material-ui/core/Input";
 import InputAdornment from "@material-ui/core/InputAdornment";
+import InputLabel from "@material-ui/core/InputLabel";
 import MenuItem from "@material-ui/core/MenuItem";
 import NotificationUtils from "../../utils/common/notificationUtils";
 import React from "react";
