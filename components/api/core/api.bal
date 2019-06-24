@@ -651,4 +651,64 @@ service CelleryHubAPI on ep {
         http:Response _updateImageRes = updateImage(_updateImageReq, orgName, imageName, _updateImageBody);
         error? x = outboundEp->respond(_updateImageRes);
     }
+
+    @openapi:ResourceInfo {
+        summary: "Find images which user is the first author",
+        parameters: [
+            {
+                name: "userId",
+                inInfo: "path",
+                paramType: "string",
+                description: "UserId of the user",
+                required: true,
+                allowEmptyValue: ""
+            },
+            {
+                name: "orgName",
+                inInfo: "query",
+                paramType: "string",
+                description: "Name of the organization",
+                allowEmptyValue: ""
+            },
+            {
+                name: "imageName",
+                inInfo: "query",
+                paramType: "string",
+                description: "Name of the Image",
+                allowEmptyValue: ""
+            },
+            {
+                name: "orderBy",
+                inInfo: "query",
+                paramType: "string",
+                description: "Enum to oder result",
+                required: true,
+                allowEmptyValue: ""
+            },
+            {
+                name: "limit",
+                inInfo: "query",
+                paramType: "int",
+                description: "Number of results returned for pagination",
+                required: true,
+                allowEmptyValue: ""
+            },
+            {
+                name: "offset",
+                inInfo: "query",
+                paramType: "int",
+                description: "Offset of the result set returned for pagination",
+                required: true,
+                allowEmptyValue: ""
+            }
+        ]
+    }
+    @http:ResourceConfig {
+        methods:["GET"],
+        path:"/images/users/{userId}"
+    }
+    resource function listUserImages (http:Caller outboundEp, http:Request _listUserImagesReq, string userId) returns error? {
+        http:Response _listUserImagesRes = listUserImages(_listUserImagesReq, userId);
+        error? x = outboundEp->respond(_listUserImagesRes);
+    }
 }

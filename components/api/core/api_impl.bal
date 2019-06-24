@@ -529,3 +529,12 @@ public function updateImage (http:Request updateImageReq, string orgName, string
         "Unauthenticated request. Auth token is not provided");
     }
 }
+
+public function listUserImages (http:Request _listUserImagesReq, string userId) returns http:Response {
+    // stub code - fill as necessary
+    http:Response _listUserImagesRes = new;
+    string _listUserImagesPayload = "Sample listUserImages Response";
+    _listUserImagesRes.setTextPayload(_listUserImagesPayload);
+
+	return _listUserImagesRes;
+}
