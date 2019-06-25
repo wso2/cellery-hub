@@ -50,10 +50,12 @@ class AuthUtils {
      *
      * @param {StateHolder} globalState The global state provided to the current component
      * @param {FederatedIdPType} [fidpOverride] The federated idp to be used
+     * @param {string} [redirectUrl] The URL to redirect back to
      */
-    static initiateHubLoginFlow(globalState, fidpOverride) {
+    static initiateHubLoginFlow(globalState, fidpOverride, redirectUrl) {
         const clientId = globalState.get(StateHolder.CONFIG).idp.hubClientId;
-        this.initiateLoginFlow(globalState, fidpOverride, clientId, window.location.origin + window.location.pathname);
+        this.initiateLoginFlow(globalState, fidpOverride, clientId,
+            redirectUrl ? redirectUrl : window.location.origin + window.location.pathname);
     }
 
     /**
@@ -177,7 +179,8 @@ class AuthUtils {
      * @param {StateHolder} globalState The global state provided to the current component
      */
     static signOut(globalState) {
-        AuthUtils.removeUserFromBrowser(globalState);
+        AuthUtils.removeUserFromBrowser();
+        localStorage.removeItem(AuthUtils.FEDERATED_IDP_KEY);
 
         const params = {
             id_token_hint: globalState.get(StateHolder.USER).tokens.idToken,
@@ -208,12 +211,9 @@ class AuthUtils {
 
     /**
      * Remove the stored user from the Browser.
-     *
-     * @param {StateHolder} globalState The global state provided to the current component
      */
-    static removeUserFromBrowser(globalState) {
+    static removeUserFromBrowser() {
         localStorage.removeItem(AuthUtils.USER_KEY);
-        localStorage.removeItem(AuthUtils.FEDERATED_IDP_KEY);
     }
 
     /**

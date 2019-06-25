@@ -16,6 +16,8 @@
  * under the License.
  */
 
+/* eslint camelcase: ["off"] */
+
 import AuthUtils from "./authUtils";
 import {StateHolder} from "../../components/common/state";
 import axios from "axios";
@@ -149,9 +151,10 @@ class HttpUtils {
      *
      * @param {Object} config Axios configuration object
      * @param {StateHolder} [globalState] The global state provided to the current component
+     * @param {boolean} [preventAutoReLogin] Prevent initializing a auto re-login upon token invalidation
      * @returns {Promise} A promise for the API call
      */
-    static callHubAPI = (config, globalState) => new Promise((resolve, reject) => {
+    static callHubAPI = (config, globalState, preventAutoReLogin) => new Promise((resolve, reject) => {
         config.url = `${globalState.get(StateHolder.CONFIG).hubApiUrl}${config.url}`;
         config.withCredentials = true;
         if (!config.headers) {
@@ -180,10 +183,9 @@ class HttpUtils {
             .catch((error) => {
                 if (error.response) {
                     const errorResponse = error.response;
-                    if (errorResponse.status === 401) {
-                        const fidp = AuthUtils.getDefaultFIdP();
-                        AuthUtils.removeUserFromBrowser(globalState);
-                        AuthUtils.initiateHubLoginFlow(globalState, fidp);
+                    if (errorResponse.status === 401 && !preventAutoReLogin) {
+                        AuthUtils.removeUserFromBrowser();
+                        AuthUtils.initiateHubLoginFlow(globalState, null, `${window.location.origin}/sign-in`);
                     }
                     reject(new HubApiError(errorResponse.data, errorResponse.status));
                 } else {
