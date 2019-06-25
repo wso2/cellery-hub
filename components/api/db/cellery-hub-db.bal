@@ -345,3 +345,32 @@ public function updateImage(string orgName, string imageName, string description
     sql:UpdateResult res = check connection->update(UPDATE_IMAGE_QUERY, description, imageName, orgName, userId);
     return res;
 }
+
+public function getImagesForUserId(string userId, string orgName, string imageName, string orderBy, int offset, int resultLimit, string apiUserId)
+returns json | error {
+    log:printDebug(io:sprintf("Performing image retrival for user %s from DB for orgName: %s, imageName: %s by user : %s",userId, orgName,
+    imageName, apiUserId));
+    table<gen:OrgImagesListResponse> resTotal = check connection->select(SEARCH_IMAGES_FOR_USER_TOTAL_COUNT, gen:Count, 
+    orgName, imageName, userId);
+    json resTotalJson = check json.convert(resTotal);
+    int totalOrgs = check int.convert(resTotalJson[0]["count"]);
+    resTotal.close();
+    gen:ImagesListResponse imagesListResponse = {count:totalOrgs , data:[]};
+    if (totalOrgs > 0){
+        log:printDebug(io:sprintf("%d images found with the imageName \'%s\' and orgName %s for user %s", totalOrgs, imageName, 
+        orgName, userId));
+        string searchQuery = SEARCH_IMAGES_FOR_USER_QUERY + " ORDER BY " +orderBy+ " DESC LIMIT " +resultLimit+ " OFFSET " +offset;        
+        table<gen:ImagesListResponseAtom> resData = check connection->select(searchQuery, gen:ImagesListResponseAtom, 
+        orgName, imageName, userId);
+        int counter = 0;
+        foreach var item in resData {
+            imagesListResponse.data[counter] =  gen:ImagesListResponseAtom.convert(item);
+            counter += 1;
+        }
+        resData.close();        
+    } else {
+        log:printDebug(io:sprintf("No images found with orgName \'%s\' and image name \'%s\' for userId %s", orgName, 
+        imageName, userId));
+    }
+    return check json.convert(imagesListResponse);
+}

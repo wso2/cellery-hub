@@ -530,11 +530,26 @@ public function updateImage (http:Request updateImageReq, string orgName, string
     }
 }
 
-public function listUserImages (http:Request _listUserImagesReq, string userId) returns http:Response {
-    // stub code - fill as necessary
-    http:Response _listUserImagesRes = new;
-    string _listUserImagesPayload = "Sample listUserImages Response";
-    _listUserImagesRes.setTextPayload(_listUserImagesPayload);
+public function listUserImages (http:Request listUserImagesReq, string userId, string orgName, string imageName, string orderBy, int offset, 
+int resultLimit) returns http:Response {
+    log:printDebug(io:sprintf("Listing images for user : %s, orgName : %s, imageName : %s, orderBy : %s, offset : %d, limit : %d, ", userId,
+    orgName, imageName, orderBy, offset, resultLimit));
 
-	return _listUserImagesRes;
+    json | error userImagesListResult;
+    if (listUserImagesReq.hasHeader(constants:AUTHENTICATED_USER)) {
+        string apiUserId = listUserImagesReq.getHeader(constants:AUTHENTICATED_USER);
+        log:printDebug(io:sprintf("List user images request with an authenticated user : %s", userId));
+        userImagesListResult = db:getUserImages(userId, orgName, imageName, orderBy, offset, resultLimit, apiUserId);
+    } else {
+        log:printDebug("List user images request with an unauthenticated user");
+        userImagesListResult = db:getPublicImages(orgName, imageName, orderBy, offset, resultLimit);
+    }
+    if (userImagesListResult is json) {
+        return buildSuccessResponse(jsonResponse = userImagesListResult);
+    }
+    else {
+        log:printError(io:sprintf("Error occured while retrieving images with name \'%s\' for organization \'%s\'", imageName, orgName),
+        err = userImagesListResult);
+        return buildUnknownErrorResponse();
+    }
 }
