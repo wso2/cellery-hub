@@ -194,6 +194,32 @@ paths:
           description: "Internal Server Error"
           schema:
             $ref: "#/definitions/ErrorResponse"
+  /images/users/{userId}:
+    get:
+      operationId: "listUserImages"
+      summary: "Find images which user is the first author"
+      produces:
+      - "application/json"
+      parameters:
+      - $ref: "#/parameters/userIdPathParam"
+      - $ref: "#/parameters/orgNameQueryParam"
+      - $ref: "#/parameters/imageNameQueryParam"
+      - $ref: '#/parameters/orderByQueryParam'
+      - $ref: '#/parameters/limitQueryParam'
+      - $ref: '#/parameters/offsetQueryParam'
+      responses:
+        200:
+          description: "OK"
+          schema:
+            $ref: "#/definitions/ImagesListResponse"
+        405:
+          description: "Invalid Input"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+        500:
+          description: "Internal Server Error"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
   /artifacts/{orgName}/{imageName}/{artifactVersion}:
     get:
       operationId: "getArtifact"

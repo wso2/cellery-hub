@@ -530,26 +530,36 @@ public function updateImage (http:Request updateImageReq, string orgName, string
     }
 }
 
+# Search images belongs to a given user
+#
+# + listUserImagesReq - received request which contains header
+# + userId - userId of user whose images are being searched
+# + orgName - regex for organization name
+# + imageName - regex for search images
+# + orderBy - orderBy enum value
+# + offset - offset value
+# + resultLimit - esultLimit value
+# + return - http response which cater to the request
 public function listUserImages (http:Request listUserImagesReq, string userId, string orgName, string imageName, string orderBy, int offset, 
 int resultLimit) returns http:Response {
-    log:printDebug(io:sprintf("Listing images for user : %s, orgName : %s, imageName : %s, orderBy : %s, offset : %d, limit : %d, ", userId,
+    log:printDebug(io:sprintf("Listing images under user : %s, orgName : %s, imageName : %s, orderBy : %s, offset : %d, limit : %d, ", userId,
     orgName, imageName, orderBy, offset, resultLimit));
 
-    json | error userImagesListResult;
+    json | error imagesListForUserResult;
     if (listUserImagesReq.hasHeader(constants:AUTHENTICATED_USER)) {
         string apiUserId = listUserImagesReq.getHeader(constants:AUTHENTICATED_USER);
-        log:printDebug(io:sprintf("List user images request with an authenticated user : %s", userId));
-        userImagesListResult = db:getUserImages(userId, orgName, imageName, orderBy, offset, resultLimit, apiUserId);
+        log:printDebug(io:sprintf("List images for userId \'%s\', requested by an authenticated user : %s", userId, apiUserId));
+        imagesListForUserResult = db:getImagesForUserIdWithAuthenticatedUser(userId, orgName, imageName, orderBy, offset, resultLimit, untaint apiUserId);
     } else {
-        log:printDebug("List user images request with an unauthenticated user");
-        userImagesListResult = db:getPublicImages(orgName, imageName, orderBy, offset, resultLimit);
+        log:printDebug(io:sprintf("List images for userId \'%s\', requested by an unauthenticated user", userId));
+        imagesListForUserResult = db:getImagesForUserIdWithoutAuthenticatedUser(userId, orgName, imageName, orderBy, offset, resultLimit);
     }
-    if (userImagesListResult is json) {
-        return buildSuccessResponse(jsonResponse = userImagesListResult);
+    if (imagesListForUserResult is json) {
+        return buildSuccessResponse(jsonResponse = imagesListForUserResult);
     }
     else {
         log:printError(io:sprintf("Error occured while retrieving images with name \'%s\' for organization \'%s\'", imageName, orgName),
-        err = userImagesListResult);
+        err = imagesListForUserResult);
         return buildUnknownErrorResponse();
     }
 }
