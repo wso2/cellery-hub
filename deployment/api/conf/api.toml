@@ -31,6 +31,10 @@ scim2.user.endpoint="/scim2/Users"
 username="admin"
 password="admin"
 
+[token]
+cache.expiry=1800000
+cache.capacity=500
+
 [b7a.log]
 level="DEBUG"
 

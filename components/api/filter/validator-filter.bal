@@ -26,7 +26,8 @@ import ballerina/cache;
 import cellery_hub_api/idp;
 import cellery_hub_api/constants;
 
-cache:Cache cache = new(expiryTimeMillis = 259200000);
+cache:Cache cache = new(capacity = config:getAsInt(constants:CACHE_CAPACITY_VAR), 
+                        expiryTimeMillis = config:getAsInt(constants:CACHE_EXPIRY_VAR));
 
 public type validateRequestFilter object {
     public function filterRequest(http:Caller caller, http:Request request,
