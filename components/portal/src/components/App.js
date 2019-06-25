@@ -17,6 +17,7 @@
  */
 
 import "typeface-roboto";
+import * as PropTypes from "prop-types";
 import AppLayout from "./appLayout";
 import CssBaseline from "@material-ui/core/CssBaseline/CssBaseline";
 import ErrorBoundary from "./common/error/ErrorBoundary";
@@ -36,47 +37,73 @@ import {BrowserRouter, Route, Switch} from "react-router-dom";
 import {MuiThemeProvider, createMuiTheme} from "@material-ui/core/styles";
 import withGlobalState, {StateHolder, StateProvider} from "./common/state";
 
-const HubPortal = withGlobalState(({globalState}) => {
-    let view;
-    if (globalState.get(StateHolder.USER)) {
-        view = (
-            <AppLayout>
-                <ErrorBoundary showNavigationButtons={true}>
-                    <Switch>
-                        <Route exact path={["/", "/my-images"]} component={MyImages}/>
-                        <Route exact path={"/my-orgs"} component={MyOrgs}/>
-                        <Route exact path={"/explore"} component={Explore}/>
-                        <Route exact path={"/orgs/:orgName"} component={Org}/>
-                        <Route exact path={"/images/:orgName/:imageName"} component={Image}/>
-                        <Route exact path={"/images/:orgName/:imageName/:version"} component={ImageVersion}/>
-                        <Route render={(props) => <NotFound {...props} showNavigationButtons={true}/>}/>
-                    </Switch>
-                </ErrorBoundary>
-            </AppLayout>
-        );
-    } else {
-        view = (
-            <Switch>
-                <Route exact path={"/"} component={Home}/>
-                <Route exact path={"/sign-in"} render={() => <SignIn callbackRoute={"/"}/>}/>
-                <Route render={() => (
-                    <AppLayout>
-                        <ErrorBoundary showNavigationButtons={true}>
-                            <Switch>
-                                <Route exact path={"/explore"} component={Explore}/>
-                                <Route exact path={"/orgs/:orgName"} component={Org}/>
-                                <Route exact path={"/images/:orgName/:imageName"} component={Image}/>
-                                <Route exact path={"/images/:orgName/:imageName/:version"} component={ImageVersion}/>
-                                <Route render={(props) => <NotFound {...props} showNavigationButtons={true}/>}/>
-                            </Switch>
-                        </ErrorBoundary>
-                    </AppLayout>
-                )}/>
-            </Switch>
-        );
+class GlobalStatelessHubPortal extends React.Component {
+
+    constructor(props) {
+        super(props);
+        this.state = {
+            user: props.globalState.get(StateHolder.USER)
+        };
+        props.globalState.addListener(StateHolder.USER, this.handleUserChange);
     }
-    return view;
-});
+
+    handleUserChange = (key, oldValue, newValue) => {
+        this.setState({
+            user: newValue
+        });
+    };
+
+    render() {
+        const {user} = this.state;
+        let view;
+        if (user) {
+            view = (
+                <AppLayout>
+                    <ErrorBoundary showNavigationButtons={true}>
+                        <Switch>
+                            <Route exact path={["/", "/my-images"]} component={MyImages}/>
+                            <Route exact path={"/my-orgs"} component={MyOrgs}/>
+                            <Route exact path={"/explore"} component={Explore}/>
+                            <Route exact path={"/orgs/:orgName"} component={Org}/>
+                            <Route exact path={"/images/:orgName/:imageName"} component={Image}/>
+                            <Route exact path={"/images/:orgName/:imageName/:version"} component={ImageVersion}/>
+                            <Route render={(props) => <NotFound {...props} showNavigationButtons={true}/>}/>
+                        </Switch>
+                    </ErrorBoundary>
+                </AppLayout>
+            );
+        } else {
+            view = (
+                <Switch>
+                    <Route exact path={"/"} component={Home}/>
+                    <Route exact path={"/sign-in"} render={() => <SignIn callbackRoute={"/"}/>}/>
+                    <Route render={() => (
+                        <AppLayout>
+                            <ErrorBoundary showNavigationButtons={true}>
+                                <Switch>
+                                    <Route exact path={"/explore"} component={Explore}/>
+                                    <Route exact path={"/orgs/:orgName"} component={Org}/>
+                                    <Route exact path={"/images/:orgName/:imageName"} component={Image}/>
+                                    <Route exact path={"/images/:orgName/:imageName/:version"}
+                                        component={ImageVersion}/>
+                                    <Route render={(props) => <NotFound {...props} showNavigationButtons={true}/>}/>
+                                </Switch>
+                            </ErrorBoundary>
+                        </AppLayout>
+                    )}/>
+                </Switch>
+            );
+        }
+        return view;
+    }
+
+}
+
+GlobalStatelessHubPortal.propTypes = {
+    globalState: PropTypes.instanceOf(StateHolder).isRequired
+};
+
+const HubPortal = withGlobalState(GlobalStatelessHubPortal);
 
 // Create the main theme of the App
 const theme = createMuiTheme({
