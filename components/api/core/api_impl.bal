@@ -207,7 +207,7 @@ public function getImageByImageName(http:Request getImageRequest, string orgName
                 imageId: image.imageId,
                 orgName: image.orgName,
                 imageName: image.imageName,
-                description: image.description,
+                summery: image.summery,
                 firstAuthor: image.firstAuthor,
                 visibility: image.visibility,
                 pushCount: image.pushCount,
