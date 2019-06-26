@@ -186,7 +186,7 @@ class HttpUtils {
                     if (errorResponse.status === 401 && !preventAutoReLogin) {
                         AuthUtils.removeUserFromBrowser();
                         const queryParams = {
-                            callback: window.location.origin + window.location.pathname + window.location.search
+                            callback: window.location.pathname + window.location.search
                         };
                         window.location.assign(`/sign-in${HttpUtils.generateQueryParamString(queryParams)}`);
                     }

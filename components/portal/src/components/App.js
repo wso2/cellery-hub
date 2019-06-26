@@ -17,7 +17,6 @@
  */
 
 import "typeface-roboto";
-import * as PropTypes from "prop-types";
 import AppLayout from "./appLayout";
 import CssBaseline from "@material-ui/core/CssBaseline/CssBaseline";
 import ErrorBoundary from "./common/error/ErrorBoundary";
@@ -36,6 +35,7 @@ import SignIn from "./SignIn";
 import {BrowserRouter, Route, Switch} from "react-router-dom";
 import {MuiThemeProvider, createMuiTheme} from "@material-ui/core/styles";
 import withGlobalState, {StateHolder, StateProvider} from "./common/state";
+import * as PropTypes from "prop-types";
 
 class GlobalStatelessHubPortal extends React.Component {
 

@@ -407,23 +407,15 @@ describe("HttpUtils", () => {
 
         it("should reject with response and initiate login flow when axios rejects with a "
             + `${unauthorizedStatusCode} status code`, async () => {
-            const spy = jest.spyOn(AuthUtils, "initiateHubLoginFlow");
             AuthUtils.setDefaultFIdP("github");
             jest.spyOn(window.location, "assign").mockImplementation((location) => {
                 const params = {
-                    response_type: "code",
-                    nonce: "auth",
-                    scope: "openid",
-                    client_id: globalConfig.idp.hubClientId,
-                    redirect_uri: window.location.href,
-                    fidp: "github"
+                    callback: window.location.pathname + window.location.search
                 };
-                const endpoint = `${globalConfig.idp.url}${AuthUtils.AUTHORIZATION_ENDPOINT}`;
-                expect(location).toEqual(`${endpoint}${HttpUtils.generateQueryParamString(params)}`);
+                expect(location).toEqual(`${"/sign-in"}${HttpUtils.generateQueryParamString(params)}`);
             });
             await expect(mockReject(unauthorizedStatusCode)).rejects.toEqual(
                 new HubApiError(ERROR_DATA, unauthorizedStatusCode));
-            expect(spy).toHaveBeenCalledTimes(1);
             window.location.assign.mockClear();
         });
     });
