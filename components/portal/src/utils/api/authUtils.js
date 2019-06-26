@@ -50,12 +50,10 @@ class AuthUtils {
      *
      * @param {StateHolder} globalState The global state provided to the current component
      * @param {FederatedIdPType} [fidpOverride] The federated idp to be used
-     * @param {string} [redirectUrl] The URL to redirect back to
      */
-    static initiateHubLoginFlow(globalState, fidpOverride, redirectUrl) {
+    static initiateHubLoginFlow(globalState, fidpOverride) {
         const clientId = globalState.get(StateHolder.CONFIG).idp.hubClientId;
-        this.initiateLoginFlow(globalState, fidpOverride, clientId,
-            redirectUrl ? redirectUrl : window.location.origin + window.location.pathname);
+        this.initiateLoginFlow(globalState, fidpOverride, clientId, window.location.origin + window.location.pathname);
     }
 
     /**

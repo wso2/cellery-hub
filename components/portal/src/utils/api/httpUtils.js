@@ -185,7 +185,10 @@ class HttpUtils {
                     const errorResponse = error.response;
                     if (errorResponse.status === 401 && !preventAutoReLogin) {
                         AuthUtils.removeUserFromBrowser();
-                        AuthUtils.initiateHubLoginFlow(globalState, null, `${window.location.origin}/sign-in`);
+                        const queryParams = {
+                            callback: window.location.origin + window.location.pathname + window.location.search
+                        };
+                        window.location.assign(`/sign-in${HttpUtils.generateQueryParamString(queryParams)}`);
                     }
                     reject(new HubApiError(errorResponse.data, errorResponse.status));
                 } else {

@@ -100,6 +100,10 @@ class FederatedIdpSelect extends React.Component {
             } else if (params.code) {
                 const oneTimeToken = params.code;
                 AuthUtils.retrieveTokens(oneTimeToken, globalState, () => {
+                    const params = HttpUtils.parseQueryParams(location.search);
+                    params.code = null;
+                    history.replace(`${location.pathname}${HttpUtils.generateQueryParamString(params)}`);
+
                     if (params.fidp) {
                         AuthUtils.initiateSdkLoginFlow(globalState, params.fidp, params.redirectUrl);
                     } else if (AuthUtils.getDefaultFIdP()) {

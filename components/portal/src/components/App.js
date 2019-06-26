@@ -76,7 +76,7 @@ class GlobalStatelessHubPortal extends React.Component {
             view = (
                 <Switch>
                     <Route exact path={"/"} component={Home}/>
-                    <Route exact path={"/sign-in"} render={() => <SignIn callbackRoute={"/"}/>}/>
+                    <Route exact path={"/sign-in"} render={() => <SignIn defaultCallback={"/"}/>}/>
                     <Route render={() => (
                         <AppLayout>
                             <ErrorBoundary showNavigationButtons={true}>
