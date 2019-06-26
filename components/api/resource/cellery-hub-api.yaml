@@ -173,7 +173,53 @@ paths:
           description: "Internal Server Error"
           schema:
             $ref: "#/definitions/ErrorResponse"
-
+  /images/{orgName}/{imageName}:
+    put:
+      operationId: "updateImage"
+      summary: "Update an existing image"
+      produces:
+      - "application/json"
+      parameters:
+      - $ref: "#/parameters/orgNamePathParam"
+      - $ref: "#/parameters/imageNamePathParam"
+      - $ref: "#/parameters/imageUpdateBody"
+      responses:
+        200:
+          description: "OK"
+        405:
+          description: "Invalid Input"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+        500:
+          description: "Internal Server Error"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+  /images/users/{userId}:
+    get:
+      operationId: "listUserImages"
+      summary: "Find images which user is the first author"
+      produces:
+      - "application/json"
+      parameters:
+      - $ref: "#/parameters/userIdPathParam"
+      - $ref: "#/parameters/orgNameQueryParam"
+      - $ref: "#/parameters/imageNameQueryParam"
+      - $ref: '#/parameters/orderByQueryParam'
+      - $ref: '#/parameters/limitQueryParam'
+      - $ref: '#/parameters/offsetQueryParam'
+      responses:
+        200:
+          description: "OK"
+          schema:
+            $ref: "#/definitions/ImagesListResponse"
+        405:
+          description: "Invalid Input"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+        500:
+          description: "Internal Server Error"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
   /artifacts/{orgName}/{imageName}/{artifactVersion}:
     get:
       operationId: "getArtifact"
@@ -206,6 +252,13 @@ parameters:
     required: true
     schema:
       $ref: "#/definitions/OrgCreateRequest"
+  imageUpdateBody:
+    name: "image"
+    in: "body"
+    description: "Image which needs to be updated"
+    required: true
+    schema:
+      $ref: "#/definitions/ImageUpdateRequest"
   orgNamePathParam:
     name: "orgName"
     in: "path"
@@ -279,6 +332,11 @@ definitions:
         type: "string"
       defaultVisibility:
         type: "string"
+  ImageUpdateRequest:
+    type: "object"
+    properties:
+      description:
+        type: "string"
   OrgResponse:
     type: "object"
     properties:
@@ -293,7 +351,7 @@ definitions:
   ArtifactResponse:
     type: "object"
     properties:
-      description:
+      summery:
         type: "string"
       pullCount:
         type: "integer"
@@ -351,7 +409,7 @@ definitions:
         type: string
       imageName:
         type: string
-      description:
+      summery:
         type: string
       pullCount:
         type: integer
@@ -364,7 +422,7 @@ definitions:
     properties:
       imageName:
         type: string
-      description:
+      summery:
         type: string
       pullCount:
         type: integer

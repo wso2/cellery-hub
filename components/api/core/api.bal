@@ -619,4 +619,139 @@ service CelleryHubAPI on ep {
         http:Response _listImagesRes = listImages(_listImagesReq, orgName, imageName, untaint orderBy, untaint offset, untaint resultLimit);
         error? x = outboundEp->respond(_listImagesRes);
     }
+
+    @openapi:ResourceInfo {
+        summary: "Update an existing image",
+        parameters: [
+            {
+                name: "orgName",
+                inInfo: "path",
+                paramType: "string",
+                description: "Name of the organization",
+                required: true,
+                allowEmptyValue: ""
+            },
+            {
+                name: "imageName",
+                inInfo: "path",
+                paramType: "string",
+                description: "Name of the image",
+                required: true,
+                allowEmptyValue: ""
+            }
+        ]
+    }
+    @http:ResourceConfig {
+        methods:["PUT"],
+        path:"/images/{orgName}/{imageName}",
+        body:"_updateImageBody"
+    }
+    resource function updateImage (http:Caller outboundEp, http:Request _updateImageReq, string orgName, string imageName, 
+    gen:ImageUpdateRequest _updateImageBody) returns error? {
+        http:Response _updateImageRes = updateImage(_updateImageReq, orgName, imageName, _updateImageBody);
+        error? x = outboundEp->respond(_updateImageRes);
+    }
+
+    @openapi:ResourceInfo {
+        summary: "Find images which user is the first author",
+        parameters: [
+            {
+                name: "userId",
+                inInfo: "path",
+                paramType: "string",
+                description: "UserId of the user",
+                required: true,
+                allowEmptyValue: ""
+            },
+            {
+                name: "orgName",
+                inInfo: "query",
+                paramType: "string",
+                description: "Name of the organization",
+                allowEmptyValue: ""
+            },
+            {
+                name: "imageName",
+                inInfo: "query",
+                paramType: "string",
+                description: "Name of the Image",
+                allowEmptyValue: ""
+            },
+            {
+                name: "orderBy",
+                inInfo: "query",
+                paramType: "string",
+                description: "Enum to oder result",
+                required: true,
+                allowEmptyValue: ""
+            },
+            {
+                name: "limit",
+                inInfo: "query",
+                paramType: "int",
+                description: "Number of results returned for pagination",
+                required: true,
+                allowEmptyValue: ""
+            },
+            {
+                name: "offset",
+                inInfo: "query",
+                paramType: "int",
+                description: "Offset of the result set returned for pagination",
+                required: true,
+                allowEmptyValue: ""
+            }
+        ]
+    }
+    @http:ResourceConfig {
+        methods:["GET"],
+        path:"/images/users/{userId}"
+    }
+    resource function listUserImages (http:Caller outboundEp, http:Request _listUserImagesReq, string userId) returns error? {
+        map<string> queryParams = _listUserImagesReq.getQueryParams();
+        int offset = 0;
+        int resultLimit = 10;
+        string orgName = "%";
+        string imageName = "%";
+        string orderBy = constants:PULL_COUNT;
+        if (queryParams.hasKey(constants:OFFSET)) {
+            int | error offsetQueryParam = int.convert(queryParams.offset);
+            if (offsetQueryParam is int) {
+                offset = offsetQueryParam;
+            }
+        }
+        if (queryParams.hasKey(constants:RESULT_LIMIT)) {
+            int | error resultLimitQueryParam = int.convert(queryParams.
+            resultLimit);
+            if (resultLimitQueryParam is int) {
+                resultLimit = resultLimitQueryParam;
+                if (resultLimit > 25) {
+                    log:printDebug(io:sprintf("Requested result limit exeeded 25. Hense reset resultLimit to 25"));
+                    resultLimit = 25;
+                }
+            }
+        }
+        if (queryParams.hasKey(constants:ORG_NAME)) {
+            log:printDebug("orgName is present");
+            orgName = queryParams.orgName;
+            orgName = orgName.replace("*", "%");
+        }
+        if (queryParams.hasKey(constants:IMAGE_NAME)) {
+            log:printDebug("imageName is present");
+            imageName = queryParams.imageName;
+            imageName = imageName.replace("*", "%");
+        }
+        if (queryParams.hasKey(constants:ORDER_BY)) {
+            orderBy = queryParams.orderBy;
+            if (orderBy.equalsIgnoreCase("last-updated")) {
+                orderBy = constants:UPDATED_DATE;
+            } else {
+                orderBy = constants:PULL_COUNT;
+            } 
+        }
+
+        http:Response _listUserImagesRes = listUserImages(_listUserImagesReq, userId, orgName, imageName, untaint orderBy, 
+        untaint offset, untaint resultLimit);
+        error? x = outboundEp->respond(_listUserImagesRes);
+    }
 }

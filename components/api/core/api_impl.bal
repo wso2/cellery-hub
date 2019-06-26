@@ -24,6 +24,7 @@ import ballerina/transactions;
 import cellery_hub_api/constants;
 import cellery_hub_api/db;
 import cellery_hub_api/idp;
+import ballerina/sql;
 
 # Get Auth Tokens.
 #
@@ -206,7 +207,7 @@ public function getImageByImageName(http:Request getImageRequest, string orgName
                 imageId: image.imageId,
                 orgName: image.orgName,
                 imageName: image.imageName,
-                description: image.description,
+                summery: image.summery,
                 firstAuthor: image.firstAuthor,
                 visibility: image.visibility,
                 pushCount: image.pushCount,
@@ -488,6 +489,77 @@ returns http:Response {
     else {
         log:printError(io:sprintf("Error occured while retrieving images with name \'%s\' for organization \'%s\'", imageName, orgName),
         err = orgImagesListResult);
+        return buildUnknownErrorResponse();
+    }
+}
+
+# Update an existing image
+#
+# + updateImageReq - received request which contains header
+# + orgName - Organization name
+# + imageName - Image ID
+# + return - http response (200 if success, 405 or 500 otherwise)
+public function updateImage (http:Request updateImageReq, string orgName, string imageName, gen:ImageUpdateRequest updateImageBody) returns http:Response {
+    if (updateImageReq.hasHeader(constants:AUTHENTICATED_USER)) {
+        string userId = updateImageReq.getHeader(constants:AUTHENTICATED_USER);
+        log:printDebug(io:sprintf("%s is attempting to update image \'%s\' in organization %s", userId, imageName, orgName));
+        log:printDebug(updateImageBody.description);
+        sql:UpdateResult | error? updateImageRes = db:updateImage(orgName, imageName, updateImageBody.description, userId);
+
+        if (updateImageRes is sql:UpdateResult){
+            if (updateImageRes.updatedRowCount == 1) {
+                log:printDebug(io:sprintf("Image \'%s\' in organization \'%s\' is successfully updated. Author : %s", imageName, orgName, userId));
+                return buildSuccessResponse();
+            } else if (updateImageRes.updatedRowCount == 0){
+                log:printError(io:sprintf("Failed to update image \'%s\' in organization \'%s\' for Author %s : No matching records found",
+                imageName, orgName, userId));
+            } else {
+                log:printError(io:sprintf("Failed to update image \'%s\' in organization \'%s\' for Author %s : More than one matching records found",
+                imageName, orgName, userId));
+            }
+            return buildErrorResponse(http:EXPECTATION_FAILED_417, constants:API_ERROR_CODE, "Unable to update image", "");            
+        } else {
+            log:printError(io:sprintf("Unexpected error occured while updating image \'%s\' in organization %s", imageName, orgName),
+            err = updateImageRes);
+            return buildUnknownErrorResponse();
+        } 
+    } else {
+        log:printError("Unauthenticated request for updateImage: Username is not found");
+        return buildErrorResponse(http:UNAUTHORIZED_401, constants:API_ERROR_CODE, "Unable to update image",
+        "Unauthenticated request. Auth token is not provided");
+    }
+}
+
+# Search images belongs to a given user
+#
+# + listUserImagesReq - received request which contains header
+# + userId - userId of user whose images are being searched
+# + orgName - regex for organization name
+# + imageName - regex for search images
+# + orderBy - orderBy enum value
+# + offset - offset value
+# + resultLimit - esultLimit value
+# + return - http response which cater to the request
+public function listUserImages (http:Request listUserImagesReq, string userId, string orgName, string imageName, string orderBy, int offset, 
+int resultLimit) returns http:Response {
+    log:printDebug(io:sprintf("Listing images under user : %s, orgName : %s, imageName : %s, orderBy : %s, offset : %d, limit : %d, ", userId,
+    orgName, imageName, orderBy, offset, resultLimit));
+
+    json | error imagesListForUserResult;
+    if (listUserImagesReq.hasHeader(constants:AUTHENTICATED_USER)) {
+        string apiUserId = listUserImagesReq.getHeader(constants:AUTHENTICATED_USER);
+        log:printDebug(io:sprintf("List images for userId \'%s\', requested by an authenticated user : %s", userId, apiUserId));
+        imagesListForUserResult = db:getImagesForUserIdWithAuthenticatedUser(userId, orgName, imageName, orderBy, offset, resultLimit, untaint apiUserId);
+    } else {
+        log:printDebug(io:sprintf("List images for userId \'%s\', requested by an unauthenticated user", userId));
+        imagesListForUserResult = db:getImagesForUserIdWithoutAuthenticatedUser(userId, orgName, imageName, orderBy, offset, resultLimit);
+    }
+    if (imagesListForUserResult is json) {
+        return buildSuccessResponse(jsonResponse = imagesListForUserResult);
+    }
+    else {
+        log:printError(io:sprintf("Error occured while retrieving images with name \'%s\' for organization \'%s\'", imageName, orgName),
+        err = imagesListForUserResult);
         return buildUnknownErrorResponse();
     }
 }
