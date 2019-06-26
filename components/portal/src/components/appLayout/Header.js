@@ -22,6 +22,7 @@ import Container from "@material-ui/core/Container";
 import NavBar from "./NavBar";
 import React from "react";
 import Toolbar from "@material-ui/core/Toolbar";
+import {withRouter} from "react-router-dom";
 import {withStyles} from "@material-ui/core/styles";
 import * as PropTypes from "prop-types";
 
@@ -37,7 +38,8 @@ const styles = (theme) => ({
     logo: {
         fontSize: 32,
         fontWeight: 400,
-        color: "#43AB00"
+        color: "#43AB00",
+        cursor: "pointer"
     },
     celleryLogo: {
         height: 40,
@@ -54,14 +56,14 @@ const styles = (theme) => ({
     }
 });
 
-const Header = ({classes}) => (
+const Header = ({classes, history}) => (
     <header>
         <div className={classes.headerContent}>
             <Container maxWidth={"md"}>
                 <AppBar position={"static"} className={classes.appbar}>
                     <Toolbar className={classes.toolbar}>
                         <div className={classes.headerLogo}>
-                            <div className={classes.logo}>
+                            <div className={classes.logo} onClick={() => history.push("/")}>
                                 <img src={CelleryLogo} className={classes.celleryLogo} alt={"Cellery logo"}/>
                                 hub
                             </div>
@@ -75,7 +77,10 @@ const Header = ({classes}) => (
 );
 
 Header.propTypes = {
-    classes: PropTypes.object.isRequired
+    classes: PropTypes.object.isRequired,
+    history: PropTypes.shape({
+        goBack: PropTypes.func.isRequired
+    })
 };
 
-export default withStyles(styles)(Header);
+export default withStyles(styles)(withRouter(Header));
