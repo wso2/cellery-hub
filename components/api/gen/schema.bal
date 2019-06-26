@@ -36,7 +36,7 @@ public type OrgResponse record {
 };
 
 public type ArtifactResponse record {
-    string summery;
+    string summary;
     int pullCount;
     string lastAuthor;
     string updatedTimestamp;
@@ -51,7 +51,7 @@ public type Count record {
 public type ArtifactListResponse record {
     string artifactImageId;
     string artifactId;
-    string summery;
+    string summary;
     int pullCount;
     string lastAuthor;
     string updatedTimestamp;
@@ -67,7 +67,7 @@ public type Image record {
     string imageId;
     string orgName;
     string imageName;
-    string summery;
+    string summary;
     string firstAuthor;
     string visibility;
     decimal pushCount;
@@ -78,7 +78,7 @@ public type ImageResponse record {
     string imageId;
     string orgName;
     string imageName;
-    string summery;
+    string summary;
     string firstAuthor;
     string visibility;
     decimal pushCount;
@@ -144,7 +144,7 @@ public type OrgImagesListResponse record {
 public type ImagesListResponseAtom record {
     string orgName;
     string imageName;
-    string summery;
+    string summary;
     decimal pullCount;
     string updatedTimestamp;
     string visibility;
@@ -152,12 +152,12 @@ public type ImagesListResponseAtom record {
 
 public type OrgImagesListResponseAtom record {
     string imageName;
-    string summery;
+    string summary;
     decimal pullCount;
     string updatedTimestamp;
     string visibility;
 };
 
-public type ImageUpdateRequest record { 
+public type ImageUpdateRequest record {
     string description;
 };

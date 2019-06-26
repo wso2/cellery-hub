@@ -207,7 +207,7 @@ public function getImageByImageName(http:Request getImageRequest, string orgName
                 imageId: image.imageId,
                 orgName: image.orgName,
                 imageName: image.imageName,
-                summery: image.summery,
+                summary: image.summary,
                 firstAuthor: image.firstAuthor,
                 visibility: image.visibility,
                 pushCount: image.pushCount,
@@ -517,12 +517,12 @@ public function updateImage (http:Request updateImageReq, string orgName, string
                 log:printError(io:sprintf("Failed to update image \'%s\' in organization \'%s\' for Author %s : More than one matching records found",
                 imageName, orgName, userId));
             }
-            return buildErrorResponse(http:EXPECTATION_FAILED_417, constants:API_ERROR_CODE, "Unable to update image", "");            
+            return buildErrorResponse(http:EXPECTATION_FAILED_417, constants:API_ERROR_CODE, "Unable to update image", "");
         } else {
             log:printError(io:sprintf("Unexpected error occured while updating image \'%s\' in organization %s", imageName, orgName),
             err = updateImageRes);
             return buildUnknownErrorResponse();
-        } 
+        }
     } else {
         log:printError("Unauthenticated request for updateImage: Username is not found");
         return buildErrorResponse(http:UNAUTHORIZED_401, constants:API_ERROR_CODE, "Unable to update image",
@@ -540,7 +540,7 @@ public function updateImage (http:Request updateImageReq, string orgName, string
 # + offset - offset value
 # + resultLimit - esultLimit value
 # + return - http response which cater to the request
-public function listUserImages (http:Request listUserImagesReq, string userId, string orgName, string imageName, string orderBy, int offset, 
+public function listUserImages (http:Request listUserImagesReq, string userId, string orgName, string imageName, string orderBy, int offset,
 int resultLimit) returns http:Response {
     log:printDebug(io:sprintf("Listing images under user : %s, orgName : %s, imageName : %s, orderBy : %s, offset : %d, limit : %d, ", userId,
     orgName, imageName, orderBy, offset, resultLimit));
