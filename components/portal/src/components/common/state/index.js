@@ -31,9 +31,15 @@ import * as PropTypes from "prop-types";
 const StateContext = React.createContext({});
 
 const styles = () => ({
-    container: {
-        minHeight: "100%",
-        bottom: 0
+    centerContainer: {
+        position: "absolute",
+        margin: "auto",
+        top: 0,
+        right: 0,
+        bottom: 0,
+        left: 0,
+        width: "200px",
+        height: "100px"
     }
 });
 
@@ -91,10 +97,9 @@ class UnStyledStateProvider extends React.Component {
                     isLoading
                         ? (
                             <Grid container justify={"center"} alignItems={"center"}
-                                className={classes.container}>
-                                <Grid item>
-                                    <CircularProgress size={60}/>
-                                </Grid>
+                                className={classes.centerContainer}>
+                                <Grid item><CircularProgress/></Grid>
+                                <Grid item>&nbsp;Loading</Grid>
                             </Grid>
                         )
                         : content

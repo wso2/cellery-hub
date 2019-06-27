@@ -18,6 +18,7 @@
 
 import AuthUtils from "../utils/api/authUtils";
 import CircularProgress from "@material-ui/core/CircularProgress";
+import Grid from "@material-ui/core/Grid/Grid";
 import HttpUtils from "../utils/api/httpUtils";
 import React from "react";
 import {withRouter} from "react-router-dom";
@@ -55,7 +56,7 @@ const styles = (theme) => ({
     submit: {
         marginTop: theme.spacing.unit * 3
     },
-    centerDiv: {
+    centerContainer: {
         position: "absolute",
         margin: "auto",
         top: 0,
@@ -70,18 +71,6 @@ const styles = (theme) => ({
 class SignIn extends React.Component {
 
     static CALLBACK = "signInComponentCallback";
-
-    render() {
-        const {classes} = this.props;
-        return (
-            <React.Fragment className={classes.progress}>
-                <div className={classes.centerDiv}>
-                    <CircularProgress/>
-                    <div>Signing In</div>
-                </div>
-            </React.Fragment>
-        );
-    }
 
     componentDidMount() {
         const {defaultCallback, globalState, history, location} = this.props;
@@ -106,6 +95,16 @@ class SignIn extends React.Component {
             }
             AuthUtils.initiateHubLoginFlow(globalState, searchParams.fidp);
         }
+    }
+
+    render() {
+        const {classes} = this.props;
+        return (
+            <Grid container justify={"center"} alignItems={"center"} className={classes.centerContainer}>
+                <Grid item><CircularProgress/></Grid>
+                <Grid item>&nbsp;Signing In</Grid>
+            </Grid>
+        );
     }
 
 }
