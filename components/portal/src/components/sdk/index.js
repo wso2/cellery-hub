@@ -19,19 +19,16 @@
 import AppLayout from "./appLayout";
 import ErrorBoundary from "../common/error/ErrorBoundary";
 import FederatedIdpSelect from "./FederatedIdpSelect";
-import HttpUtils from "../../utils/api/httpUtils";
 import NotFound from "../common/error/NotFound";
 import OrgCreate from "./OrgCreate";
 import React from "react";
-import SignIn from "../SignIn";
+import SignInRequired from "../common/error/SignInRequired";
 import SignInSuccess from "./SignInSuccess";
 import {Route, Switch} from "react-router-dom";
 import withGlobalState, {StateHolder} from "../common/state";
 import * as PropTypes from "prop-types";
 
 class StatelessProtectedSDKPortal extends React.Component {
-
-    static SESSION_DATA_KEY = "sdkSignInSessionDataKey";
 
     constructor(props) {
         super(props);
@@ -48,17 +45,10 @@ class StatelessProtectedSDKPortal extends React.Component {
     };
 
     render = () => {
-        const {location, match, history} = this.props;
+        const {match} = this.props;
         const {user} = this.state;
-        const params = HttpUtils.parseQueryParams(location.search);
         let view;
         if (user) {
-            const sessionDataKey = sessionStorage.getItem(SDK.SESSION_DATA_KEY);
-            if (sessionDataKey) {
-                params.sessionDataKey = sessionDataKey;
-                history.replace(`${location.pathname}${HttpUtils.generateQueryParamString(params)}`);
-                sessionStorage.removeItem(SDK.SESSION_DATA_KEY);
-            }
             view = (
                 <Switch>
                     <Route exact path={`${match.path}/org-create`} component={OrgCreate}/>
@@ -67,10 +57,7 @@ class StatelessProtectedSDKPortal extends React.Component {
                 </Switch>
             );
         } else {
-            if (params.sessionDataKey) {
-                sessionStorage.setItem(SDK.SESSION_DATA_KEY, params.sessionDataKey);
-            }
-            view = <SignIn/>;
+            view = <SignInRequired/>;
         }
         return view;
     }
@@ -78,14 +65,8 @@ class StatelessProtectedSDKPortal extends React.Component {
 }
 
 StatelessProtectedSDKPortal.propTypes = {
-    location: PropTypes.shape({
-        search: PropTypes.string.isRequired
-    }).isRequired,
     match: PropTypes.shape({
         url: PropTypes.string.isRequired
-    }).isRequired,
-    history: PropTypes.shape({
-        replace: PropTypes.func.isRequired
     }).isRequired,
     globalState: PropTypes.instanceOf(StateHolder)
 };
