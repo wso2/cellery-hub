@@ -33,6 +33,8 @@ public type CellImageMetadata record {|
 	string[] ingresses;
 	string[] components;
 	map<CellImageMetadata> dependencies;
+	map<string[]> componentDep;
+	string[] exposed;
 |};
 
 
