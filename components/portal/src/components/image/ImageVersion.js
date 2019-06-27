@@ -335,8 +335,11 @@ class ImageVersion extends React.Component {
                                                 <div className={classes.copyContainer}>
                                                     <InputBase multiline className={classes.copyInputMultiline}
                                                         value={
-                                                            `cellery run ${orgName}/${imageName}:${version}`
-                                                            + "-n pet-fe -l petStoreBackend:pet-be -d"
+                                                            `${`cellery run ${orgName}/${imageName}:${version}`
+                                                            + ` -n ${imageName}-inst`}${
+                                                                Object.entries(versionData.metadata.dependencies).map(
+                                                                    (dependencyEntry) => ` -l ${dependencyEntry[0]}`
+                                                                        + `:${dependencyEntry[1].name}-inst`)} -d`
                                                         }
                                                         inputProps={{spellCheck: false}} inputRef={this.runCmdRef}/>
                                                     <Tooltip title={"Copied!"} disableFocusListener={false}
