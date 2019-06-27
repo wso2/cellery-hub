@@ -177,7 +177,8 @@ class AuthUtils {
      * @param {StateHolder} globalState The global state provided to the current component
      */
     static signOut(globalState) {
-        AuthUtils.removeUserFromBrowser(globalState);
+        AuthUtils.removeUserFromBrowser();
+        localStorage.removeItem(AuthUtils.FEDERATED_IDP_KEY);
 
         const params = {
             id_token_hint: globalState.get(StateHolder.USER).tokens.idToken,
@@ -208,12 +209,9 @@ class AuthUtils {
 
     /**
      * Remove the stored user from the Browser.
-     *
-     * @param {StateHolder} globalState The global state provided to the current component
      */
-    static removeUserFromBrowser(globalState) {
+    static removeUserFromBrowser() {
         localStorage.removeItem(AuthUtils.USER_KEY);
-        localStorage.removeItem(AuthUtils.FEDERATED_IDP_KEY);
     }
 
     /**

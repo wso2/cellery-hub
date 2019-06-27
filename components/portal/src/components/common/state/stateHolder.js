@@ -15,6 +15,7 @@
  */
 
 import AuthUtils from "../../../utils/api/authUtils";
+import HttpUtils, {HubApiError} from "../../../utils/api/httpUtils";
 import * as axios from "axios";
 
 /**
@@ -37,6 +38,11 @@ class StateHolder {
      * Initialize the State Holder.
      */
     constructor() {
+        const self = this;
+        window.addEventListener("storage", () => {
+            self.set(StateHolder.USER, AuthUtils.getAuthenticatedUser());
+        });
+
         const rawState = {
             [StateHolder.USER]: AuthUtils.getAuthenticatedUser(),
             [StateHolder.CONFIG]: {},
@@ -57,7 +63,7 @@ class StateHolder {
                 value: stateValue
             };
         }
-        this.state = initialProcessedState;
+        self.state = initialProcessedState;
     }
 
     /**
@@ -169,8 +175,35 @@ class StateHolder {
                     Accept: "application/json"
                 }
             }).then((response) => {
-                self.set(StateHolder.CONFIG, response.data);
-                resolve(response.data);
+                const config = response.data;
+                self.set(StateHolder.CONFIG, config);
+
+                // Validating whether the token in valid if the user had already logged in
+                if (self.get(StateHolder.USER)) {
+                    const queryParams = {
+                        validateUser: true
+                    };
+                    HttpUtils.callHubAPI(
+                        {
+                            url: `/${HttpUtils.generateQueryParamString(queryParams)}`,
+                            method: "GET"
+                        },
+                        self,
+                        true
+                    ).then(() => {
+                        resolve(config);
+                    }).catch((error) => {
+                        if (error instanceof HubApiError && error.getStatusCode() === 401) {
+                            self.unset(StateHolder.USER);
+                            AuthUtils.removeUserFromBrowser();
+                            resolve(config);
+                        } else {
+                            reject(error);
+                        }
+                    });
+                } else {
+                    resolve(config);
+                }
             }).catch((error) => {
                 reject(error);
             });

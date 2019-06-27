@@ -88,30 +88,37 @@ class FederatedIdpSelect extends React.Component {
         const {user} = this.state;
 
         const params = HttpUtils.parseQueryParams(location.search);
-        if (user) {
-            if (params.fidp) {
-                AuthUtils.initiateSdkLoginFlow(globalState, params.fidp, params.redirectUrl);
-            } else if (AuthUtils.getDefaultFIdP()) {
-                AuthUtils.initiateSdkLoginFlow(globalState, null, params.redirectUrl);
+        if (params.redirectUrl) {
+            if (user) {
+                if (params.fidp) {
+                    AuthUtils.initiateSdkLoginFlow(globalState, params.fidp, params.redirectUrl);
+                } else if (AuthUtils.getDefaultFIdP()) {
+                    AuthUtils.initiateSdkLoginFlow(globalState, null, params.redirectUrl);
+                } else {
+                    AuthUtils.removeUserFromBrowser();
+                }
+            } else if (params.code) {
+                const oneTimeToken = params.code;
+                AuthUtils.retrieveTokens(oneTimeToken, globalState, () => {
+                    const params = HttpUtils.parseQueryParams(location.search);
+                    params.code = null;
+                    history.replace(`${location.pathname}${HttpUtils.generateQueryParamString(params)}`);
+
+                    if (params.fidp) {
+                        AuthUtils.initiateSdkLoginFlow(globalState, params.fidp, params.redirectUrl);
+                    } else if (AuthUtils.getDefaultFIdP()) {
+                        AuthUtils.initiateSdkLoginFlow(globalState, null, params.redirectUrl);
+                    } else {
+                        // Do nothing (waiting for user to select IdP to login)
+                    }
+                });
             } else {
-                AuthUtils.removeUserFromBrowser(globalState);
+                sessionStorage.setItem(FederatedIdpSelect.REDIRECT_URL, params.redirectUrl);
             }
         } else if (sessionStorage.getItem(FederatedIdpSelect.REDIRECT_URL)) {
             params.redirectUrl = sessionStorage.getItem(FederatedIdpSelect.REDIRECT_URL);
             history.replace(`${location.pathname}${HttpUtils.generateQueryParamString(params)}`);
             sessionStorage.removeItem(FederatedIdpSelect.REDIRECT_URL);
-        } else if (params.redirectUrl) {
-            sessionStorage.setItem(FederatedIdpSelect.REDIRECT_URL, params.redirectUrl);
-            if (params.fidp) {
-                AuthUtils.initiateSdkLoginFlow(globalState, params.fidp, params.redirectUrl);
-            } else if (AuthUtils.getDefaultFIdP()) {
-                AuthUtils.initiateSdkLoginFlow(globalState, null, params.redirectUrl);
-            } else {
-                // Do nothing (waiting for user to select IdP to login)
-            }
-        } else if (params.code) {
-            const oneTimeToken = params.code;
-            AuthUtils.retrieveTokens(oneTimeToken, globalState);
         } else {
             this.handleInvalidState();
         }

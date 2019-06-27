@@ -82,7 +82,7 @@ class OrgCreateDialog extends React.Component {
 
     handleCreateOrg = () => {
         const self = this;
-        const {globalState, onClose} = self.props;
+        const {globalState} = self.props;
         const {orgNameToBeCreated, reCaptchaVerifiedToken} = self.state;
         NotificationUtils.showLoadingOverlay(`Creating organization ${orgNameToBeCreated}`, globalState);
         HttpUtils.callHubAPI(
@@ -98,7 +98,7 @@ class OrgCreateDialog extends React.Component {
             },
             globalState
         ).then(() => {
-            onClose();
+            self.handleClose();
             NotificationUtils.hideLoadingOverlay(globalState);
         }).catch((err) => {
             let errorMessage;
@@ -126,14 +126,24 @@ class OrgCreateDialog extends React.Component {
         });
     };
 
+    handleClose = () => {
+        const {onClose} = this.props;
+        this.setState({
+            orgNameToBeCreated: "",
+            orgNameErrorMessage: "",
+            reCaptchaVerifiedToken: null
+        });
+        onClose();
+    };
+
     render() {
-        const {classes, globalState, open, onClose} = this.props;
+        const {classes, globalState, open} = this.props;
         const {orgNameToBeCreated, orgNameErrorMessage, reCaptchaVerifiedToken} = this.state;
 
         const reCaptchaSiteKey = globalState.get(StateHolder.CONFIG).reCaptchaSiteKey;
         return (
             <div>
-                <Dialog open={open} onClose={onClose} aria-labelledby={"form-dialog-title"} fullWidth>
+                <Dialog open={open} onClose={this.handleClose} aria-labelledby={"form-dialog-title"} fullWidth>
                     <DialogTitle id={"form-dialog-title"}>Create Organization</DialogTitle>
                     <DialogContent>
                         <FormControl fullWidth className={classes.orgTextField} error={orgNameErrorMessage}>
@@ -146,7 +156,7 @@ class OrgCreateDialog extends React.Component {
                             onErrored={this.handleOnCaptchaVerifyError}/>
                     </DialogContent>
                     <DialogActions className={classes.dialogActions}>
-                        <Button onClick={onClose} size={"small"}>
+                        <Button onClick={this.handleClose} size={"small"}>
                             Cancel
                         </Button>
                         <Button onClick={this.handleCreateOrg} color={"primary"} size={"small"}

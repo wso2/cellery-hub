@@ -69,6 +69,8 @@ const styles = (theme) => ({
 
 class SignIn extends React.Component {
 
+    static CALLBACK = "signInComponentCallback";
+
     render() {
         const {classes} = this.props;
         return (
@@ -82,16 +84,26 @@ class SignIn extends React.Component {
     }
 
     componentDidMount() {
-        const {callbackRoute, globalState, history, location} = this.props;
+        const {defaultCallback, globalState, history, location} = this.props;
         const searchParams = HttpUtils.parseQueryParams(location.search);
         if (searchParams.code) {
             const oneTimeToken = searchParams.code;
             AuthUtils.retrieveTokens(oneTimeToken, globalState, () => {
-                if (callbackRoute) {
-                    history.replace(callbackRoute);
+                searchParams.code = null;
+                history.replace(`${location.pathname}${HttpUtils.generateQueryParamString(searchParams)}`);
+
+                if (sessionStorage.getItem(SignIn.CALLBACK)) {
+                    const callback = sessionStorage.getItem(SignIn.CALLBACK);
+                    sessionStorage.removeItem(SignIn.CALLBACK);
+                    history.replace(callback);
+                } else if (defaultCallback) {
+                    history.replace(defaultCallback);
                 }
             });
         } else {
+            if (searchParams.callback) {
+                sessionStorage.setItem(SignIn.CALLBACK, searchParams.callback);
+            }
             AuthUtils.initiateHubLoginFlow(globalState, searchParams.fidp);
         }
     }
@@ -107,7 +119,7 @@ SignIn.propTypes = {
     history: PropTypes.shape({
         replace: PropTypes.func.isRequired
     }),
-    callbackRoute: PropTypes.string
+    defaultCallback: PropTypes.string
 };
 
 export default withRouter(withStyles(styles)(withGlobalState(SignIn)));

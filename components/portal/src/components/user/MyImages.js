@@ -19,6 +19,7 @@
 import Constants from "../../utils/constants";
 import Divider from "@material-ui/core/Divider";
 import FormControl from "@material-ui/core/FormControl";
+import FormHelperText from "@material-ui/core/FormHelperText";
 import Grid from "@material-ui/core/Grid";
 import IconButton from "@material-ui/core/IconButton";
 import ImageList from "../common/ImageList";
@@ -26,11 +27,14 @@ import Input from "@material-ui/core/Input";
 import InputAdornment from "@material-ui/core/InputAdornment";
 import InputLabel from "@material-ui/core/InputLabel";
 import MenuItem from "@material-ui/core/MenuItem";
+import NotificationUtils from "../../utils/common/notificationUtils";
 import React from "react";
 import SearchIcon from "@material-ui/icons/Search";
 import Select from "@material-ui/core/Select";
 import Typography from "@material-ui/core/Typography";
 import {withStyles} from "@material-ui/core/styles";
+import HttpUtils, {HubApiError} from "../../utils/api/httpUtils";
+import withGlobalState, {StateHolder} from "../common/state";
 import * as PropTypes from "prop-types";
 
 const styles = (theme) => ({
@@ -49,71 +53,193 @@ const styles = (theme) => ({
     }
 });
 
-const images = [
-    {
-        orgName: "alpha",
-        imageName: "pet-fe",
-        summary: "This contains the four components which involves with working with the Pet Store data and"
-            + " business logic.",
-        visibility: "PUBLIC",
-        pullCount: 10,
-        updatedTimestamp: "2019-05-12T05:11:54-0500",
-        lastAuthor: "john"
-    },
-    {
-        orgName: "alpha",
-        imageName: "pet-be",
-        summary: "This contains of a single component which serves the portal.",
-        visibility: "PUBLIC",
-        pullCount: 15,
-        updatedTimestamp: "2019-01-01T05:11:54-0500",
-        lastAuthor: "john"
-    },
-    {
-        orgName: "beta",
-        imageName: "hello-world",
-        summary: "Sample hello world cell.",
-        visibility: "PRIVATE",
-        pullCount: 7,
-        updatedTimestamp: "2019-01-02T05:11:54-0500",
-        lastAuthor: "john"
-    }
-];
-
-const orgs = [
-    "alpha",
-    "beta"
-];
-
 class MyImages extends React.Component {
+
+    static DEFAULT_ROWS_PER_PAGE = 5;
+    static DEFAULT_PAGE_NO = 0;
 
     constructor(props) {
         super(props);
         this.state = {
-            organization: "*",
+            isLoading: true,
+            totalCount: 0,
+            images: [],
+            orgs: [],
+            search: {
+                orgName: "*",
+                imageName: {
+                    value: "",
+                    error: ""
+                }
+            },
+            pagination: {
+                pageNo: MyImages.DEFAULT_PAGE_NO,
+                rowsPerPage: MyImages.DEFAULT_ROWS_PER_PAGE
+            },
             sort: Constants.SortingOrder.MOST_POPULAR
         };
     }
 
-    handleOrgChange = (event) => {
-        this.setState({
-            organization: event.target.value
+    componentDidMount() {
+        const self = this;
+        const {globalState} = self.props;
+        const {search, pagination, sort} = self.state;
+
+        const queryParams = {
+            orgName: "*",
+            resultLimit: 25,
+            offset: 0
+        };
+        const currentUserId = globalState.get(StateHolder.USER).userId;
+        NotificationUtils.showLoadingOverlay("Fetching organizations", globalState);
+        self.setState({
+            isLoading: true
         });
+        HttpUtils.callHubAPI(
+            {
+                url: `/orgs/users/${currentUserId}${HttpUtils.generateQueryParamString(queryParams)}`,
+                method: "GET"
+            },
+            globalState
+        ).then((response) => {
+            self.setState({
+                orgs: response.data.map((org) => org.orgName)
+            });
+
+            self.searchImages(search.orgName, pagination.rowsPerPage, pagination.pageNo, sort);
+            NotificationUtils.hideLoadingOverlay(globalState);
+        }).catch((err) => {
+            let errorMessage;
+            if (err instanceof HubApiError && err.getMessage()) {
+                errorMessage = err.getMessage();
+            } else {
+                errorMessage = "Failed to fetch organizations";
+            }
+            NotificationUtils.hideLoadingOverlay(globalState);
+            self.setState({
+                isLoading: false
+            });
+            if (errorMessage) {
+                NotificationUtils.showNotification(errorMessage, NotificationUtils.Levels.ERROR, globalState);
+            }
+        });
+    }
+
+    handleOrgChange = (event) => {
+        const {pagination, sort} = this.state;
+        const newOrg = event.target.value;
+        this.setState((prevState) => ({
+            search: {
+                ...prevState.search,
+                orgName: newOrg
+            }
+        }));
+        this.searchImages(newOrg, pagination.rowsPerPage, pagination.pageNo, sort);
+    };
+
+    handleImageNameSearchChange = (event) => {
+        const imageName = event.currentTarget.value;
+        let errorMessage = "";
+        if (imageName) {
+            if (!new RegExp(`^${Constants.Pattern.PARTIAL_CELLERY_ID}$`).test(imageName)) {
+                errorMessage = "Image name can only contain lower case letters, numbers and dashes";
+            }
+        }
+        this.setState((prevState) => ({
+            search: {
+                ...prevState.search,
+                imageName: {
+                    value: imageName,
+                    error: errorMessage
+                }
+            }
+        }));
+    };
+
+    handleImageNameSearchKeyDown = (event) => {
+        if (event.keyCode === Constants.KeyCode.ENTER) {
+            const {search, pagination, sort} = this.state;
+            this.searchImages(search.orgName, pagination.rowsPerPage, pagination.pageNo, sort);
+        }
+    };
+
+    handleSearchButtonClick = () => {
+        const {search, pagination, sort} = this.state;
+        this.searchImages(search.orgName, pagination.rowsPerPage, pagination.pageNo, sort);
     };
 
     handleSortChange = (event) => {
+        const {search, pagination} = this.state;
+        const newSort = event.target.value;
         this.setState({
-            sort: event.target.value
+            sort: newSort
         });
+        this.searchImages(search.orgName, pagination.rowsPerPage, pagination.pageNo, newSort);
     };
 
-    handlePageChange = () => {
-        // TODO: Load new data for page
+    handlePageChange = (rowsPerPage, pageNo) => {
+        const {search, sort} = this.state;
+        this.setState({
+            pagination: {
+                pageNo: pageNo,
+                rowsPerPage: rowsPerPage
+            }
+        });
+        this.searchImages(search.orgName, rowsPerPage, pageNo, sort);
+    };
+
+    searchImages = (orgName, rowsPerPage, pageNo, sort) => {
+        const self = this;
+        const {globalState} = self.props;
+        const {search} = self.state;
+
+        const queryParams = {
+            orgName: orgName,
+            imageName: search.imageName.value ? `*${search.imageName.value}*` : "*",
+            orderBy: sort,
+            resultLimit: rowsPerPage,
+            offset: pageNo * rowsPerPage
+        };
+        const currentUserId = globalState.get(StateHolder.USER).userId;
+        NotificationUtils.showLoadingOverlay("Fetching images", globalState);
+        self.setState({
+            isLoading: true
+        });
+        HttpUtils.callHubAPI(
+            {
+                url: `/images/users/${currentUserId}${HttpUtils.generateQueryParamString(queryParams)}`,
+                method: "GET"
+            },
+            globalState
+        ).then((response) => {
+            self.setState({
+                totalCount: response.count,
+                images: response.data
+            });
+            NotificationUtils.hideLoadingOverlay(globalState);
+            self.setState({
+                isLoading: false
+            });
+        }).catch((err) => {
+            let errorMessage;
+            if (err instanceof HubApiError && err.getMessage()) {
+                errorMessage = err.getMessage();
+            } else {
+                errorMessage = "Failed to fetch images";
+            }
+            NotificationUtils.hideLoadingOverlay(globalState);
+            self.setState({
+                isLoading: false
+            });
+            if (errorMessage) {
+                NotificationUtils.showNotification(errorMessage, NotificationUtils.Levels.ERROR, globalState);
+            }
+        });
     };
 
     render = () => {
         const {classes} = this.props;
-        const {organization, sort} = this.state;
+        const {pagination, totalCount, search, sort, images, orgs} = this.state;
 
         return (
             <div className={classes.content}>
@@ -129,7 +255,7 @@ class MyImages extends React.Component {
                                     <InputLabel shrink htmlFor={"organization-label-placeholder"}>
                                         Organization
                                     </InputLabel>
-                                    <Select value={organization} displayEmpty name={"organization"}
+                                    <Select value={search.orgName} displayEmpty name={"organization"}
                                         onChange={this.handleOrgChange} className={classes.orgSelect}
                                         input={
                                             <Input name={"organization"} id={"organization-label-placeholder"}/>
@@ -141,17 +267,26 @@ class MyImages extends React.Component {
                             </form>
                         </Grid>
                         <Grid item xs={12} sm={4} md={4}>
-                            <FormControl className={classes.formControl}>
+                            <FormControl className={classes.formControl} error={search.imageName.error}>
                                 <InputLabel htmlFor={"search"}>Image Name</InputLabel>
                                 <Input id={"search"} placeholder={"Search Image"}
+                                    value={search.imageName.value}
+                                    onChange={this.handleImageNameSearchChange}
+                                    onKeyDown={this.handleImageNameSearchKeyDown}
                                     endAdornment={
                                         <InputAdornment position={"end"}>
-                                            <IconButton aria-label={"Search Image"}>
+                                            <IconButton aria-label={"Search Image"}
+                                                onClick={this.handleSearchButtonClick}>
                                                 <SearchIcon/>
                                             </IconButton>
                                         </InputAdornment>
                                     }
                                 />
+                                {
+                                    search.imageName.error
+                                        ? <FormHelperText>{search.imageName.error}</FormHelperText>
+                                        : null
+                                }
                             </FormControl>
                         </Grid>
                         <Grid item sm={2} md={2} />
@@ -175,7 +310,8 @@ class MyImages extends React.Component {
                         </Grid>
                     </Grid>
                 </div>
-                <ImageList pageData={images} onPageChange={this.handlePageChange}/>
+                <ImageList pageData={images} onPageChange={this.handlePageChange} totalCount={totalCount}
+                    rowsPerPage={pagination.rowsPerPage} pageNo={pagination.pageNo}/>
             </div>
         );
     }
@@ -183,7 +319,8 @@ class MyImages extends React.Component {
 }
 
 MyImages.propTypes = {
+    globalState: PropTypes.instanceOf(StateHolder).isRequired,
     classes: PropTypes.object.isRequired
 };
 
-export default withStyles(styles)(MyImages);
+export default withStyles(styles)(withGlobalState(MyImages));

@@ -153,9 +153,10 @@ class Home extends React.Component {
      * @param {FederatedIdPType} fidp The federated IdP to be used
      */
     handleSignIn = (fidp) => {
-        const {history} = this.props;
+        const {history, location} = this.props;
         const search = HttpUtils.generateQueryParamString({
-            fidp: fidp
+            fidp: fidp,
+            callback: location.pathname + location.search
         });
         history.push(`/sign-in${search}`);
     };
@@ -247,6 +248,10 @@ Home.propTypes = {
     classes: PropTypes.object.isRequired,
     history: PropTypes.shape({
         push: PropTypes.func.isRequired
+    }).isRequired,
+    location: PropTypes.shape({
+        pathname: PropTypes.string.isRequired,
+        search: PropTypes.string.isRequired
     }).isRequired
 };
 

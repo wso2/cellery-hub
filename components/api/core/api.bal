@@ -56,18 +56,48 @@ listener http:Listener ep = new(9090, config = celleryHubAPIEPConfig);
 service CelleryHubAPI on ep {
 
     @openapi:ResourceInfo {
-        summary: "Health Check"
+        summary: "Ping the API",
+        description: "Ping the API to validate",
+        parameters: [
+            {
+                name: "validateUser",
+                inInfo: "query",
+                paramType: "boolean",
+                description: "If true check whether the user is valid",
+                allowEmptyValue: ""
+            }
+        ]
     }
     @http:ResourceConfig {
         methods:["GET"],
-        path:"/health"
+        path:"/"
     }
-    resource function getHealth (http:Caller outboundEp, http:Request _getHealthReq) returns error? {
-        http:Response _getHealthRes = new;
-        _getHealthRes.statusCode = http:OK_200;
-        _getHealthRes.setJsonPayload({
+    resource function ping (http:Caller outboundEp, http:Request _getHealthReq) returns error? {
+        map<string> queryParams = _getHealthReq.getQueryParams();
+        boolean validateUser = false;
+        if (queryParams.hasKey(constants:VALIDATE_USER)) {
+            boolean | error validateUserQueryParam = boolean.convert(queryParams.validateUser);
+            if (validateUserQueryParam is boolean) {
+                validateUser = validateUserQueryParam;
+            }
+        }
+
+        int statusCode = http:OK_200;
+        json payload = {
             status: "healthy"
-        });
+        };
+        if (validateUser) {
+            if (_getHealthReq.hasHeader(constants:AUTHENTICATED_USER)) {
+                payload.isUserSessionValid = true;
+            } else {
+                statusCode = http:UNAUTHORIZED_401;
+                payload.isUserSessionValid = false;
+            }
+        }
+
+        http:Response _getHealthRes = new;
+        _getHealthRes.statusCode = statusCode;
+        _getHealthRes.setJsonPayload(payload);
         error? x = outboundEp->respond(_getHealthRes);
     }
 
@@ -521,7 +551,7 @@ service CelleryHubAPI on ep {
                 orderBy = constants:UPDATED_DATE;
             } else {
                 orderBy = constants:PULL_COUNT;
-            } 
+            }
         }
         http:Response _listOrgImagesRes = listOrgImages(_listOrgImagesReq, orgName, imageName, untaint orderBy, untaint offset, untaint resultLimit);
         error? x = outboundEp->respond(_listOrgImagesRes);
@@ -614,7 +644,7 @@ service CelleryHubAPI on ep {
                 orderBy = constants:UPDATED_DATE;
             } else {
                 orderBy = constants:PULL_COUNT;
-            } 
+            }
         }
         http:Response _listImagesRes = listImages(_listImagesReq, orgName, imageName, untaint orderBy, untaint offset, untaint resultLimit);
         error? x = outboundEp->respond(_listImagesRes);
