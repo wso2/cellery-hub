@@ -25,6 +25,7 @@ import HttpUtils from "../../utils/api/httpUtils";
 import NotFound from "../common/error/NotFound";
 import OrgCreate from "./OrgCreate";
 import React from "react";
+import SignInFailure from "./SignInFailure";
 import SignInRequired from "../common/error/SignInRequired";
 import SignInSuccess from "./SignInSuccess";
 import {withStyles} from "@material-ui/core/styles";
@@ -58,6 +59,7 @@ class StatelessProtectedSDKPortal extends React.Component {
                 <Switch>
                     <Route exact path={`${match.path}/org-create`} component={OrgCreate}/>
                     <Route exact path={`${match.path}/auth-success`} component={SignInSuccess}/>
+                    <Route exact path={`${match.path}/auth-failure`} component={SignInFailure}/>
                     <Route render={(props) => <NotFound {...props} showNavigationButtons={true}/>}/>
                 </Switch>
             );

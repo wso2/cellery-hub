@@ -38,7 +38,7 @@ const styles = (theme) => ({
         margin: "auto",
         textAlign: "center"
     },
-    unknownErrorImg: {
+    signInRequiredImg: {
         marginTop: theme.spacing.unit * 5,
         height: 150
     },
@@ -65,7 +65,7 @@ const styles = (theme) => ({
 const SignInRequired = ({classes, history, title, description, showNavigationButtons}) => (
     <div className={classes.signInRequiredContainer}>
         <div className={classes.signInRequired}>
-            <img src={CelleryError} className={classes.unknownErrorImg} alt={"Sign In Required"}/>
+            <img src={CelleryError} className={classes.signInRequiredImg} alt={"Sign In Required"}/>
             <div className={classes.signInRequiredTitle}>
                 {title ? title : "You need to sign in to view this"}
             </div>

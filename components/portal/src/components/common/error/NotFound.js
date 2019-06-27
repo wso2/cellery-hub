@@ -38,7 +38,7 @@ const styles = (theme) => ({
         margin: "auto",
         textAlign: "center"
     },
-    unknownErrorImg: {
+    notFoundImg: {
         marginTop: theme.spacing.unit * 5,
         height: 150
     },
@@ -65,7 +65,7 @@ const styles = (theme) => ({
 const NotFound = ({classes, history, title, description, showNavigationButtons}) => (
     <div className={classes.notFoundContainer}>
         <div className={classes.notFound}>
-            <img src={CelleryError} className={classes.unknownErrorImg} alt={"Not Found Error"}/>
+            <img src={CelleryError} className={classes.notFoundImg} alt={"Not Found Error"}/>
             <div className={classes.notFoundTitle}>
                 {title ? title : "Unable to Find What You were Looking for"}
             </div>
