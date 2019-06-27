@@ -57,10 +57,10 @@ class GlobalStatelessHubPortal extends React.Component {
     render() {
         const {user} = this.state;
         const commonRoutes = [
-            <Route exact path={"/explore"} component={Explore}/>,
-            <Route exact path={"/orgs/:orgName"} component={Org}/>,
-            <Route exact path={"/images/:orgName/:imageName"} component={Image}/>,
-            <Route exact path={"/images/:orgName/:imageName/:version"} component={ImageVersion}/>
+            <Route key={0} exact path={"/explore"} component={Explore}/>,
+            <Route key={1} exact path={"/orgs/:orgName"} component={Org}/>,
+            <Route key={2} exact path={"/images/:orgName/:imageName"} component={Image}/>,
+            <Route key={3} exact path={"/images/:orgName/:imageName/:version"} component={ImageVersion}/>
         ];
         const notFoundRoute = <Route render={(props) => <NotFound {...props} showNavigationButtons={true}/>}/>;
 
