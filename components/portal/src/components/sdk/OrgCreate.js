@@ -110,7 +110,6 @@ class OrgCreate extends React.Component {
             globalState
         ).then(() => {
             self.handleContinue(false);
-            NotificationUtils.hideLoadingOverlay(globalState);
         }).catch((err) => {
             let errorMessage;
             if (err instanceof HubApiError) {
