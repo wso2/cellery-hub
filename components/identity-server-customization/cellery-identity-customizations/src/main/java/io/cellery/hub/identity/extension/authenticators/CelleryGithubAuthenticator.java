@@ -58,6 +58,7 @@ public class CelleryGithubAuthenticator extends GithubAuthenticator {
     private static final String CELLERY_GITHUB_AUTHENTICATOR_FRIENDLY_NAME = "Cellery Github";
     private static final String CELLERY_GITHUB_AUTHENTICATOR_NAME = "CelleryGithubAuthenticator";
     private static final String GITHUB_CLAIM_EMAIL = "email";
+    private static final String GITHUB_CLAIM_NAME = "name";
     private static final String GITHUB_CLAIM_LOGIN = "login";
     private static final String PRIMARY_LABEL = "primary";
 
@@ -105,6 +106,14 @@ public class CelleryGithubAuthenticator extends GithubAuthenticator {
             AuthenticatedUser authenticatedUserObj;
             Map<ClaimMapping, String> claims;
             claims = getSubjectAttributes(oAuthResponse, authenticatorProperties);
+
+            // Github sends string null when public profile "name" is not filled.
+            String name = getAttributeValue(claims, GITHUB_CLAIM_NAME);
+            if (StringUtils.isEmpty(name) || "null".equalsIgnoreCase(name)) {
+                ClaimMapping nameClaimMapping = ClaimMapping.build(GITHUB_CLAIM_NAME, GITHUB_CLAIM_NAME, null, false);
+                claims.remove(nameClaimMapping);
+            }
+
             ClaimMapping emailClaimMapping = ClaimMapping.build(GITHUB_CLAIM_EMAIL,
                     GITHUB_CLAIM_EMAIL, null, false);
             claims.put(emailClaimMapping, resolveEmail(accessToken, getAttributeValue(claims, GITHUB_CLAIM_LOGIN)));
