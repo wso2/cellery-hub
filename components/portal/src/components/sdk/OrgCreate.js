@@ -45,14 +45,18 @@ const styles = (theme) => ({
         paddingBottom: theme.spacing(4)
     },
     instructions: {
-        paddingTop: theme.spacing(2),
-        fontWeight: 300
+        fontWeight: 400,
+        color: "#464646"
     },
     orgTextField: {
         marginBottom: theme.spacing(4)
     },
     skipBtn: {
         marginLeft: theme.spacing(2)
+    },
+    welcome: {
+        paddingTop: theme.spacing(2),
+        paddingBottom: theme.spacing(6)
     }
 });
 
@@ -150,8 +154,14 @@ class OrgCreate extends React.Component {
             <div className={classes.content}>
                 <Grid container spacing={4}>
                     <Grid item xs={12} sm={12} md={12}>
-                        <Typography component={"div"} variant={"h6"} className={classes.instructions}>
-                            In order to push an Cell Image to Cellery Hub, you need to create an organization.
+                        <Typography component={"div"} variant={"h5"} className={classes.welcome}>
+                            Welcome to Cellery Hub SDK!
+                        </Typography>
+                        <Typography component={"div"} className={classes.instructions}>
+                            In order to push images to Cellery Hub you need to have an organization in Cellery Hub.
+                        </Typography>
+                        <Typography component={"div"} className={classes.instructions}>
+                            <b>Create a organization</b> now or skip this step to complete SDK login flow.
                         </Typography>
                     </Grid>
                     <Grid item xs={12} sm={6} md={6}>
@@ -189,7 +199,7 @@ class OrgCreate extends React.Component {
                                         this.handleSkipConfirmDialogClose();
                                         this.handleContinue(true);
                                     }}>
-                                        Continue
+                                        Yes
                                     </Button>
                                 </DialogActions>
                             </Dialog>

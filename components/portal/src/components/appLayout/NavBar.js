@@ -24,6 +24,7 @@ import ButtonAppBarCollapse from "./ButtonAppBarCollapse";
 import GithubLogo from "../../img/GithubLogo";
 import GoogleLogo from "../../img/GoogleLogo";
 import HttpUtils from "../../utils/api/httpUtils";
+import Link from "@material-ui/core/Link";
 import Menu from "@material-ui/core/Menu";
 import MenuItem from "@material-ui/core/MenuItem";
 import React from "react";
@@ -63,7 +64,7 @@ const styles = (theme) => ({
             display: "none"
         },
         margin: 10,
-        paddingLeft: 16,
+        paddingLeft: theme.spacing(2),
         right: 0,
         position: "relative",
         width: "100%",
@@ -72,6 +73,22 @@ const styles = (theme) => ({
     root: {
         position: "absolute",
         right: 0
+    },
+    docMenuItem: {
+        padding: 0
+    },
+    docLink: {
+        textDecoration: "none",
+        color: "#000000",
+        width: "100%",
+        paddingLeft: theme.spacing(2),
+        paddingRight: theme.spacing(2),
+        paddingTop: theme.spacing(1),
+        paddingBottom: theme.spacing(1),
+        "&:hover": {
+            textDecoration: "none",
+            color: "#000000"
+        }
     }
 });
 
@@ -193,11 +210,17 @@ class NavBar extends React.Component {
                             }}
                             open={isDocsPopoverOpen}
                             onClose={this.handleDocsPopoverClose}>
-                            <MenuItem onClick={this.handleDocsPopoverClose}>
-                                Get stared with Cellery hub
+                            <MenuItem onClick={this.handleDocsPopoverClose} className={classes.docMenuItem}>
+                                <Link href={"https://github.com/wso2-cellery/sdk/blob/master/README.md"}
+                                    target={"_blank"} className={classes.docLink}>Get stared with Cellery</Link>
                             </MenuItem>
-                            <MenuItem onClick={this.handleDocsPopoverClose}>
-                                How to code cell
+                            <MenuItem onClick={this.handleDocsPopoverClose} className={classes.docMenuItem}>
+                                <Link href={"https://github.com/wso2-cellery/sdk/blob/master/docs/cell-reference.md"}
+                                    target={"_blank"} className={classes.docLink}>How to code cell</Link>
+                            </MenuItem>
+                            <MenuItem onClick={this.handleDocsPopoverClose} className={classes.docMenuItem}>
+                                <Link href={"https://github.com/wso2-cellery/sdk/blob/master/docs/cli-reference.md"}
+                                    target={"_blank"} className={classes.docLink}>How to use the CLI</Link>
                             </MenuItem>
                         </Menu>
                     </React.Fragment>
@@ -313,11 +336,17 @@ class NavBar extends React.Component {
                         }}
                         open={isDocsPopoverOpen}
                         onClose={this.handleDocsPopoverClose}>
-                        <MenuItem onClick={this.handleDocsPopoverClose}>
-                            Get stared with Cellery hub
+                        <MenuItem onClick={this.handleDocsPopoverClose} className={classes.docMenuItem}>
+                            <Link href={"https://github.com/wso2-cellery/sdk/blob/master/README.md"}
+                                target={"_blank"} className={classes.docLink}>Get stared with Cellery</Link>
                         </MenuItem>
-                        <MenuItem onClick={this.handleDocsPopoverClose}>
-                            How to code cell
+                        <MenuItem onClick={this.handleDocsPopoverClose} className={classes.docMenuItem}>
+                            <Link href={"https://github.com/wso2-cellery/sdk/blob/master/docs/cell-reference.md"}
+                                target={"_blank"} className={classes.docLink}>How to code cell</Link>
+                        </MenuItem>
+                        <MenuItem onClick={this.handleDocsPopoverClose} className={classes.docMenuItem}>
+                            <Link href={"https://github.com/wso2-cellery/sdk/blob/master/docs/cli-reference.md"}
+                                target={"_blank"} className={classes.docLink}>How to use the CLI</Link>
                         </MenuItem>
                     </Menu>
                     {
