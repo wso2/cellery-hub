@@ -158,10 +158,10 @@ class OrgCreate extends React.Component {
                         <Typography component={"div"} variant={"h5"} className={classes.welcome}>
                             Welcome to Cellery Hub SDK!
                         </Typography>
-                        <Typography component={"div"} variant={"h6"} className={classes.instructions}>
+                        <Typography component={"div"} className={classes.instructions}>
                             In order to push images to Cellery Hub you need to have an organization in Cellery Hub.
                         </Typography>
-                        <Typography component={"div"} variant={"h6"} className={classes.instructions}>
+                        <Typography component={"div"} className={classes.instructions}>
                             <b>Create a organization</b> now or skip this step to complete SDK login flow.
                         </Typography>
                     </Grid>
