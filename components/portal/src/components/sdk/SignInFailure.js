@@ -16,49 +16,72 @@
  * under the License.
  */
 
-import CelleryError from "../../img/celleryError.jpg";
+import CelleryCmd from "../../img/celleryCmd.png";
+import ErrorOutlineRounded from "@material-ui/icons/ErrorOutlineRounded";
+import Grid from "@material-ui/core/Grid";
+import React from "react";
+import Typography from "@material-ui/core/Typography";
 import {withStyles} from "@material-ui/core/styles";
+import withGlobalState, {StateHolder} from "../common/state";
 import * as PropTypes from "prop-types";
-import * as React from "react";
 
 const styles = (theme) => ({
-    signInFailureContainer: {
-        position: "relative",
-        top: 0,
-        left: 0,
-        height: "100%",
-        width: "100%",
-        display: "grid"
+    content: {
+        paddingTop: theme.spacing(4)
     },
-    signInFailure: {
-        margin: "auto",
+    success: {
+        paddingTop: theme.spacing(2),
+        paddingBottom: theme.spacing(4)
+    },
+    gotoHub: {
+        fontWeight: 400,
+        paddingTop: theme.spacing(2),
+        color: "#464646",
         textAlign: "center"
     },
-    signInFailureImg: {
-        marginTop: theme.spacing.unit * 5,
-        height: 150
+    hubUrl: {
+        color: "#464646",
+        textDecoration: "underline"
     },
-    signInFailureTitle: {
-        margin: theme.spacing.unit,
-        fontSize: "1.5em",
-        fontWeight: 400,
-        color: "#6e6e6e"
+    celleryCmd: {
+        height: 85,
+        paddingTop: theme.spacing(2)
+    },
+    error: {
+        paddingTop: theme.spacing(2),
+        color: "#e74c3c",
+        fontSize: "3.8rem"
+    },
+    nextTitle: {
+        color: "#464646"
     }
 });
 
-const SignInFailure = ({classes}) => (
-    <div className={classes.signInFailureContainer}>
-        <div className={classes.signInFailure}>
-            <img src={CelleryError} className={classes.signInFailureImg} alt={"Sign In Failure"}/>
-            <div className={classes.signInFailureTitle}>
-                Failed to login. Please go back to the CLI for more details.
-            </div>
-        </div>
-    </div>
-);
+const SignInFailure = (props) => {
+    const {classes, globalState} = props;
+    return (
+        <div className={classes.content}>
+            <Grid container justify={"center"} direction={"column"} alignContent={"center"} alignItems={"center"}>
+                <ErrorOutlineRounded className={classes.error} fontSize={"large"}/>
+                <Typography component={"div"} variant={"h5"} className={classes.success}>
+                    Authentication failure!
+                </Typography>
+                <Typography variant={"h6"} className={classes.nextTitle}>What to do next?</Typography>
+                <img src={CelleryCmd} className={classes.celleryCmd} alt={"Cellery cmd"}/>
+                <div className={classes.gotoHub}>
+                    <Typography>
+                        Go back to your terminal to know more information about the error and try login again.
+                    </Typography>
+                </div>
 
-SignInFailure.propTypes = {
-    classes: PropTypes.object.isRequired
+            </Grid>
+        </div>
+    );
 };
 
-export default withStyles(styles)(SignInFailure);
+SignInFailure.propTypes = {
+    classes: PropTypes.object.isRequired,
+    globalState: PropTypes.instanceOf(StateHolder).isRequired
+};
+
+export default withStyles(styles)(withGlobalState(SignInFailure));
