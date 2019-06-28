@@ -30,6 +30,7 @@ import NotFound from "./common/error/NotFound";
 import NotificationAdditions from "./common/NotificationAdditions";
 import Org from "./org";
 import React from "react";
+import RequirementsValidator from "./RequirementsValidator";
 import SDK from "./sdk";
 import SignIn from "./SignIn";
 import SignInRequired from "./common/error/SignInRequired";
@@ -133,13 +134,15 @@ const App = () => (
         <CssBaseline/>
         <BrowserRouter>
             <ErrorBoundary showNavigationButtons={true}>
-                <StateProvider>
-                    <NotificationAdditions/>
-                    <Switch>
-                        <Route path={"/sdk"} component={SDK}/>
-                        <Route component={HubPortal}/>
-                    </Switch>
-                </StateProvider>
+                <RequirementsValidator>
+                    <StateProvider>
+                        <NotificationAdditions/>
+                        <Switch>
+                            <Route path={"/sdk"} component={SDK}/>
+                            <Route component={HubPortal}/>
+                        </Switch>
+                    </StateProvider>
+                </RequirementsValidator>
             </ErrorBoundary>
         </BrowserRouter>
     </MuiThemeProvider>

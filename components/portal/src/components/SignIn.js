@@ -22,7 +22,7 @@ import Grid from "@material-ui/core/Grid/Grid";
 import HttpUtils from "../utils/api/httpUtils";
 import React from "react";
 import {withRouter} from "react-router-dom";
-import withStyles from "@material-ui/core/styles/withStyles";
+import {withStyles} from "@material-ui/core/styles";
 import withGlobalState, {StateHolder} from "./common/state";
 import * as PropTypes from "prop-types";
 
