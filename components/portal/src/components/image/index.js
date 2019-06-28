@@ -328,7 +328,7 @@ class Image extends React.Component {
                                             <div className={classes.copyContent}>
                                                 <div className={classes.copyContainer}>
                                                     <InputBase multiline className={classes.copyInput} readOnly
-                                                        defaultValue={`cellery pull ${orgName}/${imageName}:<version>`}
+                                                        value={`cellery pull ${orgName}/${imageName}:<version>`}
                                                         inputProps={{"aria-label": "naked", spellCheck: "false"}}
                                                         inputRef={this.pullCmdRef} />
                                                     <Tooltip title={"Copied!"} disableFocusListener={false}
@@ -349,8 +349,12 @@ class Image extends React.Component {
                                             <div className={classes.copyContent}>
                                                 <div className={classes.copyContainer}>
                                                     <InputBase multiline className={classes.copyInputMultiline} readOnly
-                                                        defaultValue={`cellery run ${orgName}/${imageName}:<version> -n
-<cell-instance> -l <alias>:<dependent-cell-instance>  -d`} inputProps={{"aria-label": "naked", spellCheck: "false"}}
+                                                        value={
+                                                            `cellery run ${orgName}/${imageName}:<version>`
+                                                            + ` -n ${imageName}-inst`
+                                                            + " -l <alias>:<dependent-cell-instance> -d"
+                                                        }
+                                                        inputProps={{"aria-label": "naked", spellCheck: "false"}}
                                                         inputRef={this.runCmdRef}/>
                                                     <Tooltip title={"Copied!"} disableFocusListener={false}
                                                         disableHoverListener={false} placement={"top"}

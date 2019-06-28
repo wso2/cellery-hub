@@ -32,6 +32,7 @@ import Org from "./org";
 import React from "react";
 import SDK from "./sdk";
 import SignIn from "./SignIn";
+import SignInRequired from "./common/error/SignInRequired";
 import {BrowserRouter, Route, Switch} from "react-router-dom";
 import {MuiThemeProvider, createMuiTheme} from "@material-ui/core/styles";
 import withGlobalState, {StateHolder, StateProvider} from "./common/state";
@@ -55,6 +56,14 @@ class GlobalStatelessHubPortal extends React.Component {
 
     render() {
         const {user} = this.state;
+        const commonRoutes = [
+            <Route key={0} exact path={"/explore"} component={Explore}/>,
+            <Route key={1} exact path={"/orgs/:orgName"} component={Org}/>,
+            <Route key={2} exact path={"/images/:orgName/:imageName"} component={Image}/>,
+            <Route key={3} exact path={"/images/:orgName/:imageName/:version"} component={ImageVersion}/>
+        ];
+        const notFoundRoute = <Route render={(props) => <NotFound {...props} showNavigationButtons={true}/>}/>;
+
         let view;
         if (user) {
             view = (
@@ -63,11 +72,7 @@ class GlobalStatelessHubPortal extends React.Component {
                         <Switch>
                             <Route exact path={["/", "/my-images"]} component={MyImages}/>
                             <Route exact path={"/my-orgs"} component={MyOrgs}/>
-                            <Route exact path={"/explore"} component={Explore}/>
-                            <Route exact path={"/orgs/:orgName"} component={Org}/>
-                            <Route exact path={"/images/:orgName/:imageName"} component={Image}/>
-                            <Route exact path={"/images/:orgName/:imageName/:version"} component={ImageVersion}/>
-                            <Route render={(props) => <NotFound {...props} showNavigationButtons={true}/>}/>
+                            {[...commonRoutes, notFoundRoute]}
                         </Switch>
                     </ErrorBoundary>
                 </AppLayout>
@@ -81,12 +86,8 @@ class GlobalStatelessHubPortal extends React.Component {
                         <AppLayout>
                             <ErrorBoundary showNavigationButtons={true}>
                                 <Switch>
-                                    <Route exact path={"/explore"} component={Explore}/>
-                                    <Route exact path={"/orgs/:orgName"} component={Org}/>
-                                    <Route exact path={"/images/:orgName/:imageName"} component={Image}/>
-                                    <Route exact path={"/images/:orgName/:imageName/:version"}
-                                        component={ImageVersion}/>
-                                    <Route render={(props) => <NotFound {...props} showNavigationButtons={true}/>}/>
+                                    <Route exact path={["/my-images", "/my-orgs"]} component={SignInRequired}/>
+                                    {[...commonRoutes, notFoundRoute]}
                                 </Switch>
                             </ErrorBoundary>
                         </AppLayout>

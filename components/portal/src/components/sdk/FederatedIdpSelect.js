@@ -18,6 +18,7 @@
 
 import AuthUtils from "../../utils/api/authUtils";
 import Button from "@material-ui/core/Button";
+import CircularProgress from "@material-ui/core/CircularProgress";
 import Divider from "@material-ui/core/Divider";
 import GithubLogo from "../../img/GithubLogo";
 import GoogleLogo from "../../img/GoogleLogo";
@@ -54,6 +55,17 @@ const styles = (theme) => ({
     },
     divider: {
         marginBottom: theme.spacing(2)
+    },
+    centerContainer: {
+        position: "absolute",
+        margin: "auto",
+        top: 0,
+        right: 0,
+        bottom: 0,
+        left: 0,
+        width: "200px",
+        height: "100px",
+        verticalAlign: "middle"
     }
 });
 
@@ -114,6 +126,13 @@ class FederatedIdpSelect extends React.Component {
                 });
             } else {
                 sessionStorage.setItem(FederatedIdpSelect.REDIRECT_URL, params.redirectUrl);
+                if (params.fidp) {
+                    AuthUtils.initiateHubLoginFlow(globalState, params.fidp);
+                } else if (AuthUtils.getDefaultFIdP()) {
+                    AuthUtils.initiateHubLoginFlow(globalState, null);
+                } else {
+                    // Do nothing (waiting for user to select IdP to login)
+                }
             }
         } else if (sessionStorage.getItem(FederatedIdpSelect.REDIRECT_URL)) {
             params.redirectUrl = sessionStorage.getItem(FederatedIdpSelect.REDIRECT_URL);
@@ -131,40 +150,46 @@ class FederatedIdpSelect extends React.Component {
 
     render() {
         const {classes, globalState, location} = this.props;
-        const {user} = this.state;
-
         const params = HttpUtils.parseQueryParams(location.search);
         const fidp = params.fidp ? params.fidp : AuthUtils.getDefaultFIdP();
-        return (
-            !fidp && !user
-                ? (
-                    <div className={classes.content}>
-                        <Grid container spacing={4} direction={"row"} justify={"center"} alignItems={"center"}>
-                            <Grid item xs={12} sm={4} md={4} className={classes.signInContainer}>
-                                <Typography component={"div"} variant={"h5"} className={classes.title}>
-                                    Sign in
-                                </Typography>
-                                <Divider className={classes.divider}/>
-                                <Button fullWidth variant={"outlined"} size={"large"} className={classes.signInBtn}
-                                    onClick={() => {
-                                        AuthUtils.initiateHubLoginFlow(globalState, AuthUtils.FederatedIdP.GITHUB);
-                                    }}>
-                                    <GithubLogo className={classes.leftIcon}/>
-                                    Sign in with Github
-                                </Button>
-                                <Button fullWidth variant={"outlined"} size={"large"} className={classes.signInBtn}
-                                    onClick={() => {
-                                        AuthUtils.initiateHubLoginFlow(globalState, AuthUtils.FederatedIdP.GOOGLE);
-                                    }}>
-                                    <GoogleLogo className={classes.leftIcon}/>
-                                    Sign in with Google
-                                </Button>
-                            </Grid>
+
+        let view;
+        if (fidp) {
+            view = (
+                <Grid container justify={"center"} alignItems={"center"} className={classes.centerContainer}>
+                    <Grid item><CircularProgress/></Grid>
+                    <Grid item>&nbsp;Signing In</Grid>
+                </Grid>
+            );
+        } else {
+            view = (
+                <div className={classes.content}>
+                    <Grid container spacing={4} direction={"row"} justify={"center"} alignItems={"center"}>
+                        <Grid item xs={12} sm={4} md={4} className={classes.signInContainer}>
+                            <Typography component={"div"} variant={"h5"} className={classes.title}>
+                                Sign in
+                            </Typography>
+                            <Divider className={classes.divider}/>
+                            <Button fullWidth variant={"outlined"} size={"large"} className={classes.signInBtn}
+                                onClick={() => {
+                                    AuthUtils.initiateHubLoginFlow(globalState, AuthUtils.FederatedIdP.GITHUB);
+                                }}>
+                                <GithubLogo className={classes.leftIcon}/>
+                                Sign in with Github
+                            </Button>
+                            <Button fullWidth variant={"outlined"} size={"large"} className={classes.signInBtn}
+                                onClick={() => {
+                                    AuthUtils.initiateHubLoginFlow(globalState, AuthUtils.FederatedIdP.GOOGLE);
+                                }}>
+                                <GoogleLogo className={classes.leftIcon}/>
+                                Sign in with Google
+                            </Button>
                         </Grid>
-                    </div>
-                )
-                : null
-        );
+                    </Grid>
+                </div>
+            );
+        }
+        return view;
     }
 
 }

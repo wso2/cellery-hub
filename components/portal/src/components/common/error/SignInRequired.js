@@ -26,7 +26,7 @@ import {withStyles} from "@material-ui/core";
 import * as PropTypes from "prop-types";
 
 const styles = (theme) => ({
-    notFoundContainer: {
+    signInRequiredContainer: {
         position: "relative",
         top: 0,
         left: 0,
@@ -34,21 +34,21 @@ const styles = (theme) => ({
         width: "100%",
         display: "grid"
     },
-    notFound: {
+    signInRequired: {
         margin: "auto",
         textAlign: "center"
     },
-    notFoundImg: {
+    signInRequiredImg: {
         marginTop: theme.spacing.unit * 5,
         height: 150
     },
-    notFoundTitle: {
+    signInRequiredTitle: {
         margin: theme.spacing.unit,
         fontSize: "1.5em",
         fontWeight: 400,
         color: "#6e6e6e"
     },
-    notFoundDescription: {
+    signInRequiredDescription: {
         fontSize: "1em",
         fontWeight: 300,
         color: "#808080",
@@ -62,17 +62,17 @@ const styles = (theme) => ({
     }
 });
 
-const NotFound = ({classes, history, title, description, showNavigationButtons}) => (
-    <div className={classes.notFoundContainer}>
-        <div className={classes.notFound}>
-            <img src={CelleryError} className={classes.notFoundImg} alt={"Not Found Error"}/>
-            <div className={classes.notFoundTitle}>
-                {title ? title : "Unable to Find What You were Looking for"}
+const SignInRequired = ({classes, history, title, description, showNavigationButtons}) => (
+    <div className={classes.signInRequiredContainer}>
+        <div className={classes.signInRequired}>
+            <img src={CelleryError} className={classes.signInRequiredImg} alt={"Sign In Required"}/>
+            <div className={classes.signInRequiredTitle}>
+                {title ? title : "You need to sign in to view this"}
             </div>
             {
                 description
                     ? (
-                        <div className={classes.notFoundDescription}>
+                        <div className={classes.signInRequiredDescription}>
                             {description}
                         </div>
                     )
@@ -100,7 +100,7 @@ const NotFound = ({classes, history, title, description, showNavigationButtons})
     </div>
 );
 
-NotFound.propTypes = {
+SignInRequired.propTypes = {
     classes: PropTypes.object.isRequired,
     history: PropTypes.shape({
         goBack: PropTypes.func.isRequired,
@@ -111,4 +111,4 @@ NotFound.propTypes = {
     showNavigationButtons: PropTypes.bool
 };
 
-export default withStyles(styles, {withTheme: true})(withRouter(NotFound));
+export default withStyles(styles, {withTheme: true})(withRouter(SignInRequired));
