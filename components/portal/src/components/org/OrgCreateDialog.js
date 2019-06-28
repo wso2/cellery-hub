@@ -106,7 +106,7 @@ class OrgCreateDialog extends React.Component {
                 if (err.getStatusCode() === 429) {
                     errorMessage = "Too Many Requests. Please try again later.";
                 } else if (err.getErrorCode() === Constants.ApplicationErrorCode.ALREADY_EXISTS) {
-                    errorMessage = `Organization ${orgNameToBeCreated} already taken.`;
+                    errorMessage = `Organization ${orgNameToBeCreated} already taken, try another`;
                     self.setState({
                         orgNameErrorMessage: errorMessage
                     });
