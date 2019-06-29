@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package main
+package authz
 
 import (
 	"database/sql"
@@ -26,8 +26,6 @@ import (
 
 	"github.com/cellery-io/cellery-hub/components/docker-auth/pkg/extension"
 )
-
-const logFile = "/extension-logs/authorization.log"
 
 func dbConn() (*sql.DB, error) {
 	dbDriver := extension.MYSQL_DRIVER
@@ -45,34 +43,15 @@ func dbConn() (*sql.DB, error) {
 	return db, nil
 }
 
-func main() {
-	err := os.MkdirAll("/extension-logs", os.ModePerm)
-	if err != nil {
-		log.Println("Error creating the file :", err)
-	}
-	file, err := os.OpenFile(logFile, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
-	if err != nil {
-		log.Printf("Error opening file: %s\n", err)
-	}
-	defer func() {
-		err = file.Close()
-		if err != nil {
-			log.Printf("Error occurred  while closing the file : %s\n", err)
-			os.Exit(2)
-		}
-	}()
-	if err != nil {
-		os.Exit(extension.ErrorExitCode)
-	}
-	log.SetOutput(file)
+func Authorization(accessToken string) int {
+	log.Println("Inside authorization logic handler")
+
 	execId, err := extension.GetExecID()
 	log.Printf("[%s] Authorization extension reached and access will be validated\n", execId)
-	accessToken := extension.ReadStdIn()
-	log.Printf("[%s] Access token received\n", execId)
 	db, err := dbConn()
 	if err != nil {
 		log.Printf("[%s] Error occurred while establishing the mysql connection : %s\n", execId, err)
-		os.Exit(extension.ErrorExitCode)
+		return 1
 	}
 	isValid, err := extension.ValidateAccess(db, accessToken, execId)
 	if err != nil {
@@ -84,13 +63,13 @@ func main() {
 			log.Printf("[%s] Error occurred while closing the db connection :%s\n", execId, err)
 		}
 		log.Printf("[%s] User access granted\n", execId)
-		os.Exit(extension.SuccessExitCode)
+		return 0
 	} else {
 		err = db.Close()
 		if err != nil {
 			log.Printf("[%s] Error occurred while closing the db connection :%s\n", execId, err)
 		}
 		log.Printf("[%s] User access denied\n", execId)
-		os.Exit(extension.ErrorExitCode)
+		return 1
 	}
 }

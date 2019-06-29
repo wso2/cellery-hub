@@ -181,8 +181,8 @@ build.$(PROXY): clean.$(PROXY) init.$(PROXY)
 
 .PHONY: build.$(DOCKER_AUTH)
 build.$(DOCKER_AUTH): clean.$(DOCKER_AUTH) init.$(DOCKER_AUTH)
-	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o ./components/$(DOCKER_AUTH)/target/authentication ./components/$(DOCKER_AUTH)/cmd/authn/authentication.go
-	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o ./components/$(DOCKER_AUTH)/target/authorization ./components/$(DOCKER_AUTH)/cmd/authz/authorization.go
+	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o ./components/$(DOCKER_AUTH)/target/authentication ./components/$(DOCKER_AUTH)/cmd/authn-ext/authn_ext.go
+	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o ./components/$(DOCKER_AUTH)/target/authorization ./components/$(DOCKER_AUTH)/cmd/authz-ext/authz_ext.go
 
 .PHONY: build.$(PORTAL)
 build.$(PORTAL): clean.$(PORTAL) init.$(PORTAL)
