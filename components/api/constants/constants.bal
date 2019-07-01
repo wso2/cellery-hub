@@ -53,3 +53,5 @@ public const string UPDATED_DATE = "UPDATED_DATE";
 
 public const string CACHE_EXPIRY_VAR = "token.cache.expiry";
 public const string CACHE_CAPACITY_VAR = "token.cache.capacity";
+
+public const string SKEW_TIME = "skew.time";

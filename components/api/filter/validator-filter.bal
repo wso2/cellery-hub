@@ -129,15 +129,16 @@ type CookieNotFoundData record {
 
 type CookieNotFoundError error<string, CookieNotFoundData>;
 
-function isExpired(int timeVal) returns boolean {
+function isExpired(int idpServerTime) returns boolean {
     log:printDebug("Token expiry time will be evaluated");
     time:Time time = time:currentTime();
+    log:printDebug(io:sprintf("Adding a skew time of %d", config:getAsInt(constants:SKEW_TIME)));
     int timeNow = time.time;
-    if (timeNow/1000 < timeVal) {
+    if (timeNow/1000 < (idpServerTime + config:getAsInt(constants:SKEW_TIME))) {
         return false;
     } else {
-        log:printDebug(io:sprintf("The system time is %d and the expiry time is %d",
-        timeNow/1000, timeVal));
+        log:printDebug(io:sprintf("The system time is %d and the expiry time of idp server is %d",
+        timeNow/1000, idpServerTime));
         return true;
     }
 }

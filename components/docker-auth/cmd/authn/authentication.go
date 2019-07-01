@@ -217,7 +217,7 @@ func validateAccessToken(token string, providedUsername string, execId string) b
 	client := &http.Client{
 		Transport: &http.Transport{
 			TLSClientConfig: &tls.Config{
-				RootCAs:      caCertPool,
+				RootCAs: caCertPool,
 			},
 		},
 	}

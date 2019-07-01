@@ -35,6 +35,9 @@ password="admin"
 cache.expiry=1800000
 cache.capacity=500
 
+[skew]
+time=300
+
 [b7a.log]
 level="DEBUG"
 
