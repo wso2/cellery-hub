@@ -58,7 +58,7 @@ const styles = (theme) => ({
 });
 
 const SignInFailure = (props) => {
-    const {classes, globalState} = props;
+    const {classes} = props;
     return (
         <div className={classes.content}>
             <Grid container justify={"center"} direction={"column"} alignContent={"center"} alignItems={"center"}>

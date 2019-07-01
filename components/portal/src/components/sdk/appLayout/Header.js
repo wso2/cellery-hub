@@ -23,6 +23,10 @@ import Avatar from "@material-ui/core/Avatar";
 import Button from "@material-ui/core/Button";
 import CelleryLogo from "../../../img/celleryLogo.svg";
 import Container from "@material-ui/core/Container";
+import Divider from "@material-ui/core/Divider";
+import ListItem from "@material-ui/core/ListItem";
+import ListItemAvatar from "@material-ui/core/ListItemAvatar";
+import ListItemText from "@material-ui/core/ListItemText";
 import Menu from "@material-ui/core/Menu";
 import MenuItem from "@material-ui/core/MenuItem";
 import React from "react";
@@ -78,6 +82,12 @@ const styles = (theme) => ({
     usernameBtn: {
         textTransform: "none",
         color: "#57595d"
+    },
+    userMenuItem: {
+        pointerEvents: "none"
+    },
+    logoutMenuItem: {
+        paddingLeft: theme.spacing(4)
     }
 });
 
@@ -146,7 +156,7 @@ class Header extends React.Component {
                                                             )
                                                             : <AccountCircle className={classes.leftIcon}/>
                                                     }
-                                                    {user.username}
+                                                    {user.username.split(" ")[0]}
                                                 </Button>
                                                 <Menu id={"user-info"} anchorEl={accountPopoverElement}
                                                     anchorOrigin={{
@@ -159,7 +169,28 @@ class Header extends React.Component {
                                                     }}
                                                     open={isAccountPopoverOpen}
                                                     onClose={this.handleAccountPopoverClose}>
-                                                    <MenuItem onClick={() => AuthUtils.signOut(globalState)}>
+                                                    <MenuItem onClick={(e) => e.stopPropagation()}
+                                                        className={classes.userMenuItem}>
+                                                        <ListItem alignItems={"flex-start"}>
+                                                            <ListItemAvatar>
+                                                                <Avatar alt={user.username} src={user.avatarUrl} />
+                                                            </ListItemAvatar>
+                                                            <ListItemText
+                                                                primary={user.username}
+                                                                secondary={
+                                                                    <React.Fragment>
+                                                                        <Typography component={"div"} variant={"body2"}
+                                                                            color={"textSecondary"}>
+                                                                            {user.email}
+                                                                        </Typography>
+                                                                    </React.Fragment>
+                                                                }
+                                                            />
+                                                        </ListItem>
+                                                    </MenuItem>
+                                                    <Divider/>
+                                                    <MenuItem onClick={() => AuthUtils.signOut(globalState)}
+                                                        className={classes.logoutMenuItem}>
                                                         Logout
                                                     </MenuItem>
                                                 </Menu>

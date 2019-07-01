@@ -21,13 +21,18 @@ import AuthUtils from "../../utils/api/authUtils";
 import Avatar from "@material-ui/core/Avatar";
 import Button from "@material-ui/core/Button";
 import ButtonAppBarCollapse from "./ButtonAppBarCollapse";
+import Divider from "@material-ui/core/Divider";
 import GithubLogo from "../../img/GithubLogo";
 import GoogleLogo from "../../img/GoogleLogo";
 import HttpUtils from "../../utils/api/httpUtils";
 import Link from "@material-ui/core/Link";
+import ListItem from "@material-ui/core/ListItem";
+import ListItemAvatar from "@material-ui/core/ListItemAvatar";
+import ListItemText from "@material-ui/core/ListItemText";
 import Menu from "@material-ui/core/Menu";
 import MenuItem from "@material-ui/core/MenuItem";
 import React from "react";
+import Typography from "@material-ui/core/Typography";
 import classNames from "classnames";
 import {withRouter} from "react-router-dom";
 import {withStyles} from "@material-ui/core";
@@ -89,6 +94,12 @@ const styles = (theme) => ({
             textDecoration: "none",
             color: "#000000"
         }
+    },
+    userMenuItem: {
+        pointerEvents: "none"
+    },
+    logoutMenuItem: {
+        paddingLeft: theme.spacing(4)
     }
 });
 
@@ -240,7 +251,7 @@ class NavBar extends React.Component {
                                                 )
                                                 : <AccountCircle className={classes.leftIcon}/>
                                         }
-                                        {user.username}
+                                        {user.username.split(" ")[0]}
                                     </Button>
                                     <Menu id={"user-info"} anchorEl={accountPopoverElement}
                                         anchorOrigin={{
@@ -257,8 +268,30 @@ class NavBar extends React.Component {
                                             user
                                                 ? (
                                                     <React.Fragment>
-                                                        <MenuItem onClick={() => AuthUtils.signOut(globalState)}>
-                                                        Logout
+                                                        <MenuItem onClick={(e) => e.stopPropagation()}
+                                                            className={classes.userMenuItem}>
+                                                            <ListItem alignItems={"flex-start"}>
+                                                                <ListItemAvatar>
+                                                                    <Avatar alt={user.username} src={user.avatarUrl} />
+                                                                </ListItemAvatar>
+                                                                <ListItemText
+                                                                    primary={user.username}
+                                                                    secondary={
+                                                                        <React.Fragment>
+                                                                            <Typography component={"div"}
+                                                                                variant={"body2"}
+                                                                                color={"textSecondary"}>
+                                                                                {user.email}
+                                                                            </Typography>
+                                                                        </React.Fragment>
+                                                                    }
+                                                                />
+                                                            </ListItem>
+                                                        </MenuItem>
+                                                        <Divider/>
+                                                        <MenuItem onClick={() => AuthUtils.signOut(globalState)}
+                                                            className={classes.logoutMenuItem}>
+                                                            <ListItemText primary={"Logout"}/>
                                                         </MenuItem>
                                                     </React.Fragment>
                                                 )
@@ -319,8 +352,7 @@ class NavBar extends React.Component {
                             : null
                     }
                     <Button disableTouchRipple={true} color={"inherit"} className={classes.navButton}
-                        onClick={() => this.handleNavItemClick(pages[2])}>
-                        Explore
+                        onClick={() => this.handleNavItemClick(pages[2])}>Explore
                     </Button>
                     <Button disableTouchRipple={true} color={"inherit"}
                         className={classes.navButton} ria-haspopup={"true"}
@@ -364,7 +396,7 @@ class NavBar extends React.Component {
                                                 )
                                                 : <AccountCircle className={classes.leftIcon}/>
                                         }
-                                        {user.username}
+                                        {user.username.split(" ")[0]}
                                     </Button>
                                     <Menu id={"user-info"} anchorEl={accountPopoverElement}
                                         anchorOrigin={{
@@ -381,8 +413,30 @@ class NavBar extends React.Component {
                                             user
                                                 ? (
                                                     <React.Fragment>
-                                                        <MenuItem onClick={() => AuthUtils.signOut(globalState)}>
-                                                            Logout
+                                                        <MenuItem onClick={(e) => e.stopPropagation()}
+                                                            className={classes.userMenuItem}>
+                                                            <ListItem alignItems={"flex-start"}>
+                                                                <ListItemAvatar>
+                                                                    <Avatar alt={user.username} src={user.avatarUrl} />
+                                                                </ListItemAvatar>
+                                                                <ListItemText
+                                                                    primary={user.username}
+                                                                    secondary={
+                                                                        <React.Fragment>
+                                                                            <Typography component={"div"}
+                                                                                variant={"body2"}
+                                                                                color={"textSecondary"}>
+                                                                                {user.email}
+                                                                            </Typography>
+                                                                        </React.Fragment>
+                                                                    }
+                                                                />
+                                                            </ListItem>
+                                                        </MenuItem>
+                                                        <Divider/>
+                                                        <MenuItem onClick={() => AuthUtils.signOut(globalState)}
+                                                            className={classes.logoutMenuItem}>
+                                                            <ListItemText primary={"Logout"}/>
                                                         </MenuItem>
                                                     </React.Fragment>
                                                 )
@@ -421,7 +475,6 @@ class NavBar extends React.Component {
                                         </MenuItem>
                                     </Menu>
                                 </React.Fragment>
-
                             )
                     }
                 </div>
