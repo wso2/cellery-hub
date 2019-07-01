@@ -211,14 +211,16 @@ func validateAccessToken(token string, providedUsername string, execId string) b
 	}
 	username, password := resolveCredentials(execId)
 	req.SetBasicAuth(username, password)
-	// todo Remove the the host verification turning off
 	certificateInUse, err := readCert(idpCertEnvVar, execId)
 	caCertPool := x509.NewCertPool()
 	caCertPool.AppendCertsFromPEM(certificateInUse)
-	tr := &http.Transport{
-		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+	client := &http.Client{
+		Transport: &http.Transport{
+			TLSClientConfig: &tls.Config{
+				RootCAs:      caCertPool,
+			},
+		},
 	}
-	client := &http.Client{Transport: tr}
 	res, err := client.Do(req)
 	if err != nil {
 		log.Printf("[%s] Error sending the request to the introspection endpoint : %s\n", execId, err)
