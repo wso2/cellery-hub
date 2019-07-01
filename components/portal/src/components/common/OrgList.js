@@ -71,7 +71,8 @@ class OrgList extends React.Component {
     handleChangeRowsPerPage = (event) => {
         const {pageNo, rowsPerPage, onPageChange} = this.props;
         const newRowsPerPage = event.target.value;
-        const newPageNo = (pageNo * rowsPerPage) / newRowsPerPage;
+        const newPageNoCandidate = Math.trunc((pageNo * rowsPerPage) / newRowsPerPage);
+        const newPageNo = newPageNoCandidate >= 0 ? newPageNoCandidate : 0;
         onPageChange(newRowsPerPage, newPageNo);
     };
 

@@ -164,7 +164,8 @@ class VersionList extends React.Component {
     handleChangeRowsPerPage = (event) => {
         const {pagination, sort} = this.state;
         const newRowsPerPage = event.target.value;
-        const newPageNo = (pagination.pageNo * pagination.rowsPerPage) / newRowsPerPage;
+        const newPageNoCandidate = Math.trunc((pagination.pageNo * pagination.rowsPerPage) / newRowsPerPage);
+        const newPageNo = newPageNoCandidate >= 0 ? newPageNoCandidate : 0;
         this.setState((prevState) => ({
             pagination: {
                 ...prevState.pagination,
