@@ -36,7 +36,7 @@ const Constants = {
     },
     SortingOrder: {
         MOST_POPULAR: "most-popular",
-        RECENTLY_UPDATED: "recently-updated"
+        RECENTLY_UPDATED: "last-updated"
     },
     KeyCode: {
         ENTER: 13

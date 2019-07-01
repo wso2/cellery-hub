@@ -54,7 +54,7 @@ class Images extends React.Component {
             isLoading: true,
             totalCount: 0,
             images: [],
-            sort: Constants.SortingOrder.RECENTLY_UPDATED,
+            sort: Constants.SortingOrder.MOST_POPULAR,
             search: {
                 imageFQN: {
                     value: "",
