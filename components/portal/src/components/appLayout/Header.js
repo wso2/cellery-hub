@@ -79,7 +79,7 @@ const Header = ({classes, history}) => (
 Header.propTypes = {
     classes: PropTypes.object.isRequired,
     history: PropTypes.shape({
-        goBack: PropTypes.func.isRequired
+        push: PropTypes.func.isRequired
     })
 };
 

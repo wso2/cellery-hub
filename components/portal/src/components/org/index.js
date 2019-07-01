@@ -22,6 +22,7 @@ import CustomizedTabs from "../common/CustomizedTabs";
 import Divider from "@material-ui/core/Divider";
 import Grid from "@material-ui/core/Grid";
 import IconButton from "@material-ui/core/IconButton/IconButton";
+import Link from "@material-ui/core/Link";
 import NotFound from "../common/error/NotFound";
 import NotificationUtils from "../../utils/common/notificationUtils";
 import OrgImageList from "./OrgImageList";
@@ -48,7 +49,6 @@ const styles = (theme) => ({
         color: theme.palette.primary.main
     },
     elementText: {
-        paddingLeft: theme.spacing(1 / 2),
         color: "#666666"
     },
     elementIcon: {
@@ -58,17 +58,14 @@ const styles = (theme) => ({
     description: {
         display: "block",
         color: "#464646",
-        paddingBottom: theme.spacing(2)
+        paddingBottom: theme.spacing(2),
+        marginTop: theme.spacing(1)
     },
     stats: {
         display: "flex"
     },
     title: {
         display: "inline-block"
-    },
-    link: {
-        color: "#666666",
-        fontWeight: 400
     },
     orgName: {
         textTransform: "uppercase",
@@ -199,8 +196,9 @@ class Org extends React.Component {
                                                 </Typography>
                                             </div>
                                             <div>
-                                                <Typography variant={"body2"} color={"inherit"}>
-                                                    {orgData.websiteUrl}
+                                                <Typography variant={"body2"}>
+                                                    <Link href={orgData.websiteUrl} target={"_blank"}>
+                                                        {orgData.websiteUrl}</Link>
                                                 </Typography>
                                             </div>
                                         </Grid>

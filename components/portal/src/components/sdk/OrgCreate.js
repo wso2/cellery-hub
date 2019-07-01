@@ -118,7 +118,7 @@ class OrgCreate extends React.Component {
             let errorMessage;
             if (err instanceof HubApiError) {
                 if (err.getErrorCode() === Constants.ApplicationErrorCode.ALREADY_EXISTS) {
-                    errorMessage = `Organization ${orgNameToBeCreated} already taken.`;
+                    errorMessage = `Organization ${orgNameToBeCreated} is already taken, try another`;
                     self.setState({
                         errorMessage: errorMessage
                     });

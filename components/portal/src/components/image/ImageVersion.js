@@ -26,6 +26,7 @@ import Divider from "@material-ui/core/Divider";
 import FileCopy from "@material-ui/icons/FileCopyOutlined";
 import GetApp from "@material-ui/icons/GetApp";
 import Grid from "@material-ui/core/Grid";
+import HelpOutline from "@material-ui/icons/HelpOutline";
 import IconButton from "@material-ui/core/IconButton/IconButton";
 import InputBase from "@material-ui/core/InputBase/InputBase";
 import NotFound from "../common/error/NotFound";
@@ -82,7 +83,8 @@ const styles = (theme) => ({
     rightPanelSubTitle: {
         marginTop: theme.spacing(2),
         color: "#666666",
-        fontSize: 12
+        fontSize: 12,
+        display: "inline"
     },
     copyContainer: {
         display: "flex",
@@ -105,14 +107,16 @@ const styles = (theme) => ({
         backgroundColor: "#445d6e",
         borderRadius: 5,
         paddingLeft: theme.spacing(1),
-        marginTop: theme.spacing(1)
+        marginTop: theme.spacing(1),
+        marginBottom: theme.spacing(2)
     },
     captionText: {
         color: "#666666",
         marginTop: Number(theme.spacing(1 / 2))
     },
     rightPanelTitle: {
-        marginTop: theme.spacing(4)
+        display: "block",
+        marginBottom: theme.spacing(1)
     },
     sidePanelContent: {
         marginTop: theme.spacing(1)
@@ -124,11 +128,23 @@ const styles = (theme) => ({
     copy: {
         fontSize: 16
     },
+    copyIconButton: {
+        height: "fit-content"
+    },
     title: {
         display: "inline-block"
     },
     labelContainer: {
         display: "none"
+    },
+    helpBtn: {
+        display: "inline",
+        width: 15,
+        height: 15
+    },
+    helpIconBtn: {
+        padding: 0,
+        marginLeft: theme.spacing(1 / 2)
     }
 });
 
@@ -304,9 +320,8 @@ class ImageVersion extends React.Component {
                                             </Grid>
                                         </Grid>
                                         <Grid item xs={12} sm={4} md={4} className={classes.rightPanel}>
-                                            <Typography variant={"subtitle2"} color={"inherit"}>
-                                                Cellery Commands
-                                            </Typography>
+                                            <Typography variant={"subtitle2"} color={"inherit"}
+                                                className={classes.rightPanelTitle}>Cellery Commands</Typography>
                                             <Typography variant={"subtitle2"} color={"inherit"}
                                                 className={classes.rightPanelSubTitle}>
                                                 Pull
@@ -320,7 +335,7 @@ class ImageVersion extends React.Component {
                                                         disableHoverListener={false} placement={"top"}
                                                         disableTouchListener={false} open={isPullCopiedTooltipOpen}
                                                         onClose={this.handlePullCmdCopiedTooltipClose}>
-                                                        <IconButton color={"inherit"} className={classes.iconButton}
+                                                        <IconButton color={"inherit"} className={classes.copyIconButton}
                                                             aria-label={"Copy"} onClick={this.copyPullCmdToClipboard}>
                                                             <FileCopy className={classes.copy}/>
                                                         </IconButton>
@@ -331,6 +346,13 @@ class ImageVersion extends React.Component {
                                                 className={classes.rightPanelSubTitle}>
                                                 Run
                                             </Typography>
+                                            <Tooltip title={"-n: Name of the cell instance, -l: Link an instance"
+                                            + " with a dependency alias, -d: Start all the dependencies of this Cell "
+                                            + "Image in order"} placement={"left"}>
+                                                <IconButton aria-label={"Command Help"} className={classes.helpIconBtn}>
+                                                    <HelpOutline className={classes.helpBtn}/>
+                                                </IconButton>
+                                            </Tooltip>
                                             <div className={classes.copyContent}>
                                                 <div className={classes.copyContainer}>
                                                     <InputBase multiline className={classes.copyInputMultiline}
@@ -346,17 +368,13 @@ class ImageVersion extends React.Component {
                                                         disableHoverListener={false} placement={"top"}
                                                         disableTouchListener={false} open={isRunCopiedTooltipOpen}
                                                         onClose={this.handleRunCmdCopiedTooltipClose}>
-                                                        <IconButton color={"inherit"} className={classes.iconButton}
+                                                        <IconButton color={"inherit"} className={classes.copyIconButton}
                                                             aria-label={"Copy"} onClick={this.copyRunCmdToClipboard}>
                                                             <FileCopy className={classes.copy}/>
                                                         </IconButton>
                                                     </Tooltip>
                                                 </div>
                                             </div>
-                                            <Typography variant={"caption"} display={"block"} gutterBottom
-                                                color={"inherit"} className={classes.captionText}>
-                                                help text for the command
-                                            </Typography>
                                             <div className={classes.labelContainer}>
                                                 <Typography variant={"subtitle2"} color={"inherit"}
                                                     className={classes.rightPanelTitle}>
