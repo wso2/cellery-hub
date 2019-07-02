@@ -26,6 +26,7 @@ API := api
 IDENTITY_SERVER_CUSTOMIZATION := identity-server-customization
 DEPLOYMENT_INIT := deployment-init
 COMPONENTS := $(PROXY) $(DOCKER_AUTH) $(PORTAL) $(API) $(IDENTITY_SERVER_CUSTOMIZATION) $(DEPLOYMENT_INIT)
+AUTH_SERVER := auth-server
 
 CLEAN_TARGETS := $(addprefix clean., $(COMPONENTS))
 INIT_TARGETS := $(addprefix init., $(COMPONENTS))
@@ -82,6 +83,10 @@ clean.$(PORTAL):
 clean.$(API):
 	rm -rf ./components/$(API)/target/
 
+.PHONY: clean.$(AUTH_SERVER)
+clean.$(AUTH_SERVER):
+	rm -rf ./components/$(DOCKER_AUTH)/$(AUTH_SERVER)/target/
+
 .PHONY: clean.$(IDENTITY_SERVER_CUSTOMIZATION)
 clean.$(IDENTITY_SERVER_CUSTOMIZATION):
 	mvn clean -f ./components/$(IDENTITY_SERVER_CUSTOMIZATION)/cellery-identity-customizations/pom.xml
@@ -112,6 +117,10 @@ init.$(PORTAL):
 
 .PHONY: init.$(API)
 init.$(API):
+	@:
+
+.PHONY: init.$(AUTH_SERVER)
+init.$(AUTH_SERVER):
 	@:
 
 .PHONY: init.$(IDENTITY_SERVER_CUSTOMIZATION)
@@ -166,6 +175,10 @@ check-style.$(PORTAL):
 check-style.$(API):
 	@:
 
+.PHONY: check-style.$(AUTH_SERVER)
+check-style.$(AUTH_SERVER):
+    @:
+
 .PHONY: check-style.$(IDENTITY_SERVER_CUSTOMIZATION)
 check-style.$(IDENTITY_SERVER_CUSTOMIZATION):
 	@:
@@ -181,8 +194,8 @@ build.$(PROXY): clean.$(PROXY) init.$(PROXY)
 
 .PHONY: build.$(DOCKER_AUTH)
 build.$(DOCKER_AUTH): clean.$(DOCKER_AUTH) init.$(DOCKER_AUTH)
-	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o ./components/$(DOCKER_AUTH)/target/authentication ./components/$(DOCKER_AUTH)/cmd/authn-ext/authn_ext.go
-	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o ./components/$(DOCKER_AUTH)/target/authorization ./components/$(DOCKER_AUTH)/cmd/authz-ext/authz_ext.go
+	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o ./components/$(DOCKER_AUTH)/target/authentication ./components/$(DOCKER_AUTH)/cmd/authn/authentication.go
+	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o ./components/$(DOCKER_AUTH)/target/authorization ./components/$(DOCKER_AUTH)/cmd/authz/authorization.go
 
 .PHONY: build.$(PORTAL)
 build.$(PORTAL): clean.$(PORTAL) init.$(PORTAL)
@@ -192,6 +205,10 @@ build.$(PORTAL): clean.$(PORTAL) init.$(PORTAL)
 .PHONY: build.$(API)
 build.$(API): clean.$(API) init.$(API)
 	@:
+
+.PHONY: build.$(AUTH_SERVER)
+build.$(AUTH_SERVER): clean.$(AUTH_SERVER) init.$(AUTH_SERVER)
+	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o ./components/$(DOCKER_AUTH)/$(AUTH_SERVER)/target/auth-server ./components/$(DOCKER_AUTH)/$(AUTH_SERVER)/
 
 .PHONY: build.$(IDENTITY_SERVER_CUSTOMIZATION)
 build.$(IDENTITY_SERVER_CUSTOMIZATION): clean.$(IDENTITY_SERVER_CUSTOMIZATION) init.$(IDENTITY_SERVER_CUSTOMIZATION)
@@ -244,6 +261,13 @@ docker.$(DOCKER_AUTH): build.$(DOCKER_AUTH)
 	cp -r ./components/$(DOCKER_AUTH)/target/ ./docker/$(DOCKER_AUTH)/target/
 	cd ./docker/$(DOCKER_AUTH); \
 	docker build -t $(DOCKER_REPO)/cellery-hub-docker-auth:$(VERSION) .
+
+.PHONY: docker.$(AUTH_SERVER)
+docker.$(AUTH_SERVER): build.$(AUTH_SERVER)
+	rm -rf ./docker/$(DOCKER_AUTH)/$(AUTH_SERVER)/target
+	cp -r ./components/$(DOCKER_AUTH)/$(AUTH_SERVER)/target ./docker/$(DOCKER_AUTH)/$(AUTH_SERVER)/target/
+	cd ./docker/$(DOCKER_AUTH)/$(AUTH_SERVER); \
+	docker build -t $(DOCKER_REPO)/cellery-hub-auth-server:$(VERSION) .
 
 .PHONY: docker.$(PORTAL)
 docker.$(PORTAL): build.$(PORTAL)

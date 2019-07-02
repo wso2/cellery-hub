@@ -16,60 +16,57 @@
  * under the License.
  */
 
-package authz
+package main
 
 import (
-	"database/sql"
-	"fmt"
 	"log"
+	"net/http"
 	"os"
+	"strings"
 
 	"github.com/cellery-io/cellery-hub/components/docker-auth/pkg/extension"
 )
 
-func dbConn() (*sql.DB, error) {
-	dbDriver := extension.MYSQL_DRIVER
-	dbUser := os.Getenv(extension.MYSQL_USER_ENV_VAR)
-	dbPass := os.Getenv(extension.MYSQL_PASSWORD_ENV_VAR)
-	dbName := extension.DB_NAME
-	host := os.Getenv(extension.MYSQL_HOST_ENV_VAR)
-	port := os.Getenv(extension.MYSQL_PORT_ENV_VAR)
+const (
+	logFile = "/extension-logs/authz-ext.log"
+)
 
-	db, err := sql.Open(dbDriver, fmt.Sprint(dbUser, ":", dbPass, "@tcp(", host, ":", port, ")/"+dbName))
-	if err != nil {
-		log.Println("Error occurred while connecting to the database")
-		return nil, err
-	}
-	return db, nil
-}
-
-func Authorization(accessToken string) int {
-	log.Println("Inside authorization logic handler")
-
-	execId, err := extension.GetExecID()
-	log.Printf("[%s] Authorization extension reached and access will be validated\n", execId)
-	db, err := dbConn()
-	if err != nil {
-		log.Printf("[%s] Error occurred while establishing the mysql connection : %s\n", execId, err)
-		return 1
-	}
-	isValid, err := extension.ValidateAccess(db, accessToken, execId)
-	if err != nil {
-		log.Printf("[%s] Error occurred while validating the user :%s\n", execId, err)
-	}
-	if isValid {
-		err = db.Close()
+func main() {
+	err := os.MkdirAll("/extension-logs", os.ModePerm)
+	file, err := os.OpenFile(logFile, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
+	defer func() {
+		err = file.Close()
 		if err != nil {
-			log.Printf("[%s] Error occurred while closing the db connection :%s\n", execId, err)
+			log.Printf("Error while closing the file : %s\n", err)
+			os.Exit(2)
 		}
-		log.Printf("[%s] User access granted\n", execId)
-		return 0
-	} else {
-		err = db.Close()
-		if err != nil {
-			log.Printf("[%s] Error occurred while closing the db connection :%s\n", execId, err)
-		}
-		log.Printf("[%s] User access denied\n", execId)
-		return 1
+	}()
+	if err != nil {
+		log.Println("Error creating the file :", err)
+		os.Exit(1)
+	}
+	log.SetOutput(file)
+
+	accessToken := extension.ReadStdIn()
+
+	url := "http://localhost:8080/authorization"
+	payload := strings.NewReader(accessToken)
+	log.Printf("Called %s with accessToken : %s as payload", url, accessToken)
+
+	req, _ := http.NewRequest("POST", url, payload)
+
+	res, _ := http.DefaultClient.Do(req)
+
+	defer res.Body.Close()
+
+	log.Printf("Response received from the auth server with the status code : %d", res.StatusCode)
+
+	if res.StatusCode == http.StatusUnauthorized {
+		log.Printf("Unauthorized request. Exiting with error exit code")
+		os.Exit(extension.ErrorExitCode)
+	}
+	if res.StatusCode == http.StatusOK {
+		log.Printf("Authorized request. Exiting with success exit code")
+		os.Exit(extension.SuccessExitCode)
 	}
 }
