@@ -28,6 +28,7 @@ import NotificationUtils from "../../utils/common/notificationUtils";
 import OrgList from "../common/OrgList";
 import React from "react";
 import SearchIcon from "@material-ui/icons/Search";
+import {withRouter} from "react-router-dom";
 import {withStyles} from "@material-ui/core/styles";
 import HttpUtils, {HubApiError} from "../../utils/api/httpUtils";
 import withGlobalState, {StateHolder} from "../common/state";
@@ -51,18 +52,21 @@ class Orgs extends React.Component {
 
     constructor(props) {
         super(props);
+
+        const queryParams = HttpUtils.parseQueryParams(props.location.search);
+        const orgName = queryParams.orgName ? queryParams.orgName : "";
         this.state = {
             totalCount: 0,
             orgs: [],
             search: {
                 orgName: {
-                    value: "",
-                    error: ""
+                    value: orgName,
+                    error: this.getErrorForOrgName(orgName)
                 }
             },
             pagination: {
-                pageNo: Orgs.DEFAULT_PAGE_NO,
-                rowsPerPage: Orgs.DEFAULT_ROWS_PER_PAGE
+                pageNo: queryParams.pageNo ? queryParams.pageNo : Orgs.DEFAULT_PAGE_NO,
+                rowsPerPage: queryParams.rowsPerPage ? queryParams.rowsPerPage : Orgs.DEFAULT_ROWS_PER_PAGE
             }
         };
     }
@@ -73,22 +77,30 @@ class Orgs extends React.Component {
     }
 
     handleOrgNameSearchChange = (event) => {
+        const self = this;
         const orgName = event.currentTarget.value;
+        self.handleQueryParamUpdate({
+            orgName: orgName ? orgName : null
+        });
+        self.setState((prevState) => ({
+            search: {
+                ...prevState.search,
+                orgName: {
+                    value: orgName,
+                    error: self.getErrorForOrgName(orgName)
+                }
+            }
+        }));
+    };
+
+    getErrorForOrgName = (orgName) => {
         let errorMessage = "";
         if (orgName) {
             if (!new RegExp(`^${Constants.Pattern.PARTIAL_CELLERY_ID}$`).test(orgName)) {
                 errorMessage = "Organization name can only contain lower case letters, numbers and dashes";
             }
         }
-        this.setState((prevState) => ({
-            search: {
-                ...prevState.search,
-                orgName: {
-                    value: orgName,
-                    error: errorMessage
-                }
-            }
-        }));
+        return errorMessage;
     };
 
     handleSearchButtonClick = () => {
@@ -104,6 +116,10 @@ class Orgs extends React.Component {
     };
 
     handlePageChange = (rowsPerPage, pageNo) => {
+        this.handleQueryParamUpdate({
+            pageNo: pageNo,
+            rowsPerPage: rowsPerPage
+        });
         this.setState({
             pagination: {
                 pageNo: pageNo,
@@ -111,6 +127,17 @@ class Orgs extends React.Component {
             }
         });
         this.searchOrgs(rowsPerPage, pageNo);
+    };
+
+    handleQueryParamUpdate = (queryParams) => {
+        const {location, match, history} = this.props;
+        const queryParamsString = HttpUtils.generateQueryParamString({
+            ...HttpUtils.parseQueryParams(location.search),
+            ...queryParams
+        });
+        history.replace(match.url + queryParamsString, {
+            ...location.state
+        });
     };
 
     searchOrgs = (rowsPerPage, pageNo) => {
@@ -183,8 +210,17 @@ class Orgs extends React.Component {
 }
 
 Orgs.propTypes = {
+    location: PropTypes.shape({
+        search: PropTypes.string.isRequired
+    }).isRequired,
+    history: PropTypes.shape({
+        replace: PropTypes.func.isRequired
+    }).isRequired,
+    match: PropTypes.shape({
+        url: PropTypes.string.isRequired
+    }).isRequired,
     classes: PropTypes.object.isRequired,
     globalState: PropTypes.instanceOf(StateHolder).isRequired
 };
 
-export default withStyles(styles)(withGlobalState(Orgs));
+export default withStyles(styles)(withGlobalState(withRouter(Orgs)));

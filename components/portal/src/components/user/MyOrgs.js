@@ -77,6 +77,9 @@ class MyOrgs extends React.Component {
 
     constructor(props) {
         super(props);
+
+        const queryParams = HttpUtils.parseQueryParams(props.location.search);
+        const orgName = queryParams.orgName ? queryParams.orgName : "";
         this.state = {
             isDialogOpen: false,
             isLoading: true,
@@ -85,13 +88,13 @@ class MyOrgs extends React.Component {
             orgs: [],
             search: {
                 orgName: {
-                    value: "",
-                    error: ""
+                    value: orgName,
+                    error: this.getErrorForOrgName(orgName)
                 }
             },
             pagination: {
-                pageNo: MyOrgs.DEFAULT_PAGE_NO,
-                rowsPerPage: MyOrgs.DEFAULT_ROWS_PER_PAGE
+                pageNo: queryParams.pageNo ? queryParams.pageNo : MyOrgs.DEFAULT_PAGE_NO,
+                rowsPerPage: queryParams.rowsPerPage ? queryParams.rowsPerPage : MyOrgs.DEFAULT_ROWS_PER_PAGE
             }
         };
     }
@@ -156,22 +159,30 @@ class MyOrgs extends React.Component {
     };
 
     handleOrgNameSearchChange = (event) => {
+        const self = this;
         const orgName = event.currentTarget.value;
+        this.handleQueryParamUpdate({
+            orgName: orgName ? orgName : null
+        });
+        self.setState((prevState) => ({
+            search: {
+                ...prevState.search,
+                orgName: {
+                    value: orgName,
+                    error: self.getErrorForOrgName(orgName)
+                }
+            }
+        }));
+    };
+
+    getErrorForOrgName = (orgName) => {
         let errorMessage = "";
         if (orgName) {
             if (!new RegExp(`^${Constants.Pattern.PARTIAL_CELLERY_ID}$`).test(orgName)) {
                 errorMessage = "Organization name can only contain lower case letters, numbers and dashes";
             }
         }
-        this.setState((prevState) => ({
-            search: {
-                ...prevState.search,
-                orgName: {
-                    value: orgName,
-                    error: errorMessage
-                }
-            }
-        }));
+        return errorMessage;
     };
 
     handleOrgNameSearchKeyDown = (event) => {
@@ -187,6 +198,10 @@ class MyOrgs extends React.Component {
     };
 
     handlePageChange = (rowsPerPage, pageNo) => {
+        this.handleQueryParamUpdate({
+            pageNo: pageNo,
+            rowsPerPage: rowsPerPage
+        });
         this.setState({
             pagination: {
                 pageNo: pageNo,
@@ -194,6 +209,17 @@ class MyOrgs extends React.Component {
             }
         });
         this.searchOrgs(rowsPerPage, pageNo);
+    };
+
+    handleQueryParamUpdate = (queryParams) => {
+        const {location, match, history} = this.props;
+        const queryParamsString = HttpUtils.generateQueryParamString({
+            ...HttpUtils.parseQueryParams(location.search),
+            ...queryParams
+        });
+        history.replace(match.url + queryParamsString, {
+            ...location.state
+        });
     };
 
     searchOrgs = (rowsPerPage, pageNo) => {
@@ -345,7 +371,17 @@ class MyOrgs extends React.Component {
 }
 
 MyOrgs.propTypes = {
-    classes: PropTypes.object.isRequired
+    location: PropTypes.shape({
+        search: PropTypes.string.isRequired
+    }).isRequired,
+    history: PropTypes.shape({
+        replace: PropTypes.func.isRequired
+    }).isRequired,
+    match: PropTypes.shape({
+        url: PropTypes.string.isRequired
+    }).isRequired,
+    classes: PropTypes.object.isRequired,
+    globalState: PropTypes.instanceOf(StateHolder).isRequired
 };
 
 export default withStyles(styles)(withGlobalState(MyOrgs));
