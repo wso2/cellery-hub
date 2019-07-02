@@ -77,6 +77,7 @@ class OrgCreate extends React.Component {
         const user = globalState.get(StateHolder.USER);
         const suggestedOrgName = user.email.split("@")[0].toLowerCase().replace(/[^a-z0-9-]/, "-");
 
+        // Checking if an org is already present with the suggested name
         NotificationUtils.showLoadingOverlay("Checking organizations",
             globalState);
         self.setState({

@@ -80,6 +80,7 @@ class MyOrgs extends React.Component {
         this.state = {
             isDialogOpen: false,
             isLoading: true,
+            isUserOrgPresent: false,
             totalCount: 0,
             orgs: [],
             search: {
@@ -96,8 +97,48 @@ class MyOrgs extends React.Component {
     }
 
     componentDidMount() {
-        const {pagination} = this.state;
-        this.searchOrgs(pagination.rowsPerPage, pagination.pageNo);
+        const self = this;
+        const {globalState} = self.props;
+        const {pagination} = self.state;
+
+        const queryParams = {
+            orgName: "*",
+            resultLimit: 0,
+            offset: 0
+        };
+        const currentUserId = globalState.get(StateHolder.USER).userId;
+        NotificationUtils.showLoadingOverlay("Checking your organizations", globalState);
+        self.setState({
+            isLoading: true
+        });
+        HttpUtils.callHubAPI(
+            {
+                url: `/orgs/users/${currentUserId}${HttpUtils.generateQueryParamString(queryParams)}`,
+                method: "GET"
+            },
+            globalState
+        ).then((response) => {
+            NotificationUtils.hideLoadingOverlay(globalState);
+            self.setState({
+                isUserOrgPresent: response.count > 0,
+                isLoading: false
+            });
+            self.searchOrgs(pagination.rowsPerPage, pagination.pageNo);
+        }).catch((err) => {
+            let errorMessage;
+            if (err instanceof HubApiError && err.getMessage()) {
+                errorMessage = err.getMessage();
+            } else {
+                errorMessage = "Failed to check your organizations";
+            }
+            NotificationUtils.hideLoadingOverlay(globalState);
+            self.setState({
+                isLoading: false
+            });
+            if (errorMessage) {
+                NotificationUtils.showNotification(errorMessage, NotificationUtils.Levels.ERROR, globalState);
+            }
+        });
     }
 
     handleCreateOrgDialogOpen = () => {
@@ -181,6 +222,11 @@ class MyOrgs extends React.Component {
                 totalCount: response.count,
                 orgs: response.data
             });
+            if (response.count > 0) {
+                self.setState({
+                    isUserOrgPresent: true
+                });
+            }
             NotificationUtils.hideLoadingOverlay(globalState);
             self.setState({
                 isLoading: false
@@ -204,12 +250,12 @@ class MyOrgs extends React.Component {
 
     render = () => {
         const {classes} = this.props;
-        const {isDialogOpen, isLoading, totalCount, search, pagination, orgs} = this.state;
+        const {isDialogOpen, isLoading, isUserOrgPresent, totalCount, search, pagination, orgs} = this.state;
 
         return (
             <React.Fragment>
                 {
-                    !isLoading && totalCount > 0
+                    !isLoading && isUserOrgPresent
                         ? (
                             <div className={classes.content}>
                                 <Typography variant={"h5"} color={"inherit"}>
@@ -262,7 +308,7 @@ class MyOrgs extends React.Component {
                         : null
                 }
                 {
-                    !isLoading && totalCount === 0
+                    !isLoading && !isUserOrgPresent
                         ? (
                             <div className={classes.content}>
                                 <div className={classes.container}>
