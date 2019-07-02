@@ -128,10 +128,35 @@ func main() {
 	} else {
 		if validateAccessToken(token, uName, execId) {
 			log.Printf("[%s] User successfully authenticated\n", execId)
-			os.Exit(extension.SuccessExitCode)
+			exitCode := addisAuthenticatedLabel(token, true, execId)
+			os.Exit(exitCode)
 		} else {
 			log.Printf("[%s] User failed to authenticate\n", execId)
-			os.Exit(extension.ErrorExitCode)
+			exitCode := addisAuthenticatedLabel(token, false, execId)
+			os.Exit(exitCode)
+		}
+	}
+}
+
+func addisAuthenticatedLabel (token string, isAuthenticated bool, execId string) int {
+	tokenContent := strings.Split(token, ":")
+	if len(tokenContent) == 2 {
+		log.Printf("[%s] Received a token with ping\n", execId)
+		label := fmt.Sprintf("{\"labels\": {\"isAuthenticated\": [%t]}}", isAuthenticated)
+		_, err := os.Stdout.WriteString(label)
+		if err != nil {
+			log.Printf("[%s] Error in writing to standard output\n", err)
+		}
+		return extension.SuccessExitCode
+	}
+	if len(tokenContent) == 1 {
+		log.Printf("[%s] Received a token without ping\n", execId)
+		if isAuthenticated {
+			log.Printf("[%s] Setting success exit code\n", execId)
+			return extension.SuccessExitCode
+		} else {
+			log.Printf("[%s] Setting error exit code\n", execId)
+			return extension.ErrorExitCode
 		}
 	}
 }
@@ -239,7 +264,8 @@ func validateAccessToken(token string, providedUsername string, execId string) b
 	isActive, ok := (result["active"]).(bool)
 	if !ok {
 		log.Printf("[%s] Error casting active to boolean. This may be due to a invalid token\n", execId)
-		os.Exit(extension.ErrorExitCode)
+		return false
+		//os.Exit(extension.ErrorExitCode)
 	}
 	log.Printf("[%s] Resolved access token values successfully\n", execId)
 	isExpired := isExpired(result["exp"], execId)
@@ -292,7 +318,8 @@ func isValidUser(tokenUsername interface{}, providedUsername string, execId stri
 		log.Printf("[%s] Username does not match with the provided username %s\n", execId, providedUsername)
 	} else {
 		log.Printf("[%s] Error casting username to string. This may be due to a invalid token\n", execId)
-		os.Exit(extension.ErrorExitCode)
+		return false
+		//os.Exit(extension.ErrorExitCode)
 	}
 	return false
 }
@@ -310,7 +337,8 @@ func isExpired(timestamp interface{}, execId string) bool {
 			execId, tm, time.Now())
 	} else {
 		log.Printf("[%s] Error casting timestamp to string. This may be due to a invalid token\n", execId)
-		os.Exit(extension.ErrorExitCode)
+		return false
+		//os.Exit(extension.ErrorExitCode)
 	}
 	return false
 }

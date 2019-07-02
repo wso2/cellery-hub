@@ -49,10 +49,24 @@ func ValidateAccess(db *sql.DB, accessToken string, execId string) (bool, error)
 		return false, err
 	}
 	log.Printf("[%s] Required actions for the username are :%s\n", execId, authReqInfo.Actions)
+	log.Printf("[%s] Received labels are :%s\n", execId, authReqInfo.Labels)
+
 	isPullOnly := true
 	if len(authReqInfo.Actions) == pushActionCount {
 		isPullOnly = false
 	}
+
+	if authReqInfo.Labels["isAuthenticated"][0] == "true" {
+		log.Printf("[%s] Validating access for authenticated user\n", execId)
+	} else {
+		if isPullOnly {
+			log.Printf("[%s] Validating access for unauthenticated user for pull action\n", execId)
+		} else {
+			log.Printf("[%s] Denying access for unauthenticated user for push action\n", execId)
+			return false, nil
+		}
+	}
+
 	organization, image, err := getOrganizationAndImage(authReqInfo.Name, execId)
 	if err != nil {
 		return false, err
