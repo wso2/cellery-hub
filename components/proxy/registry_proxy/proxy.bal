@@ -73,9 +73,6 @@ service registryProxy on new http:Listener(9090, config = registryProxyServiceEP
                     var transactionId = transactions:getCurrentTransactionId();
                     log:printDebug("Started transaction " + transactionId + " for pushing image " + imageFQN);
 
-                    var authorizationHeader = req.getHeader("Authorization");
-                    var jwtToken = authorizationHeader.split(" ")[1];
-
                     var lockResult = hub_database:acquireWriteLockForImage(imageFQN);
                     if (lockResult is error) {
                         log:printError("Failed to lock transaction " + transactionId, err = lockResult);
@@ -92,6 +89,8 @@ service registryProxy on new http:Listener(9090, config = registryProxyServiceEP
 
                         if (clientResponse is http:Response) {
                             if (clientResponse.statusCode >= 200 && clientResponse.statusCode < 300) {
+                                var authorizationHeader = req.getHeader("Authorization");
+                                var jwtToken = authorizationHeader.split(" ")[1];
                                 var userId = getUserId(jwtToken);
                                 if (userId is string) {
                                     log:printDebug("Saving image metadata for transaction " + transactionId + " by user " + userId);
