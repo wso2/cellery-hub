@@ -14,3 +14,8 @@ ext_auth:
 
 ext_authz:
   command: "/extensions/authorization"
+
+acl:
+  - match: {labels: {"isAuthSuccess": "false"}}
+    actions: ["pull"]
+    comment: "Users who are not authenticated can only push"

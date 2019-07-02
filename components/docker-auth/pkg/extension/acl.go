@@ -56,7 +56,13 @@ func ValidateAccess(db *sql.DB, accessToken string, execId string) (bool, error)
 		isPullOnly = false
 	}
 
-	if authReqInfo.Labels["isAuthenticated"][0] == "true" {
+	log.Printf("[%s] Label map length : %d\n", execId, len(authReqInfo.Labels))
+	if len(authReqInfo.Labels) < 1 {
+		log.Printf("[%s] Not received any label\n", execId)
+		return false, nil
+	}
+
+	if authReqInfo.Labels["isAuthSuccess"][0] == "true" {
 		log.Printf("[%s] Validating access for authenticated user\n", execId)
 	} else {
 		if isPullOnly {
