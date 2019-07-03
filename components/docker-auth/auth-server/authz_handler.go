@@ -43,11 +43,8 @@ func dbConn() (*sql.DB, error) {
 	return db, nil
 }
 
-func Authorization(accessToken string) int {
-	log.Println("Inside authorization logic handler")
-
-	execId, err := extension.GetExecID()
-	log.Printf("[%s] Authorization extension reached and access will be validated\n", execId)
+func Authorization(accessToken string, execId string) int {
+	log.Printf("[%s] Authorization logic handler reached and access will be validated\n", execId)
 	db, err := dbConn()
 	if err != nil {
 		log.Printf("[%s] Error occurred while establishing the mysql connection : %s\n", execId, err)

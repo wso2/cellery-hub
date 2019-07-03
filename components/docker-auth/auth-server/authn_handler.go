@@ -92,14 +92,8 @@ func validateToken(inToken string, cert []byte, execId string) (bool, error) {
 	return false, err
 }
 
-func Authenticate(uName string, token string) int {
-	log.Println("Inside authentication logic handler")
-
-	execId, err := extension.GetExecID()
-	if err != nil {
-		log.Printf("Error in generating the execId : %s\n", err)
-	}
-	log.Printf("[%s] Authentication extension reached and token will be validated\n", execId)
+func Authenticate(uName string, token string, execId string) int {
+	log.Printf("[%s] Authentication logic handler reached and token will be validated\n", execId)
 	if isJWT(execId) {
 		log.Printf("[%s] Authenticate by using JWT\n", execId)
 		jwtValidity := validateJWT(token, uName, execId)
@@ -111,10 +105,10 @@ func Authenticate(uName string, token string) int {
 	} else {
 		log.Printf("[%s] Authenticate by using access token\n", execId)
 		if validateAccessToken(token, uName, execId) {
-			log.Printf("[%s] User successfully authenticated\n", execId)
+			log.Printf("[%s] User successfully authenticated. Returning success status code\n", execId)
 			return extension.SuccessExitCode
 		} else {
-			log.Printf("[%s] User failed to authenticate\n", execId)
+			log.Printf("[%s] User failed to authenticate. Returning error status code\n", execId)
 			return extension.ErrorExitCode
 		}
 	}

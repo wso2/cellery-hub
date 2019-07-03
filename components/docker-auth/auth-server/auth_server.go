@@ -28,41 +28,50 @@ import (
 func main() {
 	authServerPort := ":8080"
 	log.Printf("Auth server is starting on port %s", authServerPort)
+	execId, err := extension.GetExecID()
+	if err != nil {
+		log.Printf("Error in generating the execId : %s\n", err)
+	}
 
 	http.HandleFunc("/authentication", func(w http.ResponseWriter, r *http.Request) {
-		log.Println("Authentication endpoint reached")
+		log.Printf("[%s] Authentication endpoint reached", execId)
 		var uName = r.FormValue("uName")
 		var token = r.FormValue("token")
 
-		log.Printf("Authentication request received by server. Uname : %s, Token : %s", uName, token)
-		authnRes := Authenticate(uName, token)
-		log.Println("authnRes :", authnRes)
+		log.Printf("[%s] Authentication request received by server. Uname : %s, Token : %s",execId, uName, token)
+
+		authnRes := Authenticate(uName, token, execId)
+
 		if authnRes == extension.SuccessExitCode {
-			log.Println("Authentication Success")
+			log.Printf("[%s] Authentication Success. Writing status code %d as response", execId,
+				http.StatusOK)
 			w.WriteHeader(http.StatusOK)
 		} else {
-			log.Println("Authentication Failed")
+			log.Printf("[%s] Authentication Failed. Writing status code %d as response", execId,
+				http.StatusUnauthorized)
 			w.WriteHeader(http.StatusUnauthorized)
 		}
 	})
 
 	http.HandleFunc("/authorization", func(w http.ResponseWriter, r *http.Request) {
-		log.Println("Authorization endpoint reached")
+		log.Printf("[%s] Authorization endpoint reached", execId)
 
 		body, err := ioutil.ReadAll(r.Body)
 		if err != nil {
-			panic(err)
+			log.Printf("[%s] Error occured while reading POST request for authorization : %s", execId, err)
 		}
 
-		log.Printf("Authorization request received by server. Token : %s", string(body))
+		log.Printf("[%s] Authorization request received by server", execId)
 
-		authzRes := Authorization(string(body))
+		authzRes := Authorization(string(body), execId)
 
 		if authzRes == extension.SuccessExitCode {
-			log.Println("Authorization Success")
+			log.Printf("[%s] Authorization Success. Writing status code %d as response", execId,
+				http.StatusOK)
 			w.WriteHeader(http.StatusOK)
 		} else {
-			log.Println("Authorization Failed")
+			log.Printf("[%s] Authorization Failed. Writing status code %d as response", execId,
+				http.StatusUnauthorized)
 			w.WriteHeader(http.StatusUnauthorized)
 		}
 	})

@@ -48,35 +48,38 @@ func main() {
 	}
 	log.SetOutput(file)
 
+	execId, err := extension.GetExecID()
+	if err != nil {
+		log.Printf("Error in generating the execId : %s\n", err)
+	}
+
 	text := extension.ReadStdIn()
 	credentials := strings.Split(text, " ")
 
 	if len(credentials) != 2 {
-		log.Printf("Cannot parse the Input from the Auth service")
+		log.Printf("[%s] Cannot parse the Input from the Auth service", execId)
 		os.Exit(extension.ErrorExitCode)
 	}
 	uName := credentials[0]
-	token := credentials[1]
+	incomingToken := credentials[1]
+	tokenArray := strings.Split(incomingToken, ":")
+	token := tokenArray[0]
 
-	log.Printf("Username : %s, Password : %s", uName, token)
 	url := fmt.Sprintf("http://localhost:8080/authentication?uName=%s&token=%s", uName, token)
-	log.Printf("Called %s", url)
-
+	log.Printf("[%s] Calling %s", execId, url)
 	req, _ := http.NewRequest("GET", url, nil)
-
 	res, _ := http.DefaultClient.Do(req)
 
 	defer res.Body.Close()
 
-	log.Printf("Response received from the auth server with the status code : %d", res.StatusCode)
+	log.Printf("[%s] Response received from the auth server with the status code %d", execId, res.StatusCode)
 
 	if res.StatusCode == http.StatusUnauthorized {
-		log.Printf("Authentication failed for user %s. Exiting with error exit code", uName)
+		log.Printf("[%s] Authentication failed. Exiting with error exit code", execId)
 		os.Exit(extension.ErrorExitCode)
 	}
 	if res.StatusCode == http.StatusOK {
-		log.Printf("user %s is successfully authenticated. Exiting with success exit code", uName)
+		log.Printf("[%s] Authentication Success. Exiting with success exit code", execId)
 		os.Exit(extension.SuccessExitCode)
 	}
-
 }

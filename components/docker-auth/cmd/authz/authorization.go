@@ -47,11 +47,16 @@ func main() {
 	}
 	log.SetOutput(file)
 
+	execId, err := extension.GetExecID()
+	if err != nil {
+		log.Printf("Error in generating the execId : %s\n", err)
+	}
+
 	accessToken := extension.ReadStdIn()
 
 	url := "http://localhost:8080/authorization"
 	payload := strings.NewReader(accessToken)
-	log.Printf("Called %s with accessToken : %s as payload", url, accessToken)
+	log.Printf("[%s] Calling %s with accessToken : %s as payload", execId, url, accessToken)
 
 	req, _ := http.NewRequest("POST", url, payload)
 
@@ -59,14 +64,14 @@ func main() {
 
 	defer res.Body.Close()
 
-	log.Printf("Response received from the auth server with the status code : %d", res.StatusCode)
+	log.Printf("[%s] Response received from the auth server with the status code : %d", execId, res.StatusCode)
 
 	if res.StatusCode == http.StatusUnauthorized {
-		log.Printf("Unauthorized request. Exiting with error exit code")
+		log.Printf("[%s] Unauthorized request. Exiting with error exit code", execId)
 		os.Exit(extension.ErrorExitCode)
 	}
 	if res.StatusCode == http.StatusOK {
-		log.Printf("Authorized request. Exiting with success exit code")
+		log.Printf("[%s] Authorized request. Exiting with success exit code", execId)
 		os.Exit(extension.SuccessExitCode)
 	}
 }
