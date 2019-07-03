@@ -219,7 +219,7 @@ class Images extends React.Component {
 
     render = () => {
         const {classes} = this.props;
-        const {search, sort, images, totalCount, pagination} = this.state;
+        const {search, sort, images, totalCount, pagination, isLoading} = this.state;
         return (
             <React.Fragment>
                 <Grid container>
@@ -260,10 +260,17 @@ class Images extends React.Component {
                             </FormControl>
                         </form>
                     </Grid>
-                    <Grid item xs={12} sm={12} md={12}>
-                        <ImageList pageData={images} onPageChange={this.handlePageChange} totalCount={totalCount}
-                            rowsPerPage={pagination.rowsPerPage} pageNo={pagination.pageNo}/>
-                    </Grid>
+                    {
+                        isLoading
+                            ? null
+                            : (
+                                <Grid item xs={12} sm={12} md={12}>
+                                    <ImageList pageData={images} onPageChange={this.handlePageChange}
+                                        totalCount={totalCount} rowsPerPage={pagination.rowsPerPage}
+                                        pageNo={pagination.pageNo}/>
+                                </Grid>
+                            )
+                    }
                 </Grid>
             </React.Fragment>
         );

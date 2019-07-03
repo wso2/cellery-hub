@@ -62,6 +62,13 @@ const styles = (theme) => ({
     updated: {
         fontSize: 14,
         verticalAlign: "text-bottom"
+    },
+    noImagesMessage: {
+        textAlign: "center",
+        fontSize: "1em",
+        fontWeight: 300,
+        color: "#808080",
+        maxWidth: "50vw"
     }
 });
 
@@ -88,45 +95,58 @@ class ImageList extends React.Component {
     render = () => {
         const {classes, totalCount, pageNo, rowsPerPage, pageData} = this.props;
         return (
-            <React.Fragment>
-                <List component={"nav"}>
-                    {pageData.map((image) => (
-                        <div key={`${image.orgName}/${image.imageName}`}>
-                            <ListItem button onClick={() => this.handleImageClick(image.orgName, image.imageName)}>
-                                <ListItemAvatar>
-                                    <Avatar className={classes.avatar}>
-                                        <CellImage/>
-                                    </Avatar>
-                                </ListItemAvatar>
-                                <ListItemText primary={`${image.orgName}/${image.imageName}`}
-                                    secondary={
-                                        <React.Fragment>
-                                            {image.summary}
-                                            <Typography variant={"caption"} className={classes.block}
-                                                color={"textPrimary"}>
-                                                <AccessTime className={classes.updated}/> Last Updated on&nbsp;
-                                                {moment(image.updatedTimestamp).format(Constants.Format.DATE_TIME)}
-                                            </Typography>
-                                        </React.Fragment>
-                                    }/>
-                                <GetApp className={classes.elementIcon}/>
-                                <Typography variant={"subtitle2"} color={"inherit"} className={classes.elementText}>
-                                    {image.pullCount}
-                                </Typography>
-                                {
-                                    image.visibility.toUpperCase() === Constants.Visibility.PUBLIC
-                                        ? <Language className={classes.elementIcon}/>
-                                        : <Lock className={classes.elementIcon}/>
-                                }
-                            </ListItem>
-                            <Divider/>
-                        </div>
-                    ))}
-                </List>
-                <TablePagination component={"nav"} page={pageNo} rowsPerPage={rowsPerPage} count={totalCount}
-                    onChangePage={this.handleChangePageNo} onChangeRowsPerPage={this.handleChangeRowsPerPage}
-                    rowsPerPageOptions={[5, 10, 25]}/>
-            </React.Fragment>
+            totalCount
+                ? (
+                    <React.Fragment>
+                        <List component={"nav"}>
+                            {pageData.map((image) => (
+                                <div key={`${image.orgName}/${image.imageName}`}>
+                                    <ListItem button onClick={
+                                        () => this.handleImageClick(image.orgName, image.imageName)}>
+                                        <ListItemAvatar>
+                                            <Avatar className={classes.avatar}>
+                                                <CellImage/>
+                                            </Avatar>
+                                        </ListItemAvatar>
+                                        <ListItemText primary={`${image.orgName}/${image.imageName}`}
+                                            secondary={
+                                                <React.Fragment>
+                                                    {image.summary}
+                                                    <Typography variant={"caption"} className={classes.block}
+                                                        color={"textPrimary"}>
+                                                        <AccessTime className={classes.updated}/> Last Updated on&nbsp;
+                                                        {
+                                                            moment(image.updatedTimestamp)
+                                                                .format(Constants.Format.DATE_TIME)
+                                                        }
+                                                    </Typography>
+                                                </React.Fragment>
+                                            }/>
+                                        <GetApp className={classes.elementIcon}/>
+                                        <Typography variant={"subtitle2"} color={"inherit"}
+                                            className={classes.elementText}>
+                                            {image.pullCount}
+                                        </Typography>
+                                        {
+                                            image.visibility.toUpperCase() === Constants.Visibility.PUBLIC
+                                                ? <Language className={classes.elementIcon}/>
+                                                : <Lock className={classes.elementIcon}/>
+                                        }
+                                    </ListItem>
+                                    <Divider/>
+                                </div>
+                            ))}
+                        </List>
+                        <TablePagination component={"nav"} page={pageNo} rowsPerPage={rowsPerPage} count={totalCount}
+                            onChangePage={this.handleChangePageNo} onChangeRowsPerPage={this.handleChangeRowsPerPage}
+                            rowsPerPageOptions={[5, 10, 25]}/>
+                    </React.Fragment>
+                )
+                : (
+                    <div className={classes.noImagesMessage}>
+                        No Images Found
+                    </div>
+                )
         );
     }
 

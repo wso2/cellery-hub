@@ -53,6 +53,13 @@ const styles = (theme) => ({
     avatar: {
         color: "#ffffff",
         background: "#91c56f"
+    },
+    noOrgsMessage: {
+        textAlign: "center",
+        fontSize: "1em",
+        fontWeight: 300,
+        color: "#808080",
+        maxWidth: "50vw"
     }
 });
 
@@ -113,7 +120,11 @@ class OrgList extends React.Component {
                             rowsPerPageOptions={[5, 10, 25]}/>
                     </React.Fragment>
                 )
-                : null
+                : (
+                    <div className={classes.noOrgsMessage}>
+                        No Organizations Found
+                    </div>
+                )
         );
     }
 

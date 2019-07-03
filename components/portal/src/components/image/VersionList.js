@@ -80,6 +80,13 @@ const styles = (theme) => ({
     },
     searchFilters: {
         marginBottom: theme.spacing(2)
+    },
+    noVersionsMessage: {
+        textAlign: "center",
+        fontSize: "1em",
+        fontWeight: 300,
+        color: "#808080",
+        maxWidth: "50vw"
     }
 });
 
@@ -94,6 +101,7 @@ class VersionList extends React.Component {
         const queryParams = HttpUtils.parseQueryParams(props.location.search);
         const version = queryParams.version ? queryParams.version : "";
         this.state = {
+            isLoading: true,
             totalCount: 0,
             versions: [],
             search: {
@@ -231,6 +239,9 @@ class VersionList extends React.Component {
             offset: pageNo * rowsPerPage
         };
         NotificationUtils.showLoadingOverlay("Fetching versions", globalState);
+        self.setState({
+            isLoading: true
+        });
         HttpUtils.callHubAPI(
             {
                 url: `/artifacts/${orgName}/${imageName}/${HttpUtils.generateQueryParamString(queryParams)}`,
@@ -243,6 +254,9 @@ class VersionList extends React.Component {
                 versions: response.data
             });
             NotificationUtils.hideLoadingOverlay(globalState);
+            self.setState({
+                isLoading: false
+            });
         }).catch((err) => {
             let errorMessage;
             if (err instanceof HubApiError && err.getMessage()) {
@@ -251,6 +265,9 @@ class VersionList extends React.Component {
                 errorMessage = "Failed to fetch versions";
             }
             NotificationUtils.hideLoadingOverlay(globalState);
+            self.setState({
+                isLoading: false
+            });
             if (errorMessage) {
                 NotificationUtils.showNotification(errorMessage, NotificationUtils.Levels.ERROR, globalState);
             }
@@ -306,7 +323,7 @@ class VersionList extends React.Component {
                         </Grid>
                     </div>
                     {
-                        versions && versions.length > 0
+                        totalCount > 0
                             ? (
                                 <Grid container>
                                     <Grid item xs={12} sm={12} md={12}>
@@ -342,7 +359,11 @@ class VersionList extends React.Component {
                                     </Grid>
                                 </Grid>
                             )
-                            : null
+                            : (
+                                <div className={classes.noVersionsMessage}>
+                                    No Image Versions Found
+                                </div>
+                            )
                     }
                 </div>
             </div>
