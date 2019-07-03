@@ -29,7 +29,7 @@ const MYSQL_PORT_ENV_VAR = "MYSQL_PORT"
 const MYSQL_DRIVER = "mysql"
 const DB_NAME = "CELLERY_HUB"
 
-const pushActionCount = 2
+const pullAction = "pull"
 const publicVisibility = "PUBLIC"
 
 // db queries

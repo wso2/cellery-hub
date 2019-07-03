@@ -27,6 +27,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 
@@ -115,24 +116,51 @@ func main() {
 	}
 	log.Printf("[%s] Authentication extension reached and token will be validated\n", execId)
 	text := extension.ReadStdIn()
-	log.Printf("[%s] Payload received from CLI\n", execId)
+
+	log.Printf("[%s] Payload received from CLI : %s\n", execId, text)
 	credentials := strings.Split(text, " ")
-	if len(credentials) != 2 {
+	if len(credentials) > 2 {
 		log.Printf("[%s] Received more than two parameters\n", execId)
 		os.Exit(extension.ErrorExitCode)
 	}
+
 	uName := credentials[0]
-	token := credentials[1]
+	incomingToken := credentials[1]
+	tokenArray := strings.Split(incomingToken, ":")
+	token := tokenArray[0]
+	isPing := len(tokenArray) > 1 && tokenArray[1] == "ping"
+	if isPing {
+		log.Printf("[%s] Ping request recieved\n", execId)
+	}
 	if isJWT(execId) {
 		validateJWT(token, uName, execId)
 	} else {
 		if validateAccessToken(token, uName, execId) {
-			log.Printf("[%s] User successfully authenticated\n", execId)
+			log.Printf("[%s] User successfully authenticated by validating token \n", execId)
+			addAuthenticationLabel(true, execId)
 			os.Exit(extension.SuccessExitCode)
 		} else {
-			log.Printf("[%s] User failed to authenticate\n", execId)
-			os.Exit(extension.ErrorExitCode)
+			log.Printf("[%s] User access token failed to authenticate\n", execId)
+			if isPing {
+				log.Printf("[%s] Since this is a ping request, exiting with auth fail status without passing to authorization filter\n", execId)
+				os.Exit(extension.ErrorExitCode)
+			} else {
+				log.Printf("[%s] Failed authentication. But passing to authorization filter\n", execId)
+				addAuthenticationLabel(false, execId)
+				os.Exit(extension.SuccessExitCode)
+			}
 		}
+	}
+}
+
+func addAuthenticationLabel(isAuthenticated bool, execId string) {
+	authResultString := strconv.FormatBool(isAuthenticated)
+	label := "{\"labels\": {\"isAuthSuccess\": [\"" + authResultString + "\"]}}"
+	log.Printf("[%s] Adding labels to authorization ext from authn ext: %s\n", execId, label)
+	_, err := os.Stdout.WriteString(label)
+	if err != nil {
+		log.Printf("[%s] Error in writing to standard output. Hence failing authentication. No authorizatino done", err)
+		os.Exit(extension.ErrorExitCode)
 	}
 }
 
@@ -189,7 +217,7 @@ func isJWT(execId string) bool {
 			log.Printf("[%s] Received a JWT token\n", execId)
 			isJWT = true
 		} else if isJWTEnv == "false" {
-			log.Printf("[%s] Received a access token\n", execId)
+			log.Printf("[%s] Received an access token\n", execId)
 			isJWT = false
 		} else {
 			log.Printf("[%s] Error: Wrong environment value given. The value should be either true or false\n",
@@ -224,12 +252,25 @@ func validateAccessToken(token string, providedUsername string, execId string) b
 		log.Printf("[%s] Error sending the request to the introspection endpoint : %s\n", execId, err)
 		os.Exit(extension.ErrorExitCode)
 	}
+
+	if res.StatusCode == 400 {
+		log.Printf("[%s] 400 status code returned from IDP probably due to empty token\n", execId)
+		return false
+	}
+	if res.StatusCode != 200 {
+		log.Printf("[%s] Error while calling IDP, status code :%d. Exiting without authorization\n", execId,
+			res.StatusCode)
+		os.Exit(extension.ErrorExitCode)
+	}
 	defer res.Body.Close()
 	body, err := ioutil.ReadAll(res.Body)
 	if err != nil {
-		log.Printf("[%s] Error reading the response from introspection endpoint : %s\n", execId, err)
+		log.Printf("[%s] Error reading the response from introspection endpoint. Exiting without authorization : %s\n", execId, err)
 		os.Exit(extension.ErrorExitCode)
+	} else {
+		log.Printf("[%s] Response recieved from introspection endpoint : %s\n", execId, body)
 	}
+
 	var result map[string]interface{}
 	err = json.Unmarshal([]byte(string(body)), &result)
 	if err != nil {
@@ -239,9 +280,9 @@ func validateAccessToken(token string, providedUsername string, execId string) b
 	isActive, ok := (result["active"]).(bool)
 	if !ok {
 		log.Printf("[%s] Error casting active to boolean. This may be due to a invalid token\n", execId)
-		os.Exit(extension.ErrorExitCode)
+		return false
 	}
-	log.Printf("[%s] Resolved access token values successfully\n", execId)
+	log.Printf("[%s] Resolved acess token validity\n", execId)
 	isExpired := isExpired(result["exp"], execId)
 	isValidUser := isValidUser(result["username"], providedUsername, execId)
 	return isExpired && isActive && isValidUser
@@ -292,7 +333,7 @@ func isValidUser(tokenUsername interface{}, providedUsername string, execId stri
 		log.Printf("[%s] Username does not match with the provided username %s\n", execId, providedUsername)
 	} else {
 		log.Printf("[%s] Error casting username to string. This may be due to a invalid token\n", execId)
-		os.Exit(extension.ErrorExitCode)
+		return false
 	}
 	return false
 }
@@ -309,8 +350,9 @@ func isExpired(timestamp interface{}, execId string) bool {
 		log.Printf("[%s] Token received is expired. Token expiry time is %s, while the system time is %s\n",
 			execId, tm, time.Now())
 	} else {
-		log.Printf("[%s] Error casting timestamp to string. This may be due to a invalid token\n", execId)
-		os.Exit(extension.ErrorExitCode)
+		log.Printf("[%s] Error casting timestamp %s to string. This may be due to a invalid token\n",
+			execId, timestamp)
+		return false
 	}
 	return false
 }
