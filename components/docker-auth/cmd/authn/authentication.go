@@ -19,7 +19,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -65,15 +64,15 @@ func main() {
 	tokenArray := strings.Split(incomingToken, ":")
 	token := tokenArray[0]
 
-	authnEP := resolveAuthenticationUrl(execId)
-	if authnEP == "" {
+	url := resolveAuthenticationUrl(execId)
+	if url == "" {
 		log.Printf("[%s] Authentication end point not found. Exiting with error exit code", execId)
 		os.Exit(extension.ErrorExitCode)
 	}
-	url := fmt.Sprintf("%s?uName=%s&token=%s", authnEP, uName, token)
+	payload := strings.NewReader("{\"uName\":\"" + uName + "\",\"token\":\"" + token + "\"}")
 
 	log.Printf("[%s] Calling %s", execId, url)
-	req, _ := http.NewRequest("GET", url, nil)
+	req, _ := http.NewRequest("POST", url, payload)
 	res, _ := http.DefaultClient.Do(req)
 
 	defer res.Body.Close()

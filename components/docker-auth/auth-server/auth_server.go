@@ -19,14 +19,26 @@
 package main
 
 import (
-	"github.com/cellery-io/cellery-hub/components/docker-auth/pkg/extension"
+	"encoding/json"
 	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
+
+	"github.com/cellery-io/cellery-hub/components/docker-auth/pkg/extension"
 )
 
+type AuthParams struct {
+	UName string
+	Token string
+}
+
 func main() {
-	authServerPort := ":8080"
+	authServerPort := os.Getenv("AUTH_SERVER_PORT")
+	if len(authServerPort) == 0 {
+		log.Printf("Unable to start the auth server : AUTH_SERVER_PORT environment variable is empty\n")
+		os.Exit(extension.ErrorExitCode)
+	}
 	log.Printf("Auth server is starting on port %s", authServerPort)
 	execId, err := extension.GetExecID()
 	if err != nil {
@@ -35,12 +47,18 @@ func main() {
 
 	http.HandleFunc("/authentication", func(w http.ResponseWriter, r *http.Request) {
 		log.Printf("[%s] Authentication endpoint reached", execId)
-		var uName = r.FormValue("uName")
-		var token = r.FormValue("token")
 
-		log.Printf("[%s] Authentication request received by server. Uname : %s, Token : %s",execId, uName, token)
+		decoder := json.NewDecoder(r.Body)
+		var authParams AuthParams
+		err := decoder.Decode(&authParams)
+		if err != nil {
+			log.Printf("[%s] Error occured while decoding POST request for authentication : %s", execId, err)
+		}
 
-		authnRes := Authenticate(uName, token, execId)
+		log.Printf("[%s] Authentication request received by server. Uname : %s, Token : %s", execId,
+			authParams.UName, authParams.Token)
+
+		authnRes := Authenticate(authParams.UName, authParams.Token, execId)
 
 		if authnRes == extension.SuccessExitCode {
 			log.Printf("[%s] Authentication Success. Writing status code %d as response", execId,
