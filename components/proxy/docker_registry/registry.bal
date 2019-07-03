@@ -16,6 +16,7 @@
 //
 // ------------------------------------------------------------------------
 
+import ballerina/io;
 import ballerina/config;
 import ballerina/http;
 
@@ -44,14 +45,16 @@ public function forwardRequest(http:Request req) returns (http:Response|error) {
 public function pullDockerFileLayer(string repository, string fileLayer, string jwtToken) returns (byte[]|error) {
     http:Request dockerRegistryRequest = new;
     dockerRegistryRequest.addHeader("Authorization", "Bearer " + jwtToken);
-    var response = check dockerRegistryClientEP->get("/v2/" + repository + "/blobs/" + fileLayer, message = dockerRegistryRequest);
+    var response = check dockerRegistryClientEP->get(io:sprintf("/v2/%s/blobs/%s", repository, fileLayer),
+        message = dockerRegistryRequest);
     if (response.statusCode >= 200 && response.statusCode < 400) {
         return response.getBinaryPayload();
     } else if (response.statusCode == 401) {
         error err = error("unauthorized to pull docker file layer " + fileLayer);
         return err;
     } else {
-        error err = error("failed to pull docker file layer " + fileLayer + " with status code " + response.statusCode);
+        error err = error(io:sprintf("failed to pull docker file layer %s with status code %s", fileLayer,
+            response.statusCode));
         return err;
     }
 }
