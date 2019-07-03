@@ -124,17 +124,11 @@ func main() {
 		os.Exit(extension.ErrorExitCode)
 	}
 
-	if len(credentials) < 2 {
-		log.Printf("[%s] Received less than two parameters. Hence failing authentication, but passing to authorization filter", execId)
-		addAuthenticationLabel(false)
-		os.Exit(extension.SuccessExitCode)
-	}
-
 	uName := credentials[0]
 	incomingToken := credentials[1]
 	tokenArray := strings.Split(incomingToken, ":")
 	token := tokenArray[0]
-	isPing := len(tokenArray) > 1
+	isPing := len(tokenArray) > 1 && tokenArray[1] == "ping"
 	if isPing {
 		log.Printf("[%s] Ping request recieved\n", execId)
 	}
@@ -143,7 +137,7 @@ func main() {
 	} else {
 		if validateAccessToken(token, uName, execId) {
 			log.Printf("[%s] User successfully authenticated by validating token \n", execId)
-			addAuthenticationLabel(true)
+			addAuthenticationLabel(true, execId)
 			os.Exit(extension.SuccessExitCode)
 		} else {
 			log.Printf("[%s] User access token failed to authenticate\n", execId)
@@ -152,17 +146,17 @@ func main() {
 				os.Exit(extension.ErrorExitCode)
 			} else {
 				log.Printf("[%s] Failed authentication. But passing to authorization filter\n", execId)
-				addAuthenticationLabel(false)
+				addAuthenticationLabel(false, execId)
 				os.Exit(extension.SuccessExitCode)
 			}
 		}
 	}
 }
 
-func addAuthenticationLabel(isAuthenticated bool) {
+func addAuthenticationLabel(isAuthenticated bool, execId string) {
 	authResultString := strconv.FormatBool(isAuthenticated)
 	label := "{\"labels\": {\"isAuthSuccess\": [\"" + authResultString + "\"]}}"
-	log.Printf("Adding labels to authorization ext from authn ext: %s\n", label)
+	log.Printf("[%s] Adding labels to authorization ext from authn ext: %s\n", execId, label)
 	_, err := os.Stdout.WriteString(label)
 	if err != nil {
 		log.Printf("[%s] Error in writing to standard output. Hence failing authentication. No authorizatino done", err)
@@ -223,7 +217,7 @@ func isJWT(execId string) bool {
 			log.Printf("[%s] Received a JWT token\n", execId)
 			isJWT = true
 		} else if isJWTEnv == "false" {
-			log.Printf("[%s] Received a access token\n", execId)
+			log.Printf("[%s] Received an access token\n", execId)
 			isJWT = false
 		} else {
 			log.Printf("[%s] Error: Wrong environment value given. The value should be either true or false\n",
@@ -264,7 +258,8 @@ func validateAccessToken(token string, providedUsername string, execId string) b
 		return false
 	}
 	if res.StatusCode != 200 {
-		log.Printf("[%s] Error while calling IDP, status code. Exiting without authorization : %s\n", execId, err)
+		log.Printf("[%s] Error while calling IDP, status code :%d. Exiting without authorization\n", execId,
+			res.StatusCode)
 		os.Exit(extension.ErrorExitCode)
 	}
 	defer res.Body.Close()
@@ -339,7 +334,6 @@ func isValidUser(tokenUsername interface{}, providedUsername string, execId stri
 	} else {
 		log.Printf("[%s] Error casting username to string. This may be due to a invalid token\n", execId)
 		return false
-		//os.Exit(extension.ErrorExitCode)
 	}
 	return false
 }
@@ -359,7 +353,6 @@ func isExpired(timestamp interface{}, execId string) bool {
 		log.Printf("[%s] Error casting timestamp %s to string. This may be due to a invalid token\n",
 			execId, timestamp)
 		return false
-		//os.Exit(extension.ErrorExitCode)
 	}
 	return false
 }

@@ -68,7 +68,7 @@ func main() {
 	execId, err := extension.GetExecID()
 	log.Printf("[%s] Authorization extension reached and access will be validated\n", execId)
 	accessToken := extension.ReadStdIn()
-	log.Printf("[%s] Received access token : %s\n", execId, accessToken)
+	log.Printf("[%s] Access token received\n", execId)
 	db, err := dbConn()
 	if err != nil {
 		log.Printf("[%s] Error occurred while establishing the mysql connection : %s\n", execId, err)

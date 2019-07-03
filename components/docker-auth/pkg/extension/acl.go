@@ -51,9 +51,10 @@ func ValidateAccess(db *sql.DB, accessToken string, execId string) (bool, error)
 	log.Printf("[%s] Required actions for the username are :%s\n", execId, authReqInfo.Actions)
 	log.Printf("[%s] Received labels are :%s\n", execId, authReqInfo.Labels)
 
-	isPullOnly := true
-	if len(authReqInfo.Actions) == pushActionCount {
-		isPullOnly = false
+	isPullOnly := false
+	if len(authReqInfo.Actions) == 1 && authReqInfo.Actions[0] == pullAction {
+		log.Printf("[%s] Received a request for pull only action\n", execId)
+		isPullOnly = true
 	}
 
 	log.Printf("[%s] Label map length : %d\n", execId, len(authReqInfo.Labels))
@@ -91,8 +92,10 @@ func getOrganizationAndImage(imageFullName string, execId string) (string, strin
 	tokens := strings.Split(imageFullName, "/")
 	log.Printf("[%s] Organization and image info: %s\n", execId, tokens)
 	if len(tokens) == 2 {
+		log.Printf("[%s] Organization : %s, image : %s\n", execId, tokens[0], tokens[1])
 		return tokens[0], tokens[1], nil
 	} else {
+		log.Printf("[%s] Organization and image info not found\n", execId)
 		return "", "", errors.New("token length mismatched")
 	}
 }
@@ -125,6 +128,7 @@ func getImageVisibility(db *sql.DB, image string, execId string) (string, error)
 	}
 	if results.Next() {
 		err = results.Scan(&visibility)
+		log.Printf("[%s] Visibility is found as %s\n", execId, visibility)
 	}
 	if err != nil {
 		log.Printf("[%s] Error in retrieving the visibility from the database :%s\n", execId, err)
@@ -150,7 +154,7 @@ func isUserAvailable(db *sql.DB, organization, user string, execId string) (bool
 }
 
 func isAuthorizedToPull(db *sql.DB, user, organization, image string, execId string) (bool, error) {
-	log.Printf("[%s] %s user is trying to push the image %s for the organization %s\n",
+	log.Printf("[%s] %s user is trying to pull the image %s for the organization %s\n",
 		execId, user, image, organization)
 	// check if image PUBLIC
 	visibility, err := getImageVisibility(db, image, execId)
