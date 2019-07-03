@@ -77,27 +77,71 @@ class MyOrgs extends React.Component {
 
     constructor(props) {
         super(props);
+
+        const queryParams = HttpUtils.parseQueryParams(props.location.search);
+        const orgName = queryParams.orgName ? queryParams.orgName : "";
         this.state = {
             isDialogOpen: false,
             isLoading: true,
+            isUserOrgPresent: false,
             totalCount: 0,
             orgs: [],
             search: {
                 orgName: {
-                    value: "",
-                    error: ""
+                    value: orgName,
+                    error: this.getErrorForOrgName(orgName)
                 }
             },
             pagination: {
-                pageNo: MyOrgs.DEFAULT_PAGE_NO,
-                rowsPerPage: MyOrgs.DEFAULT_ROWS_PER_PAGE
+                pageNo: queryParams.pageNo ? queryParams.pageNo : MyOrgs.DEFAULT_PAGE_NO,
+                rowsPerPage: queryParams.rowsPerPage ? queryParams.rowsPerPage : MyOrgs.DEFAULT_ROWS_PER_PAGE
             }
         };
     }
 
     componentDidMount() {
-        const {pagination} = this.state;
-        this.searchOrgs(pagination.rowsPerPage, pagination.pageNo);
+        const self = this;
+        const {globalState} = self.props;
+        const {pagination} = self.state;
+
+        const queryParams = {
+            orgName: "*",
+            resultLimit: 0,
+            offset: 0
+        };
+        const currentUserId = globalState.get(StateHolder.USER).userId;
+        NotificationUtils.showLoadingOverlay("Checking your organizations", globalState);
+        self.setState({
+            isLoading: true
+        });
+        HttpUtils.callHubAPI(
+            {
+                url: `/orgs/users/${currentUserId}${HttpUtils.generateQueryParamString(queryParams)}`,
+                method: "GET"
+            },
+            globalState
+        ).then((response) => {
+            NotificationUtils.hideLoadingOverlay(globalState);
+            self.setState({
+                isUserOrgPresent: response.count > 0,
+                isLoading: false
+            });
+            self.searchOrgs(pagination.rowsPerPage, pagination.pageNo);
+        }).catch((err) => {
+            let errorMessage;
+            if (err instanceof HubApiError && err.getMessage()) {
+                errorMessage = err.getMessage();
+            } else {
+                errorMessage = "Failed to check your organizations";
+            }
+            NotificationUtils.hideLoadingOverlay(globalState);
+            self.setState({
+                isLoading: false
+            });
+            if (errorMessage) {
+                NotificationUtils.showNotification(errorMessage, NotificationUtils.Levels.ERROR, globalState);
+            }
+        });
     }
 
     handleCreateOrgDialogOpen = () => {
@@ -115,22 +159,30 @@ class MyOrgs extends React.Component {
     };
 
     handleOrgNameSearchChange = (event) => {
+        const self = this;
         const orgName = event.currentTarget.value;
+        this.handleQueryParamUpdate({
+            orgName: orgName ? orgName : null
+        });
+        self.setState((prevState) => ({
+            search: {
+                ...prevState.search,
+                orgName: {
+                    value: orgName,
+                    error: self.getErrorForOrgName(orgName)
+                }
+            }
+        }));
+    };
+
+    getErrorForOrgName = (orgName) => {
         let errorMessage = "";
         if (orgName) {
             if (!new RegExp(`^${Constants.Pattern.PARTIAL_CELLERY_ID}$`).test(orgName)) {
                 errorMessage = "Organization name can only contain lower case letters, numbers and dashes";
             }
         }
-        this.setState((prevState) => ({
-            search: {
-                ...prevState.search,
-                orgName: {
-                    value: orgName,
-                    error: errorMessage
-                }
-            }
-        }));
+        return errorMessage;
     };
 
     handleOrgNameSearchKeyDown = (event) => {
@@ -146,6 +198,10 @@ class MyOrgs extends React.Component {
     };
 
     handlePageChange = (rowsPerPage, pageNo) => {
+        this.handleQueryParamUpdate({
+            pageNo: pageNo,
+            rowsPerPage: rowsPerPage
+        });
         this.setState({
             pagination: {
                 pageNo: pageNo,
@@ -153,6 +209,17 @@ class MyOrgs extends React.Component {
             }
         });
         this.searchOrgs(rowsPerPage, pageNo);
+    };
+
+    handleQueryParamUpdate = (queryParams) => {
+        const {location, match, history} = this.props;
+        const queryParamsString = HttpUtils.generateQueryParamString({
+            ...HttpUtils.parseQueryParams(location.search),
+            ...queryParams
+        });
+        history.replace(match.url + queryParamsString, {
+            ...location.state
+        });
     };
 
     searchOrgs = (rowsPerPage, pageNo) => {
@@ -181,6 +248,11 @@ class MyOrgs extends React.Component {
                 totalCount: response.count,
                 orgs: response.data
             });
+            if (response.count > 0) {
+                self.setState({
+                    isUserOrgPresent: true
+                });
+            }
             NotificationUtils.hideLoadingOverlay(globalState);
             self.setState({
                 isLoading: false
@@ -204,12 +276,12 @@ class MyOrgs extends React.Component {
 
     render = () => {
         const {classes} = this.props;
-        const {isDialogOpen, isLoading, totalCount, search, pagination, orgs} = this.state;
+        const {isDialogOpen, isLoading, isUserOrgPresent, totalCount, search, pagination, orgs} = this.state;
 
         return (
             <React.Fragment>
                 {
-                    !isLoading && totalCount > 0
+                    !isLoading && isUserOrgPresent
                         ? (
                             <div className={classes.content}>
                                 <Typography variant={"h5"} color={"inherit"}>
@@ -262,7 +334,7 @@ class MyOrgs extends React.Component {
                         : null
                 }
                 {
-                    !isLoading && totalCount === 0
+                    !isLoading && !isUserOrgPresent
                         ? (
                             <div className={classes.content}>
                                 <div className={classes.container}>
@@ -299,7 +371,17 @@ class MyOrgs extends React.Component {
 }
 
 MyOrgs.propTypes = {
-    classes: PropTypes.object.isRequired
+    location: PropTypes.shape({
+        search: PropTypes.string.isRequired
+    }).isRequired,
+    history: PropTypes.shape({
+        replace: PropTypes.func.isRequired
+    }).isRequired,
+    match: PropTypes.shape({
+        url: PropTypes.string.isRequired
+    }).isRequired,
+    classes: PropTypes.object.isRequired,
+    globalState: PropTypes.instanceOf(StateHolder).isRequired
 };
 
 export default withStyles(styles)(withGlobalState(MyOrgs));

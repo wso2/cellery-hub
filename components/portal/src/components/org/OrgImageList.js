@@ -51,20 +51,23 @@ class OrgImageList extends React.Component {
 
     constructor(props) {
         super(props);
+
+        const queryParams = HttpUtils.parseQueryParams(props.location.search);
+        const imageName = queryParams.imageName ? queryParams.imageName : "";
         this.state = {
             isLoading: true,
             totalCount: 0,
             images: [],
-            sort: Constants.SortingOrder.RECENTLY_UPDATED,
+            sort: queryParams.sort ? queryParams.sort : Constants.SortingOrder.MOST_POPULAR,
             search: {
                 imageName: {
-                    value: "",
-                    error: ""
+                    value: imageName,
+                    error: this.getErrorForImageName(imageName)
                 }
             },
             pagination: {
-                pageNo: OrgImageList.DEFAULT_PAGE_NO,
-                rowsPerPage: OrgImageList.DEFAULT_ROWS_PER_PAGE
+                pageNo: queryParams.pageNo ? queryParams.pageNo : OrgImageList.DEFAULT_PAGE_NO,
+                rowsPerPage: queryParams.rowsPerPage ? queryParams.rowsPerPage : OrgImageList.DEFAULT_ROWS_PER_PAGE
             }
         };
     }
@@ -75,22 +78,30 @@ class OrgImageList extends React.Component {
     }
 
     handleImageNameSearchChange = (event) => {
+        const self = this;
         const imageName = event.currentTarget.value;
+        self.handleQueryParamUpdate({
+            imageName: imageName ? imageName : null
+        });
+        this.setState((prevState) => ({
+            search: {
+                ...prevState.search,
+                imageName: {
+                    value: imageName,
+                    error: self.getErrorForImageName(imageName)
+                }
+            }
+        }));
+    };
+
+    getErrorForImageName = (imageName) => {
         let errorMessage = "";
         if (imageName) {
             if (!new RegExp(`^${Constants.Pattern.PARTIAL_CELLERY_ID}$`).test(imageName)) {
                 errorMessage = "Image name can only contain lower case letters, numbers and dashes";
             }
         }
-        this.setState((prevState) => ({
-            search: {
-                ...prevState.search,
-                imageName: {
-                    value: imageName,
-                    error: errorMessage
-                }
-            }
-        }));
+        return errorMessage;
     };
 
     handleImageNameSearchKeyDown = (event) => {
@@ -107,6 +118,10 @@ class OrgImageList extends React.Component {
 
     handlePageChange = (rowsPerPage, pageNo) => {
         const {sort} = this.state;
+        this.handleQueryParamUpdate({
+            pageNo: pageNo,
+            rowsPerPage: rowsPerPage
+        });
         this.setState({
             pagination: {
                 pageNo: pageNo,
@@ -119,10 +134,24 @@ class OrgImageList extends React.Component {
     handleSortChange = (event) => {
         const {pagination} = this.state;
         const newSort = event.target.value;
+        this.handleQueryParamUpdate({
+            sort: newSort
+        });
         this.setState({
             sort: newSort
         });
         this.searchImages(pagination.rowsPerPage, pagination.pageNo, newSort);
+    };
+
+    handleQueryParamUpdate = (queryParams) => {
+        const {location, match, history} = this.props;
+        const queryParamsString = HttpUtils.generateQueryParamString({
+            ...HttpUtils.parseQueryParams(location.search),
+            ...queryParams
+        });
+        history.replace(match.url + queryParamsString, {
+            ...location.state
+        });
     };
 
     searchImages = (rowsPerPage, pageNo, sort) => {
@@ -231,7 +260,14 @@ class OrgImageList extends React.Component {
 }
 
 OrgImageList.propTypes = {
+    location: PropTypes.shape({
+        search: PropTypes.string.isRequired
+    }).isRequired,
+    history: PropTypes.shape({
+        replace: PropTypes.func.isRequired
+    }).isRequired,
     match: PropTypes.shape({
+        url: PropTypes.string.isRequired,
         params: PropTypes.shape({
             imageName: PropTypes.string.isRequired
         }).isRequired

@@ -60,23 +60,26 @@ class MyImages extends React.Component {
 
     constructor(props) {
         super(props);
+
+        const queryParams = HttpUtils.parseQueryParams(props.location.search);
+        const imageName = queryParams.imageName ? queryParams.imageName : "";
         this.state = {
             isLoading: true,
             totalCount: 0,
             images: [],
             orgs: [],
             search: {
-                orgName: "*",
+                orgName: queryParams.orgName ? queryParams.orgName : "*",
                 imageName: {
-                    value: "",
-                    error: ""
+                    value: imageName,
+                    error: this.getErrorForImageName(imageName)
                 }
             },
             pagination: {
-                pageNo: MyImages.DEFAULT_PAGE_NO,
-                rowsPerPage: MyImages.DEFAULT_ROWS_PER_PAGE
+                pageNo: queryParams.pageNo ? queryParams.pageNo : MyImages.DEFAULT_PAGE_NO,
+                rowsPerPage: queryParams.rowsPerPage ? queryParams.rowsPerPage : MyImages.DEFAULT_ROWS_PER_PAGE
             },
-            sort: Constants.SortingOrder.MOST_POPULAR
+            sort: queryParams.sort ? queryParams.sort : Constants.SortingOrder.MOST_POPULAR
         };
     }
 
@@ -128,6 +131,9 @@ class MyImages extends React.Component {
     handleOrgChange = (event) => {
         const {pagination, sort} = this.state;
         const newOrg = event.target.value;
+        this.handleQueryParamUpdate({
+            orgName: newOrg ? newOrg : null
+        });
         this.setState((prevState) => ({
             search: {
                 ...prevState.search,
@@ -138,22 +144,30 @@ class MyImages extends React.Component {
     };
 
     handleImageNameSearchChange = (event) => {
+        const self = this;
         const imageName = event.currentTarget.value;
+        this.handleQueryParamUpdate({
+            imageName: imageName ? imageName : null
+        });
+        self.setState((prevState) => ({
+            search: {
+                ...prevState.search,
+                imageName: {
+                    value: imageName,
+                    error: self.getErrorForImageName(imageName)
+                }
+            }
+        }));
+    };
+
+    getErrorForImageName = (imageName) => {
         let errorMessage = "";
         if (imageName) {
             if (!new RegExp(`^${Constants.Pattern.PARTIAL_CELLERY_ID}$`).test(imageName)) {
                 errorMessage = "Image name can only contain lower case letters, numbers and dashes";
             }
         }
-        this.setState((prevState) => ({
-            search: {
-                ...prevState.search,
-                imageName: {
-                    value: imageName,
-                    error: errorMessage
-                }
-            }
-        }));
+        return errorMessage;
     };
 
     handleImageNameSearchKeyDown = (event) => {
@@ -171,6 +185,9 @@ class MyImages extends React.Component {
     handleSortChange = (event) => {
         const {search, pagination} = this.state;
         const newSort = event.target.value;
+        this.handleQueryParamUpdate({
+            sort: newSort
+        });
         this.setState({
             sort: newSort
         });
@@ -179,6 +196,10 @@ class MyImages extends React.Component {
 
     handlePageChange = (rowsPerPage, pageNo) => {
         const {search, sort} = this.state;
+        this.handleQueryParamUpdate({
+            pageNo: pageNo,
+            rowsPerPage: rowsPerPage
+        });
         this.setState({
             pagination: {
                 pageNo: pageNo,
@@ -186,6 +207,17 @@ class MyImages extends React.Component {
             }
         });
         this.searchImages(search.orgName, rowsPerPage, pageNo, sort);
+    };
+
+    handleQueryParamUpdate = (queryParams) => {
+        const {location, match, history} = this.props;
+        const queryParamsString = HttpUtils.generateQueryParamString({
+            ...HttpUtils.parseQueryParams(location.search),
+            ...queryParams
+        });
+        history.replace(match.url + queryParamsString, {
+            ...location.state
+        });
     };
 
     searchImages = (orgName, rowsPerPage, pageNo, sort) => {
@@ -319,8 +351,17 @@ class MyImages extends React.Component {
 }
 
 MyImages.propTypes = {
-    globalState: PropTypes.instanceOf(StateHolder).isRequired,
-    classes: PropTypes.object.isRequired
+    location: PropTypes.shape({
+        search: PropTypes.string.isRequired
+    }).isRequired,
+    history: PropTypes.shape({
+        replace: PropTypes.func.isRequired
+    }).isRequired,
+    match: PropTypes.shape({
+        url: PropTypes.string.isRequired
+    }).isRequired,
+    classes: PropTypes.object.isRequired,
+    globalState: PropTypes.instanceOf(StateHolder).isRequired
 };
 
 export default withStyles(styles)(withGlobalState(MyImages));

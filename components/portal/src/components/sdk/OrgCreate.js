@@ -71,6 +71,54 @@ class OrgCreate extends React.Component {
         };
     }
 
+    componentDidMount() {
+        const self = this;
+        const {globalState} = self.props;
+        const user = globalState.get(StateHolder.USER);
+        const suggestedOrgName = user.email.split("@")[0].toLowerCase().replace(/[^a-z0-9-]/, "-");
+
+        // Checking if an org is already present with the suggested name
+        NotificationUtils.showLoadingOverlay("Checking organizations",
+            globalState);
+        self.setState({
+            isLoading: true
+        });
+        HttpUtils.callHubAPI(
+            {
+                url: `/orgs/${suggestedOrgName}`,
+                method: "GET"
+            },
+            globalState
+        ).then(() => {
+            self.setState({
+                isLoading: false
+            });
+            NotificationUtils.hideLoadingOverlay(globalState);
+        }).catch((err) => {
+            let errorMessage;
+            if (err instanceof HubApiError) {
+                if (err.getStatusCode() === 404) {
+                    self.setState({
+                        orgNameToBeCreated: suggestedOrgName
+                    });
+                } else if (err.getMessage()) {
+                    errorMessage = err.getMessage();
+                } else {
+                    errorMessage = "Failed to check organizations";
+                }
+            } else {
+                errorMessage = "Failed to check organizations";
+            }
+            self.setState({
+                isLoading: false
+            });
+            NotificationUtils.hideLoadingOverlay(globalState);
+            if (errorMessage) {
+                NotificationUtils.showNotification(errorMessage, NotificationUtils.Levels.ERROR, globalState);
+            }
+        });
+    }
+
     handleOrgInputChange = (event) => {
         const orgName = event.currentTarget.value;
         let errorMessage = "";

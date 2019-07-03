@@ -30,6 +30,7 @@ import NotificationUtils from "../../utils/common/notificationUtils";
 import React from "react";
 import SearchIcon from "@material-ui/icons/Search";
 import Select from "@material-ui/core/Select";
+import {withRouter} from "react-router-dom";
 import {withStyles} from "@material-ui/core/styles";
 import HttpUtils, {HubApiError} from "../../utils/api/httpUtils";
 import withGlobalState, {StateHolder} from "../common/state";
@@ -50,20 +51,23 @@ class Images extends React.Component {
 
     constructor(props) {
         super(props);
+
+        const queryParams = HttpUtils.parseQueryParams(props.location.search);
+        const imageFQN = queryParams.imageFQN ? queryParams.imageFQN : "";
         this.state = {
             isLoading: true,
             totalCount: 0,
             images: [],
-            sort: Constants.SortingOrder.RECENTLY_UPDATED,
+            sort: queryParams.sort ? queryParams.sort : Constants.SortingOrder.MOST_POPULAR,
             search: {
                 imageFQN: {
-                    value: "",
-                    error: ""
+                    value: imageFQN,
+                    error: this.getErrorForImageFQN(imageFQN)
                 }
             },
             pagination: {
-                pageNo: Images.DEFAULT_PAGE_NO,
-                rowsPerPage: Images.DEFAULT_ROWS_PER_PAGE
+                pageNo: queryParams.pageNo ? queryParams.pageNo : Images.DEFAULT_PAGE_NO,
+                rowsPerPage: queryParams.rowsPerPage ? queryParams.rowsPerPage : Images.DEFAULT_ROWS_PER_PAGE
             }
         };
     }
@@ -73,26 +77,34 @@ class Images extends React.Component {
         this.searchImages(pagination.rowsPerPage, pagination.pageNo, sort);
     }
 
-    handleImageNameSearchChange = (event) => {
+    handleImageFQNSearchChange = (event) => {
+        const self = this;
         const imageFQN = event.currentTarget.value;
+        self.handleQueryParamUpdate({
+            imageFQN: imageFQN ? imageFQN : null
+        });
+        self.setState((prevState) => ({
+            search: {
+                ...prevState.search,
+                imageFQN: {
+                    value: imageFQN,
+                    error: self.getErrorForImageFQN(imageFQN)
+                }
+            }
+        }));
+    };
+
+    getErrorForImageFQN = (imageFQN) => {
         let errorMessage = "";
         if (imageFQN) {
             if (!new RegExp(`^${Constants.Pattern.PARTIAL_IMAGE_FQN}$`).test(imageFQN)) {
                 errorMessage = "Image name can only contain lower case letters, numbers and dashes";
             }
         }
-        this.setState((prevState) => ({
-            search: {
-                ...prevState.search,
-                imageFQN: {
-                    value: imageFQN,
-                    error: errorMessage
-                }
-            }
-        }));
+        return errorMessage;
     };
 
-    handleImageNameSearchKeyDown = (event) => {
+    handleImageFQNSearchKeyDown = (event) => {
         if (event.keyCode === Constants.KeyCode.ENTER) {
             const {pagination, sort} = this.state;
             this.searchImages(pagination.rowsPerPage, pagination.pageNo, sort);
@@ -106,6 +118,10 @@ class Images extends React.Component {
 
     handlePageChange = (rowsPerPage, pageNo) => {
         const {sort} = this.state;
+        this.handleQueryParamUpdate({
+            pageNo: pageNo,
+            rowsPerPage: rowsPerPage
+        });
         this.setState({
             pagination: {
                 pageNo: pageNo,
@@ -118,35 +134,49 @@ class Images extends React.Component {
     handleSortChange = (event) => {
         const {pagination} = this.state;
         const newSort = event.target.value;
+        this.handleQueryParamUpdate({
+            sort: newSort
+        });
         this.setState({
             sort: newSort
         });
         this.searchImages(pagination.rowsPerPage, pagination.pageNo, newSort);
     };
 
+    handleQueryParamUpdate = (queryParams) => {
+        const {location, match, history} = this.props;
+        const queryParamsString = HttpUtils.generateQueryParamString({
+            ...HttpUtils.parseQueryParams(location.search),
+            ...queryParams
+        });
+        history.replace(match.url + queryParamsString, {
+            ...location.state
+        });
+    };
+
     searchImages = (rowsPerPage, pageNo, sort) => {
         const self = this;
         const {globalState} = self.props;
-        const {search} = this.state;
+        const {search} = self.state;
 
         let orgName;
-        let imageName;
+        let imageFQN;
         if (search.imageFQN.value) {
             const imageMatch = search.imageFQN.value.match(`^${Constants.Pattern.PARTIAL_IMAGE_FQN}$`);
             if (imageMatch) {
                 if (imageMatch[2]) {
                     orgName = `*${imageMatch[1]}`;
-                    imageName = `${imageMatch[2]}*`;
+                    imageFQN = `${imageMatch[2]}*`;
                 } else {
                     orgName = "*";
-                    imageName = `*${imageMatch[1]}*`;
+                    imageFQN = `*${imageMatch[1]}*`;
                 }
             }
         }
 
         const queryParams = {
             orgName: orgName ? orgName : "*",
-            imageName: imageName ? imageName : "*",
+            imageName: imageFQN ? imageFQN : "*",
             orderBy: sort,
             resultLimit: rowsPerPage,
             offset: pageNo * rowsPerPage
@@ -196,8 +226,8 @@ class Images extends React.Component {
                     <Grid item xs={12} sm={4} md={4}>
                         <FormControl className={classes.formControl} error={search.imageFQN.error}>
                             <Input id={"search"} placeholder={"Search Image"}
-                                value={search.imageFQN.value} onChange={this.handleImageNameSearchChange}
-                                onKeyDown={this.handleImageNameSearchKeyDown}
+                                value={search.imageFQN.value} onChange={this.handleImageFQNSearchChange}
+                                onKeyDown={this.handleImageFQNSearchKeyDown}
                                 endAdornment={
                                     <InputAdornment position={"end"}>
                                         <IconButton aria-label={"Search Image"} onClick={this.handleSearchButtonClick}>
@@ -242,8 +272,17 @@ class Images extends React.Component {
 }
 
 Images.propTypes = {
+    location: PropTypes.shape({
+        search: PropTypes.string.isRequired
+    }).isRequired,
+    history: PropTypes.shape({
+        replace: PropTypes.func.isRequired
+    }).isRequired,
+    match: PropTypes.shape({
+        url: PropTypes.string.isRequired
+    }).isRequired,
     classes: PropTypes.object.isRequired,
     globalState: PropTypes.instanceOf(StateHolder).isRequired
 };
 
-export default withStyles(styles)(withGlobalState(Images));
+export default withStyles(styles)(withGlobalState(withRouter(Images)));

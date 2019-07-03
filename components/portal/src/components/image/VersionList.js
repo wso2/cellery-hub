@@ -90,19 +90,22 @@ class VersionList extends React.Component {
 
     constructor(props) {
         super(props);
+
+        const queryParams = HttpUtils.parseQueryParams(props.location.search);
+        const version = queryParams.version ? queryParams.version : "";
         this.state = {
             totalCount: 0,
             versions: [],
             search: {
                 version: {
-                    value: "",
-                    error: ""
+                    value: version,
+                    error: this.getErrorForVersion(version)
                 }
             },
-            sort: Constants.SortingOrder.RECENTLY_UPDATED,
+            sort: queryParams.sort ? queryParams.sort : Constants.SortingOrder.MOST_POPULAR,
             pagination: {
-                pageNo: VersionList.DEFAULT_PAGE_NO,
-                rowsPerPage: VersionList.DEFAULT_ROWS_PER_PAGE
+                pageNo: queryParams.pageNo ? queryParams.pageNo : VersionList.DEFAULT_PAGE_NO,
+                rowsPerPage: queryParams.rowsPerPage ? queryParams.rowsPerPage : VersionList.DEFAULT_ROWS_PER_PAGE
             }
         };
     }
@@ -120,22 +123,30 @@ class VersionList extends React.Component {
     };
 
     handleVersionSearchChange = (event) => {
+        const self = this;
         const version = event.currentTarget.value;
+        self.handleQueryParamUpdate({
+            version: version ? version : null
+        });
+        self.setState((prevState) => ({
+            search: {
+                ...prevState.search,
+                version: {
+                    value: version,
+                    error: self.getErrorForVersion(version)
+                }
+            }
+        }));
+    };
+
+    getErrorForVersion = (version) => {
         let errorMessage = "";
         if (version) {
             if (!new RegExp(`^${Constants.Pattern.PARTIAL_IMAGE_VERSION}$`).test(version)) {
                 errorMessage = "Version can only contain lower case letters, numbers, dashes and dots";
             }
         }
-        this.setState((prevState) => ({
-            search: {
-                ...prevState.search,
-                version: {
-                    value: version,
-                    error: errorMessage
-                }
-            }
-        }));
+        return errorMessage;
     };
 
     handleVersionSearchKeyDown = (event) => {
@@ -152,6 +163,9 @@ class VersionList extends React.Component {
 
     handleChangePageNo = (event, newPageNo) => {
         const {pagination, sort} = this.state;
+        this.handleQueryParamUpdate({
+            pageNo: newPageNo
+        });
         this.setState((prevState) => ({
             pagination: {
                 ...prevState.pagination,
@@ -164,7 +178,12 @@ class VersionList extends React.Component {
     handleChangeRowsPerPage = (event) => {
         const {pagination, sort} = this.state;
         const newRowsPerPage = event.target.value;
-        const newPageNo = (pagination.pageNo * pagination.rowsPerPage) / newRowsPerPage;
+        const newPageNoCandidate = Math.trunc((pagination.pageNo * pagination.rowsPerPage) / newRowsPerPage);
+        const newPageNo = newPageNoCandidate >= 0 ? newPageNoCandidate : 0;
+        this.handleQueryParamUpdate({
+            pageNo: newPageNo,
+            rowsPerPage: newRowsPerPage
+        });
         this.setState((prevState) => ({
             pagination: {
                 ...prevState.pagination,
@@ -178,10 +197,24 @@ class VersionList extends React.Component {
     handleSortChange = (event) => {
         const {pagination} = this.state;
         const newSort = event.target.value;
+        this.handleQueryParamUpdate({
+            sort: newSort
+        });
         this.setState({
             sort: newSort
         });
         this.searchVersions(pagination.rowsPerPage, pagination.pageNo, newSort);
+    };
+
+    handleQueryParamUpdate = (queryParams) => {
+        const {location, match, history} = this.props;
+        const queryParamsString = HttpUtils.generateQueryParamString({
+            ...HttpUtils.parseQueryParams(location.search),
+            ...queryParams
+        });
+        history.replace(match.url + queryParamsString, {
+            ...location.state
+        });
     };
 
     searchVersions = (rowsPerPage, pageNo, sort) => {
@@ -319,17 +352,22 @@ class VersionList extends React.Component {
 }
 
 VersionList.propTypes = {
-    classes: PropTypes.object.isRequired,
-    globalState: PropTypes.instanceOf(StateHolder).isRequired,
+    location: PropTypes.shape({
+        search: PropTypes.string.isRequired
+    }).isRequired,
     history: PropTypes.shape({
+        replace: PropTypes.func.isRequired,
         goBack: PropTypes.func.isRequired
-    }),
+    }).isRequired,
     match: PropTypes.shape({
+        url: PropTypes.string.isRequired,
         params: PropTypes.shape({
             orgName: PropTypes.string.isRequired,
             imageName: PropTypes.string.isRequired
-        })
-    }).isRequired
+        }).isRequired
+    }).isRequired,
+    classes: PropTypes.object.isRequired,
+    globalState: PropTypes.instanceOf(StateHolder).isRequired
 };
 
 export default withStyles(styles)(withRouter(withGlobalState(VersionList)));
