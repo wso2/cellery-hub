@@ -167,7 +167,7 @@ func isJWT(execId string) bool {
 			log.Printf("[%s] Received a JWT token\n", execId)
 			isJWT = true
 		} else if isJWTEnv == "false" {
-			log.Printf("[%s] Received a access token\n", execId)
+			log.Printf("[%s] Received an access token\n", execId)
 			isJWT = false
 		} else {
 			log.Printf("[%s] Error: Wrong environment value given. The value should be either true or false\n",
@@ -208,12 +208,28 @@ func validateAccessToken(token string, providedUsername string, execId string) b
 		log.Printf("[%s] Error sending the request to the introspection endpoint : %s\n", execId, err)
 		return false
 	}
+
+	if res.StatusCode == http.StatusBadRequest {
+		log.Printf("[%s] %d status code returned from IDP probably due to empty token\n", execId,
+			res.StatusCode)
+		return false
+	}
+	if res.StatusCode != http.StatusOK {
+		log.Printf("[%s] Error while calling IDP, status code :%d. Exiting without authorization\n", execId,
+			res.StatusCode)
+		os.Exit(extension.ErrorExitCode)
+	}
+
 	defer res.Body.Close()
 	body, err := ioutil.ReadAll(res.Body)
 	if err != nil {
-		log.Printf("[%s] Error reading the res   ponse from introspection endpoint : %s\n", execId, err)
+		log.Printf("[%s] Error reading the response from introspection endpoint. Returing without "+
+			"authorization : %s\n", execId, err)
 		return false
+	} else {
+		log.Printf("[%s] Response recieved from introspection endpoint : %s\n", execId, body)
 	}
+
 	var result map[string]interface{}
 	err = json.Unmarshal([]byte(string(body)), &result)
 	if err != nil {
@@ -225,7 +241,7 @@ func validateAccessToken(token string, providedUsername string, execId string) b
 		log.Printf("[%s] Error casting active to boolean. This may be due to a invalid token\n", execId)
 		return false
 	}
-	log.Printf("[%s] Resolved access token values successfully\n", execId)
+	log.Printf("[%s] Resolved acess token validity\n", execId)
 	isExpired := isExpired(result["exp"], execId)
 	isValidUser := isValidUser(result["username"], providedUsername, execId)
 	return isExpired && isActive && isValidUser
@@ -293,7 +309,8 @@ func isExpired(timestamp interface{}, execId string) bool {
 		log.Printf("[%s] Token received is expired. Token expiry time is %s, while the system time is %s\n",
 			execId, tm, time.Now())
 	} else {
-		log.Printf("[%s] Error casting timestamp to string. This may be due to a invalid token\n", execId)
+		log.Printf("[%s] Error casting timestamp %s to string. This may be due to a invalid token\n",
+			execId, timestamp)
 		return false
 	}
 	return false

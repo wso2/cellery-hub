@@ -22,6 +22,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strconv"
 	"strings"
 
 	"github.com/cellery-io/cellery-hub/components/docker-auth/pkg/extension"
@@ -53,6 +54,7 @@ func main() {
 	}
 
 	text := extension.ReadStdIn()
+	log.Printf("[%s] Payload received from CLI : %s\n", execId, text)
 	credentials := strings.Split(text, " ")
 
 	if len(credentials) != 2 {
@@ -63,6 +65,11 @@ func main() {
 	incomingToken := credentials[1]
 	tokenArray := strings.Split(incomingToken, ":")
 	token := tokenArray[0]
+
+	isPing := len(tokenArray) > 1 && tokenArray[1] == "ping"
+	if isPing {
+		log.Printf("[%s] Ping request recieved\n", execId)
+	}
 
 	url := resolveAuthenticationUrl(execId)
 	if url == "" {
@@ -80,11 +87,21 @@ func main() {
 	log.Printf("[%s] Response received from the auth server with the status code %d", execId, res.StatusCode)
 
 	if res.StatusCode == http.StatusUnauthorized {
-		log.Printf("[%s] Authentication failed. Exiting with error exit code", execId)
-		os.Exit(extension.ErrorExitCode)
+		log.Printf("[%s] User access token failed to authenticate. Evaluating ping", execId)
+		if isPing {
+			log.Printf("[%s] Since this is a ping request, exiting with auth fail status without passing to "+
+				" authorization filter\n", execId)
+			os.Exit(extension.ErrorExitCode)
+		} else {
+			log.Printf("[%s] Failed authentication. But passing to authorization filter", execId)
+			addAuthenticationLabel(false, execId)
+			os.Exit(extension.SuccessExitCode)
+		}
 	}
 	if res.StatusCode == http.StatusOK {
-		log.Printf("[%s] Authentication Success. Exiting with success exit code", execId)
+		log.Printf("[%s] User successfully authenticated by validating token. Exiting with success exit code",
+			execId)
+		addAuthenticationLabel(true, execId)
 		os.Exit(extension.SuccessExitCode)
 	}
 }
@@ -102,4 +119,15 @@ func resolveAuthenticationUrl(execId string) string {
 		return ""
 	}
 	return authServer + authenticationEP
+}
+
+func addAuthenticationLabel(isAuthenticated bool, execId string) {
+	authResultString := strconv.FormatBool(isAuthenticated)
+	label := "{\"labels\": {\"isAuthSuccess\": [\"" + authResultString + "\"]}}"
+	log.Printf("[%s] Adding labels to authorization ext from authn ext: %s\n", execId, label)
+	_, err := os.Stdout.WriteString(label)
+	if err != nil {
+		log.Printf("[%s] Error in writing to standard output. Hence failing authentication. No authorizatino done", err)
+		os.Exit(extension.ErrorExitCode)
+	}
 }

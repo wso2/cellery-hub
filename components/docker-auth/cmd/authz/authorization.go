@@ -53,6 +53,7 @@ func main() {
 	}
 
 	accessToken := extension.ReadStdIn()
+	log.Printf("[%s] Access token received\n", execId)
 
 	url := resolveAuthorizationUrl(execId)
 	if url == "" {
