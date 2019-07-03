@@ -43,7 +43,9 @@ class HubApiError extends Error {
         super(errorResponse.message);
         this.errorResponse = errorResponse;
         this.statusCode = statusCode;
-        Error.captureStackTrace(this, this.constructor);
+        if (Error.captureStackTrace && typeof Error.captureStackTrace == "function") {
+            Error.captureStackTrace(this, this.constructor);
+        }
     }
 
     /**
