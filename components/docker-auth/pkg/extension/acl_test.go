@@ -145,23 +145,31 @@ func TestValidateAccess(t *testing.T) {
 		text string
 	}{
 		{"{\"Account\":\"wso2.com\",\"Type\":\"repository\",\"Name\":\"cellery/newImage\",\"Service\":" +
-			"\"Docker registry\",\"IP\":\"172.25.0.1\",\"Actions\":[\"pull\"],\"Labels\":null}"},
+			"\"Docker registry\",\"IP\":\"172.25.0.1\",\"Actions\":[\"pull\"],\"labels\": " +
+			"{\"isAuthSuccess\":[\"true\"]}}"},
 		{"{\"Account\":\"admin@wso2.com\",\"Type\":\"repository\",\"Name\":\"cellery/image\",\"Service\":" +
-			"\"Docker registry\",\"IP\":\"172.25.0.1\",\"Actions\":[\"pull\"],\"Labels\":null}"},
+			"\"Docker registry\",\"IP\":\"172.25.0.1\",\"Actions\":[\"pull\"],\"labels\": " +
+			" {\"isAuthSuccess\":[\"true\"]}}"},
 		{"{\"Account\":\"admin.com\",\"Type\":\"repository\",\"Name\":\"cellery/image\",\"Service\":" +
-			"\"Docker registry\",\"IP\":\"172.25.0.1\",\"Actions\":[\"pull\",\"push\"],\"Labels\":null}"},
+			"\"Docker registry\",\"IP\":\"172.25.0.1\",\"Actions\":[\"pull\",\"push\"],\"labels\": " +
+			" {\"isAuthSuccess\":[\"true\"]}}"},
 		//	user trying to push with a new image which does not exists in the db
 		{"{\"Account\":\"admin.com\",\"Type\":\"repository\",\"Name\":\"cellery/sample\",\"Service\":" +
-			"\"Docker registry\",\"IP\":\"172.25.0.1\",\"Actions\":[\"pull\",\"push\"],\"Labels\":null}"},
+			"\"Docker registry\",\"IP\":\"172.25.0.1\",\"Actions\":[\"pull\",\"push\"],\"labels\": " +
+			" {\"isAuthSuccess\":[\"true\"]}}"},
 		//	user that is not in the db trying to pull a public image
 		{"{\"Account\":\"user.com\",\"Type\":\"repository\",\"Name\":\"cellery/image\",\"Service\":" +
-			"\"Docker registry\",\"IP\":\"172.25.0.1\",\"Actions\":[\"pull\"],\"Labels\":null}"},
+			"\"Docker registry\",\"IP\":\"172.25.0.1\",\"Actions\":[\"pull\"],\"labels\": " +
+			" {\"isAuthSuccess\":[\"true\"]}}"},
 		{"{\"Account\":\"other.com\",\"Type\":\"repository\",\"Name\":\"cellery/image\",\"Service\":" +
-			"\"Docker registry\",\"IP\":\"172.25.0.1\",\"Actions\":[\"pull\"],\"Labels\":null}"},
+			"\"Docker registry\",\"IP\":\"172.25.0.1\",\"Actions\":[\"pull\"],\"labels\": " +
+			" {\"isAuthSuccess\":[\"true\"]}}"},
 		{"{\"Account\":\"wso2.com\",\"Type\":\"repository\",\"Name\":\"cellery/newImage\",\"Service\":" +
-			"\"Docker registry\",\"IP\":\"172.25.0.1\",\"Actions\":[\"pull\",\"push\"],\"Labels\":null}"},
+			"\"Docker registry\",\"IP\":\"172.25.0.1\",\"Actions\":[\"pull\",\"push\"],\"labels\": " +
+			" {\"isAuthSuccess\":[\"true\"]}}"},
 		{"{\"Account\":\"wso2.com\",\"Type\":\"repository\",\"Name\":\"cellery/newImage\",\"Service\":" +
-			"\"Docker registry\",\"IP\":\"172.25.0.1\",\"Actions\":[\"pull\"],\"Labels\":null}"},
+			"\"Docker registry\",\"IP\":\"172.25.0.1\",\"Actions\":[\"pull\"],\"labels\": " +
+			" {\"isAuthSuccess\":[\"true\"]}}"},
 	}
 	for _, value := range values {
 		isAuthorized, err := ValidateAccess(dbConnection, value.text, testUser)
@@ -180,15 +188,19 @@ func TestInvalidAccess(t *testing.T) {
 	}{
 		// new user trying to pull a private image
 		{"{\"Account\":\"user.com\",\"Type\":\"repository\",\"Name\":\"cellery/newImage\",\"Service\":" +
-			"\"Docker registry\",\"IP\":\"172.25.0.1\",\"Actions\":[\"pull\"],\"Labels\":null}"},
+			"\"Docker registry\",\"IP\":\"172.25.0.1\",\"Actions\":[\"pull\"],\"labels\": " +
+			" {\"isAuthSuccess\":[\"true\"]}}"},
 		//	a user with pull permission trying to push
 		{"{\"Account\":\"pull.com\",\"Type\":\"repository\",\"Name\":\"cellery/image\",\"Service\":" +
-			"\"Docker registry\",\"IP\":\"172.25.0.1\",\"Actions\":[\"pull\",\"push\"],\"Labels\":null}"},
+			"\"Docker registry\",\"IP\":\"172.25.0.1\",\"Actions\":[\"pull\",\"push\"],\"labels\": " +
+			" {\"isAuthSuccess\":[\"true\"]}}"},
 		//	user trying to pull a public image
 		{"{\"Account\":\"other.com\",\"Type\":\"repository\",\"Name\":\"cellery/newImage\",\"Service\":" +
-			"\"Docker registry\",\"IP\":\"172.25.0.1\",\"Actions\":[\"pull\"],\"Labels\":null}"},
+			"\"Docker registry\",\"IP\":\"172.25.0.1\",\"Actions\":[\"pull\"],\"labels\": " +
+			" {\"isAuthSuccess\":[\"true\"]}}"},
 		{"{\"Account\":\"other.com\",\"Type\":\"repository\",\"Name\":\"cellery/image\",\"Service\":" +
-			"\"Docker registry\",\"IP\":\"172.25.0.1\",\"Actions\":[\"push\",\"pull\"],\"Labels\":null}"},
+			"\"Docker registry\",\"IP\":\"172.25.0.1\",\"Actions\":[\"push\",\"pull\"],\"labels\": " +
+			" {\"isAuthSuccess\":[\"true\"]}}"},
 	}
 	for _, value := range values {
 		isAuthorized, err := ValidateAccess(dbConnection, value.text, testUser)
