@@ -65,7 +65,13 @@ func main() {
 	tokenArray := strings.Split(incomingToken, ":")
 	token := tokenArray[0]
 
-	url := fmt.Sprintf("http://localhost:8080/authentication?uName=%s&token=%s", uName, token)
+	authnEP := resolveAuthenticationUrl(execId)
+	if authnEP == "" {
+		log.Printf("[%s] Authentication end point not found. Exiting with error exit code", execId)
+		os.Exit(extension.ErrorExitCode)
+	}
+	url := fmt.Sprintf("%s?uName=%s&token=%s", authnEP, uName, token)
+
 	log.Printf("[%s] Calling %s", execId, url)
 	req, _ := http.NewRequest("GET", url, nil)
 	res, _ := http.DefaultClient.Do(req)
@@ -82,4 +88,19 @@ func main() {
 		log.Printf("[%s] Authentication Success. Exiting with success exit code", execId)
 		os.Exit(extension.SuccessExitCode)
 	}
+}
+
+// resolves the authentication end point from the environment variables.
+func resolveAuthenticationUrl(execId string) string {
+	authServer := os.Getenv("AUTH_SERVER")
+	authenticationEP := os.Getenv("AUTHENTICATION_END_POINT")
+	if len(authServer) == 0 {
+		log.Printf("[%s] Error: AUTH_SERVER environment variable is empty\n", execId)
+		return ""
+	}
+	if len(authenticationEP) == 0 {
+		log.Printf("[%s] Error: AUTHENTICATION_END_POINT environment variable is empty\n", execId)
+		return ""
+	}
+	return authServer + authenticationEP
 }

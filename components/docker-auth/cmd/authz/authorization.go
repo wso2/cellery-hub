@@ -54,7 +54,12 @@ func main() {
 
 	accessToken := extension.ReadStdIn()
 
-	url := "http://localhost:8080/authorization"
+	url := resolveAuthorizationUrl(execId)
+	if url == "" {
+		log.Printf("[%s] Authorization end point not found. Exiting with error exit code", execId)
+		os.Exit(extension.ErrorExitCode)
+	}
+
 	payload := strings.NewReader(accessToken)
 	log.Printf("[%s] Calling %s with accessToken : %s as payload", execId, url, accessToken)
 
@@ -74,4 +79,19 @@ func main() {
 		log.Printf("[%s] Authorized request. Exiting with success exit code", execId)
 		os.Exit(extension.SuccessExitCode)
 	}
+}
+
+// resolves the authorization end point from the environment variables.
+func resolveAuthorizationUrl(execId string) string {
+	authServer := os.Getenv("AUTH_SERVER")
+	authorizationEP := os.Getenv("AUTHORIZATION_END_POINT")
+	if len(authServer) == 0 {
+		log.Printf("[%s] Error: AUTH_SERVER environment variable is empty\n", execId)
+		return ""
+	}
+	if len(authorizationEP) == 0 {
+		log.Printf("[%s] Error: AUTHORIZATION_END_POINT environment variable is empty\n", execId)
+		return ""
+	}
+	return authServer + authorizationEP
 }

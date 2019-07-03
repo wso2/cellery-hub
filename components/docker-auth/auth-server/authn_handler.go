@@ -95,7 +95,7 @@ func validateToken(inToken string, cert []byte, execId string) (bool, error) {
 func Authenticate(uName string, token string, execId string) int {
 	log.Printf("[%s] Authentication logic handler reached and token will be validated\n", execId)
 	if isJWT(execId) {
-		log.Printf("[%s] Authenticate by using JWT\n", execId)
+		log.Printf("[%s] Performing authentication by using JWT\n", execId)
 		jwtValidity := validateJWT(token, uName, execId)
 		if jwtValidity {
 			return extension.SuccessExitCode
@@ -103,7 +103,7 @@ func Authenticate(uName string, token string, execId string) int {
 			return extension.ErrorExitCode
 		}
 	} else {
-		log.Printf("[%s] Authenticate by using access token\n", execId)
+		log.Printf("[%s] Performing authentication by using access token\n", execId)
 		if validateAccessToken(token, uName, execId) {
 			log.Printf("[%s] User successfully authenticated. Returning success status code\n", execId)
 			return extension.SuccessExitCode
@@ -185,12 +185,12 @@ func validateAccessToken(token string, providedUsername string, execId string) b
 		return false
 	}
 	payload := strings.NewReader("token=" + token)
-	log.Println("url", introspectionUrl)
 	req, err := http.NewRequest("POST", introspectionUrl, payload)
 	if err != nil {
 		log.Printf("[%s] Error creating new request to the introspection endpoint : %s\n", execId, err)
 		return false
 	}
+	log.Printf("[%s] Created new request to the introspection endpoint : %s\n", execId, introspectionUrl)
 	username, password, credentialsAvailability := resolveCredentials(execId)
 	if !credentialsAvailability {
 		return false
