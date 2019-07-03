@@ -271,7 +271,7 @@ class MyImages extends React.Component {
 
     render = () => {
         const {classes} = this.props;
-        const {pagination, totalCount, search, sort, images, orgs} = this.state;
+        const {pagination, totalCount, search, sort, images, orgs, isLoading} = this.state;
 
         return (
             <div className={classes.content}>
@@ -342,8 +342,14 @@ class MyImages extends React.Component {
                         </Grid>
                     </Grid>
                 </div>
-                <ImageList pageData={images} onPageChange={this.handlePageChange} totalCount={totalCount}
-                    rowsPerPage={pagination.rowsPerPage} pageNo={pagination.pageNo}/>
+                {
+                    isLoading
+                        ? null
+                        : (
+                            <ImageList pageData={images} onPageChange={this.handlePageChange} totalCount={totalCount}
+                                rowsPerPage={pagination.rowsPerPage} pageNo={pagination.pageNo}/>
+                        )
+                }
             </div>
         );
     }

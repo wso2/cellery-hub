@@ -56,6 +56,7 @@ class Orgs extends React.Component {
         const queryParams = HttpUtils.parseQueryParams(props.location.search);
         const orgName = queryParams.orgName ? queryParams.orgName : "";
         this.state = {
+            isLoading: true,
             totalCount: 0,
             orgs: [],
             search: {
@@ -151,6 +152,9 @@ class Orgs extends React.Component {
             offset: pageNo * rowsPerPage
         };
         NotificationUtils.showLoadingOverlay("Fetching organizations", globalState);
+        self.setState({
+            isLoading: true
+        });
         HttpUtils.callHubAPI(
             {
                 url: `/orgs${HttpUtils.generateQueryParamString(queryParams)}`,
@@ -163,6 +167,9 @@ class Orgs extends React.Component {
                 orgs: response.data
             });
             NotificationUtils.hideLoadingOverlay(globalState);
+            self.setState({
+                isLoading: false
+            });
         }).catch((err) => {
             let errorMessage;
             if (err instanceof HubApiError && err.getMessage()) {
@@ -171,6 +178,9 @@ class Orgs extends React.Component {
                 errorMessage = "Failed to fetch organizations";
             }
             NotificationUtils.hideLoadingOverlay(globalState);
+            self.setState({
+                isLoading: false
+            });
             if (errorMessage) {
                 NotificationUtils.showNotification(errorMessage, NotificationUtils.Levels.ERROR, globalState);
             }
@@ -179,7 +189,7 @@ class Orgs extends React.Component {
 
     render() {
         const {classes} = this.props;
-        const {totalCount, orgs, search, pagination} = this.state;
+        const {totalCount, orgs, search, pagination, isLoading} = this.state;
         return (
             <Grid container>
                 <Grid item xs={12} sm={4} md={4}>
@@ -199,10 +209,16 @@ class Orgs extends React.Component {
                         {search.orgName.error ? <FormHelperText>{search.orgName.error}</FormHelperText> : null}
                     </FormControl>
                 </Grid>
-                <Grid item xs={12} sm={12} md={12}>
-                    <OrgList pageData={orgs} onPageChange={this.handlePageChange} totalCount={totalCount}
-                        rowsPerPage={pagination.rowsPerPage} pageNo={pagination.pageNo}/>
-                </Grid>
+                {
+                    isLoading
+                        ? null
+                        : (
+                            <Grid item xs={12} sm={12} md={12}>
+                                <OrgList pageData={orgs} onPageChange={this.handlePageChange} totalCount={totalCount}
+                                    rowsPerPage={pagination.rowsPerPage} pageNo={pagination.pageNo}/>
+                            </Grid>
+                        )
+                }
             </Grid>
         );
     }
