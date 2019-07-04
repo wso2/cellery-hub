@@ -39,6 +39,7 @@ const DependencyDiagram = (props) => {
                 name: component
             }
         )),
+        metaInfo: {},
         dependencyLinks: []
     };
 
@@ -71,6 +72,39 @@ const DependencyDiagram = (props) => {
 
                 extractData(dependency);
             });
+        }
+
+        if (!diagramData.metaInfo.hasOwnProperty(getCellName(cell))) {
+            const cellMetaInfo = {
+                cell: getCellName(cell),
+                ingresses: [],
+                componentDependencyLinks: []
+            };
+
+            if (cell.componentDep) {
+                Object.entries(cell.componentDep).forEach(([component, dependency]) => {
+                    dependency.forEach((dependentComponent) => {
+                        cellMetaInfo.componentDependencyLinks.push({
+                            from: `${getCellName(cell)} ${component}`,
+                            to: `${getCellName(cell)} ${dependentComponent}`
+                        });
+                    });
+                });
+            }
+
+            if (cell.exposed) {
+                cell.exposed.forEach((component) => {
+                    cellMetaInfo.componentDependencyLinks.push({
+                        from: `${getCellName(cell)} gateway`,
+                        to: `${getCellName(cell)} ${component}`
+                    });
+                });
+            }
+
+            if (cell.ingresses) {
+                cellMetaInfo.ingresses = cell.ingresses;
+            }
+            diagramData.metaInfo[getCellName(cell)] = cellMetaInfo;
         }
     };
     extractData(data);
