@@ -19,6 +19,7 @@
 import ArrowBack from "@material-ui/icons/ArrowBack";
 import Constants from "../../utils/constants";
 import CustomizedTabs from "../common/CustomizedTabs";
+import DataUtils from "../../utils/api/dataUtils";
 import Divider from "@material-ui/core/Divider";
 import Grid from "@material-ui/core/Grid";
 import IconButton from "@material-ui/core/IconButton/IconButton";
@@ -185,8 +186,8 @@ class Org extends React.Component {
                                             <div className={classes.stats}>
                                                 <Typography variant={"subtitle2"} color={"inherit"}
                                                     className={classes.elementText}>
-                                                    Created by {orgData.firstAuthor.displayName} on&nbsp;
-                                                    {moment(orgData.createdTimestamp)
+                                                    Created by {DataUtils.getUserDisplayName(orgData.firstAuthor)}&nbsp;
+                                                    on {moment(orgData.createdTimestamp)
                                                         .format(Constants.Format.DATE_TIME)}
                                                 </Typography>
                                             </div>

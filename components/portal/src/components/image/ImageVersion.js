@@ -21,6 +21,7 @@ import ArrowBack from "@material-ui/icons/ArrowBack";
 import CellImage from "../../img/CellImage";
 import Constants from "../../utils/constants";
 import CustomizedTabs from "../common/CustomizedTabs";
+import DataUtils from "../../utils/api/dataUtils";
 import DependencyDiagram from "./dependencyDiagram";
 import Divider from "@material-ui/core/Divider";
 import FileCopy from "@material-ui/icons/FileCopyOutlined";
@@ -309,7 +310,8 @@ class ImageVersion extends React.Component {
                                                             Last Updated on&nbsp;
                                                             {moment(versionData.updatedTimestamp)
                                                                 .format(Constants.Format.DATE_TIME)}
-                                                            &nbsp;by {versionData.lastAuthor.displayName}
+                                                            &nbsp;by {DataUtils.getUserDisplayName(
+                                                                versionData.lastAuthor)}
                                                         </Typography>
                                                     </div>
 
