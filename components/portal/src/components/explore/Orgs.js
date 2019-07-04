@@ -194,8 +194,8 @@ class Orgs extends React.Component {
             <Grid container>
                 <Grid item xs={12} sm={4} md={4}>
                     <FormControl className={classes.formControl} error={search.orgName.error}>
-                        <InputLabel shrink htmlFor={"search-label-placeholder"}/>
-                        <Input id={"search"} placeholder={"Search Organization"} value={search.orgName.value}
+                        <InputLabel htmlFor={"search"}>Search Organization</InputLabel>
+                        <Input id={"search"} value={search.orgName.value}
                             onChange={this.handleOrgNameSearchChange} onKeyDown={this.handleOrgNameSearchKeyDown}
                             endAdornment={
                                 <InputAdornment position={"end"}>

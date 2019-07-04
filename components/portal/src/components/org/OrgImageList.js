@@ -212,8 +212,8 @@ class OrgImageList extends React.Component {
                 <Grid container>
                     <Grid item xs={12} sm={7} md={7}>
                         <FormControl className={classes.formControl} error={search.imageName.error}>
-                            <InputLabel htmlFor={"search"}>Image Name</InputLabel>
-                            <Input id={"search"} placeholder={"Search Images"} type={"text"}
+                            <InputLabel htmlFor={"search"}>Search Image</InputLabel>
+                            <Input id={"search"}
                                 value={search.imageName.value} onChange={this.handleImageNameSearchChange}
                                 onKeyDown={this.handleImageNameSearchKeyDown}
                                 endAdornment={

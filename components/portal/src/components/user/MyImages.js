@@ -300,8 +300,8 @@ class MyImages extends React.Component {
                         </Grid>
                         <Grid item xs={12} sm={4} md={4}>
                             <FormControl className={classes.formControl} error={search.imageName.error}>
-                                <InputLabel htmlFor={"search"}>Image Name</InputLabel>
-                                <Input id={"search"} placeholder={"Search Image"}
+                                <InputLabel htmlFor={"search"}>Search Image</InputLabel>
+                                <Input id={"search"}
                                     value={search.imageName.value}
                                     onChange={this.handleImageNameSearchChange}
                                     onKeyDown={this.handleImageNameSearchKeyDown}
