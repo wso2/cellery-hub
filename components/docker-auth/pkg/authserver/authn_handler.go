@@ -45,8 +45,8 @@ const (
 func readCert(certPathEnv string, execId string) ([]byte, error) {
 	key, err := ioutil.ReadFile(os.Getenv(certPathEnv))
 	if err != nil {
-		log.Printf("[%s] Unable to read the cert : %s\n", execId, err)
-		return nil, err
+		log.Printf("[%s] Failed to read the cert : %s\n", execId, err)
+		return nil, fmt.Errorf("error occured while reading the cert %s", err)
 	}
 	log.Printf("[%s] Read cert successfully\n", execId)
 	return key, nil
@@ -74,8 +74,8 @@ func getClaimValue(claim jwt.MapClaims, claimKey string, execId string) string {
 func validateToken(inToken string, cert []byte, execId string) (bool, error) {
 	publicRSA, err := jwt.ParseRSAPublicKeyFromPEM(cert)
 	if err != nil {
-		log.Printf("[%s] Error parsing the cert : %s\n", execId, err)
-		return false, err
+		log.Printf("[%s] Failed to parse the cert : %s\n", execId, err)
+		return false, fmt.Errorf("error occured while parsing the cert : %s", err)
 	}
 	token, err := jwt.Parse(inToken, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodRSA); !ok {
@@ -98,8 +98,10 @@ func Authenticate(uName string, token string, execId string) int {
 		log.Printf("[%s] Performing authentication by using JWT\n", execId)
 		jwtValidity := validateJWT(token, uName, execId)
 		if jwtValidity {
+			log.Printf("[%s] User successfully authenticated. Returning success status code\n", execId)
 			return extension.SuccessExitCode
 		} else {
+			log.Printf("[%s] User failed to authenticate. Returning error status code\n", execId)
 			return extension.ErrorExitCode
 		}
 	} else {

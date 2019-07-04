@@ -32,7 +32,7 @@ const DB_NAME = "CELLERY_HUB"
 const pullAction = "pull"
 const publicVisibility = "PUBLIC"
 
-const ExecIdHeaderName = "execId"
+const ExecIdHeaderName = "x-cellery-hub-exec-id"
 
 // db queries
 const getImageAndRoleQuery = "SELECT USER_ROLE, VISIBILITY FROM " +

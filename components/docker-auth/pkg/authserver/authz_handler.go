@@ -37,8 +37,9 @@ func dbConn() (*sql.DB, error) {
 
 	db, err := sql.Open(dbDriver, fmt.Sprint(dbUser, ":", dbPass, "@tcp(", host, ":", port, ")/"+dbName))
 	if err != nil {
-		log.Println("Error occurred while connecting to the database")
-		return nil, err
+		log.Printf("Failed to connect to the database : %s", err)
+		return nil, fmt.Errorf("error occurred while connecting to the database from authorization handler "+
+			" : %s", err)
 	}
 	return db, nil
 }
@@ -53,11 +54,13 @@ func Authorization(accessToken string, execId string) int {
 	isValid, err := extension.ValidateAccess(db, accessToken, execId)
 	if err != nil {
 		log.Printf("[%s] Error occurred while validating the user :%s\n", execId, err)
+		return extension.ErrorExitCode
 	}
 	if isValid {
 		err = db.Close()
 		if err != nil {
 			log.Printf("[%s] Error occurred while closing the db connection :%s\n", execId, err)
+			return extension.ErrorExitCode
 		}
 		log.Printf("[%s] User access granted\n", execId)
 		return extension.SuccessExitCode
@@ -65,6 +68,7 @@ func Authorization(accessToken string, execId string) int {
 		err = db.Close()
 		if err != nil {
 			log.Printf("[%s] Error occurred while closing the db connection :%s\n", execId, err)
+			return extension.ErrorExitCode
 		}
 		log.Printf("[%s] User access denied\n", execId)
 		return extension.ErrorExitCode
