@@ -29,6 +29,7 @@ import ListItemAvatar from "@material-ui/core/ListItemAvatar";
 import ListItemText from "@material-ui/core/ListItemText";
 import Lock from "@material-ui/icons/Lock";
 import React from "react";
+import SearchImages from "../../img/SearchImages.png";
 import TablePagination from "@material-ui/core/TablePagination";
 import Typography from "@material-ui/core/Typography";
 import {withRouter} from "react-router-dom";
@@ -63,12 +64,18 @@ const styles = (theme) => ({
         fontSize: 14,
         verticalAlign: "text-bottom"
     },
-    noImagesMessage: {
+    noImagesMsgContainer: {
         textAlign: "center",
-        fontSize: "1em",
-        fontWeight: 300,
-        color: "#808080",
-        maxWidth: "50vw"
+        paddingTop: theme.spacing(8),
+        paddingBottom: theme.spacing(4)
+    },
+    searchIcon: {
+        height: 70
+    },
+    noResultsMsg: {
+        fontWeight: 500,
+        color: "#a0a0a0",
+        paddingTop: theme.spacing(1)
     }
 });
 
@@ -143,8 +150,11 @@ class ImageList extends React.Component {
                     </React.Fragment>
                 )
                 : (
-                    <div className={classes.noImagesMessage}>
-                        No Images Found
+                    <div className={classes.noImagesMsgContainer}>
+                        <img src={SearchImages} alt={"no results found"} className={classes.searchIcon}/>
+                        <Typography component={"div"} className={classes.noResultsMsg}>
+                            No Results Found
+                        </Typography>
                     </div>
                 )
         );

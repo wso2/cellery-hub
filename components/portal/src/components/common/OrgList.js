@@ -25,6 +25,7 @@ import ListItemAvatar from "@material-ui/core/ListItemAvatar";
 import ListItemText from "@material-ui/core/ListItemText";
 import People from "@material-ui/icons/People";
 import React from "react";
+import SearchOrgs from "../../img/SearchOrgs.png";
 import TablePagination from "@material-ui/core/TablePagination";
 import Typography from "@material-ui/core/Typography";
 import {withRouter} from "react-router-dom";
@@ -54,12 +55,18 @@ const styles = (theme) => ({
         color: "#ffffff",
         background: "#91c56f"
     },
-    noOrgsMessage: {
+    noOrgsMsgContainer: {
         textAlign: "center",
-        fontSize: "1em",
-        fontWeight: 300,
-        color: "#808080",
-        maxWidth: "50vw"
+        paddingTop: theme.spacing(8),
+        paddingBottom: theme.spacing(4)
+    },
+    searchIcon: {
+        height: 70
+    },
+    noResultsMsg: {
+        fontWeight: 500,
+        color: "#a0a0a0",
+        paddingTop: theme.spacing(1)
     }
 });
 
@@ -121,8 +128,11 @@ class OrgList extends React.Component {
                     </React.Fragment>
                 )
                 : (
-                    <div className={classes.noOrgsMessage}>
-                        No Organizations Found
+                    <div className={classes.noOrgsMsgContainer}>
+                        <img src={SearchOrgs} alt={"no results found"} className={classes.searchIcon}/>
+                        <Typography component={"div"} className={classes.noResultsMsg}>
+                            No Matching Organizations Found
+                        </Typography>
                     </div>
                 )
         );

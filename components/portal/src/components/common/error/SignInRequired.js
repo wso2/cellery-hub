@@ -21,6 +21,7 @@ import Button from "@material-ui/core/Button/Button";
 import CelleryError from "../../../img/celleryError.jpg";
 import Home from "@material-ui/icons/Home";
 import React from "react";
+import Typography from "@material-ui/core/Typography";
 import {withRouter} from "react-router-dom";
 import {withStyles} from "@material-ui/core";
 import * as PropTypes from "prop-types";
@@ -39,12 +40,12 @@ const styles = (theme) => ({
         textAlign: "center"
     },
     signInRequiredImg: {
-        marginTop: theme.spacing.unit * 5,
+        marginTop: theme.spacing(5),
         height: 150
     },
     signInRequiredTitle: {
-        margin: theme.spacing.unit,
-        fontSize: "1.5em",
+        margin: theme.spacing(1),
+        fontSize: "1rem",
         fontWeight: 400,
         color: "#6e6e6e"
     },
@@ -55,10 +56,14 @@ const styles = (theme) => ({
         maxWidth: "50vw"
     },
     navigationButton: {
-        margin: theme.spacing.unit
+        margin: theme.spacing(1)
     },
     navigationButtonIcon: {
-        marginRight: theme.spacing.unit
+        marginRight: theme.spacing(1)
+    },
+    gotoHubButton: {
+        marginTop: theme.spacing(2),
+        borderColor: theme.palette.primary.main
     }
 });
 
@@ -67,7 +72,7 @@ const SignInRequired = ({classes, history, title, description, showNavigationBut
         <div className={classes.signInRequired}>
             <img src={CelleryError} className={classes.signInRequiredImg} alt={"Sign In Required"}/>
             <div className={classes.signInRequiredTitle}>
-                {title ? title : "You need to sign in to view this"}
+                {title ? title : "You need to Sign In to view this"}
             </div>
             {
                 description
@@ -94,7 +99,14 @@ const SignInRequired = ({classes, history, title, description, showNavigationBut
                             </Button>
                         </React.Fragment>
                     )
-                    : null
+                    : (
+                        <React.Fragment>
+                            <Button variant={"outlined"} size={"medium"} className={classes.gotoHubButton}
+                                onClick={() => history.push("/")}>
+                                <Typography>Go to Celley Hub Home</Typography>
+                            </Button>
+                        </React.Fragment>
+                    )
             }
         </div>
     </div>

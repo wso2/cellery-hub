@@ -225,7 +225,8 @@ class Images extends React.Component {
                 <Grid container>
                     <Grid item xs={12} sm={4} md={4}>
                         <FormControl className={classes.formControl} error={search.imageFQN.error}>
-                            <Input id={"search"} placeholder={"Search Image"}
+                            <InputLabel htmlFor={"search"}>Search Image</InputLabel>
+                            <Input id={"search"}
                                 value={search.imageFQN.value} onChange={this.handleImageFQNSearchChange}
                                 onKeyDown={this.handleImageFQNSearchKeyDown}
                                 endAdornment={

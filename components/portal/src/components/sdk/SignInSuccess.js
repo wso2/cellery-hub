@@ -71,9 +71,10 @@ const SignInSuccess = (props) => {
                 <Typography variant={"h6"} className={classes.nextTitle}>What&apos;s next?</Typography>
                 <img src={CelleryCmd} className={classes.celleryCmd} alt={"Cellery cmd"}/>
                 <div className={classes.gotoHub}>
-                    <Typography> Go back to your terminal and push your Cell images</Typography>
+                    <Typography> You may close this window and go back to your terminal to push your Cell images
+                    </Typography>
                     <Typography component={"div"}> or</Typography>
-                    <Typography> Go to&nbsp;<Link target={"_blank"} href={hubPublicUrl} className={classes.hubUrl}>
+                    <Typography> You can go to&nbsp;<Link href={hubPublicUrl} className={classes.hubUrl}>
                         Cellery Hub</Link>&nbsp;to manage your organizations and Cell images.
                     </Typography>
                 </div>

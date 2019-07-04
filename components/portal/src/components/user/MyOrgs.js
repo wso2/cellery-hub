@@ -350,7 +350,7 @@ class MyOrgs extends React.Component {
                                         <img src={CreateOrg} className={classes.createOrgImg} alt={"Create Org"}/>
                                         <Typography variant={"subtitle1"} color={"inherit"}
                                             className={classes.secondaryText}>
-                                            Create your organisation to share your images with others
+                                            Create your organization to share your images with others
                                         </Typography>
                                         <Button variant={"contained"} color={"primary"} className={classes.button}
                                             onClick={this.handleCreateOrgDialogOpen}>
