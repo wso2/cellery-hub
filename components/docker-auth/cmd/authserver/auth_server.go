@@ -41,14 +41,11 @@ func main() {
 		os.Exit(extension.ErrorExitCode)
 	}
 	log.Printf("Auth server is starting on port %s", authServerPort)
-	execId, err := extension.GetExecID()
-	if err != nil {
-		log.Printf("Error in generating the execId : %s\n", err)
-	}
 
 	http.HandleFunc("/authentication", func(w http.ResponseWriter, r *http.Request) {
-		log.Printf("[%s] Authentication endpoint reached", execId)
+		log.Printf("Authentication endpoint reached")
 
+		execId := r.Header.Get(extension.ExecIdHeaderName)
 		decoder := json.NewDecoder(r.Body)
 		var authParams AuthParams
 		err := decoder.Decode(&authParams)
@@ -73,8 +70,9 @@ func main() {
 	})
 
 	http.HandleFunc("/authorization", func(w http.ResponseWriter, r *http.Request) {
-		log.Printf("[%s] Authorization endpoint reached", execId)
+		log.Printf("Authorization endpoint reached")
 
+		execId := r.Header.Get(extension.ExecIdHeaderName)
 		body, err := ioutil.ReadAll(r.Body)
 		if err != nil {
 			log.Printf("[%s] Error occured while reading POST request for authorization : %s", execId, err)

@@ -50,6 +50,7 @@ func main() {
 	execId, err := extension.GetExecID()
 	if err != nil {
 		log.Printf("Error in generating the execId : %s\n", err)
+		os.Exit(extension.ErrorExitCode)
 	}
 
 	accessToken := extension.ReadStdIn()
@@ -65,6 +66,7 @@ func main() {
 	log.Printf("[%s] Calling %s with accessToken : %s as payload", execId, url, accessToken)
 
 	req, _ := http.NewRequest("POST", url, payload)
+	req.Header.Add(extension.ExecIdHeaderName, execId)
 
 	res, _ := http.DefaultClient.Do(req)
 
