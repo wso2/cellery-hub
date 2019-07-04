@@ -194,7 +194,7 @@ class NavBar extends React.Component {
                                     <Button disableTouchRipple={true} color={"inherit"}
                                         onClick={() => this.handleNavItemClick(pages[1])}
                                         className={classNames(classes.navButton, classes.navButtonCollapse)}>
-                                        My Organisations
+                                        My Organizations
                                     </Button>
                                 </React.Fragment>
                             )
@@ -345,7 +345,7 @@ class NavBar extends React.Component {
                                     </Button>
                                     <Button disableTouchRipple={true} color={"inherit"}
                                         onClick={() => this.handleNavItemClick(pages[1])} className={classes.navButton}>
-                                        My Organisations
+                                        My Organizations
                                     </Button>
                                 </React.Fragment>
                             )

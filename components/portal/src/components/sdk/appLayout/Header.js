@@ -136,9 +136,6 @@ class Header extends React.Component {
                                     <Typography className={classes.hubText}>
                                         hub
                                     </Typography>
-                                    <Typography className={classes.sdkText}>
-                                        SDK
-                                    </Typography>
                                 </div>
                                 {
                                     user
