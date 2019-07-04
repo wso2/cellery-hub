@@ -84,7 +84,24 @@ public function extractMetadataFromImage(byte[] cellImageBytes) returns (CellIma
                     } else {
                         log:printDebug("Cleaned up extracted Cell Image for transaction " + transactionId);
                     }
-                    return CellImageMetadata.convert(parsedMetadata);
+                    var cellImageMetadata = CellImageMetadata.convert(parsedMetadata);
+                    if (cellImageMetadata is error) {
+                        var isForeignFormat = true;
+                        if (parsedMetadata["buildCelleryVersion"] != ()) {
+                            var buildCelleryVersion = string.convert(parsedMetadata["buildCelleryVersion"]);
+                            if (buildCelleryVersion is string) {
+                                log:printError("Format of the received metadata built using Cellery "
+                                    + buildCelleryVersion + " does not match Cellery Hub supported metadata "
+                                    + "format for transaction " + transactionId);
+                                isForeignFormat = false;
+                            }
+                        }
+                        if (isForeignFormat) {
+                            log:printError("Format of the received metadata does not match Cellery Hub "
+                                + "supported metadata format for transaction " + transactionId);
+                        }
+                    }
+                    return cellImageMetadata;
                 } else {
                     error err = error("failed to parse metadata.json due to " + parsedMetadata.reason());
                     var extracedCellImageDeleteResult = zipDest.delete();

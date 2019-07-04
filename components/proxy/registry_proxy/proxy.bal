@@ -76,7 +76,8 @@ service registryProxy on new http:Listener(9090, config = registryProxyServiceEP
 
                     var lockResult = hub_database:acquireWriteLockForImage(imageFQN);
                     if (lockResult is error) {
-                        log:printError("Failed to lock transaction " + transactionId, err = lockResult);
+                        log:printError(io:sprintf("Failed to lock transaction %s for pushing image %s", transactionId,
+                            imageFQN), err = lockResult);
                         handleApiError(caller, untaint apiErrorMessage);
                         abort;
                     } else {
@@ -120,40 +121,39 @@ service registryProxy on new http:Listener(9090, config = registryProxyServiceEP
 
                                                 var err = hub_database:saveCellImageMetadata(userId, metadata);
                                                 if (err is error) {
-                                                    log:printError("Failed to save metadata for transaction "
-                                                        + transactionId, err = err);
+                                                    log:printError(io:sprintf(
+                                                        "Failed to save metadata for image %s pushed by user %s for transaction %s",
+                                                            imageFQN, userId, transactionId), err = err);
                                                     handleApiError(caller, untaint apiErrorMessage);
                                                     abort;
                                                 }
                                                 log:printDebug("Successfull saved image metadata for transaction "
                                                     + transactionId);
                                             } else {
-                                                log:printError(
-                                                    "Failed to extract metadata from Cell Image for transaction "
-                                                        + transactionId,
-                                                    err = metadata
-                                                );
+                                                log:printError(io:sprintf(
+                                                    "Failed to extract metadata from Cell Image %s pushed by user %s for transaction %s",
+                                                        imageFQN, userId, transactionId), err = metadata);
                                                 handleApiError(caller, untaint apiErrorMessage);
                                                 abort;
                                             }
                                         } else {
-                                            log:printError(
-                                                "Failed to fetch file layer from Docker Registry for transaction "
-                                                    + transactionId,
-                                                err = fileLayerBytes
-                                            );
+                                            log:printError(io:sprintf(
+                                                "Failed to fetch file layer from Docker Registry for image %s pushed by user %s for transaction %s",
+                                                    imageFQN, userId, transactionId), err = fileLayerBytes);
                                             handleApiError(caller, untaint apiErrorMessage);
                                             abort;
                                         }
                                     } else {
-                                        log:printError("Failed to parse Docker Manifest for transaction "
-                                            + transactionId, err = dockerManifest);
+                                        log:printError(io:sprintf(
+                                            "Failed to parse Docker Manifest for Image %s pushed by user %s for transaction %s",
+                                                imageFQN, userId, transactionId), err = dockerManifest);
                                         handleApiError(caller, untaint apiErrorMessage);
                                         abort;
                                     }
                                 } else {
-                                    log:printError("Failed to identify user for transaction " + transactionId,
-                                        err = userId);
+                                    log:printError(io:sprintf(
+                                        "Failed to identify user for image %s for transaction %s", imageFQN,
+                                            transactionId), err = userId);
                                     handleApiError(caller, untaint apiErrorMessage);
                                     abort;
                                 }
@@ -161,17 +161,21 @@ service registryProxy on new http:Listener(9090, config = registryProxyServiceEP
                             // Any requests without a 2xx response is passed through without any interference.
                             var result = caller->respond(clientResponse);
                             if (result is error) {
-                                log:printError("Error sending response for transaction " + transactionId,
-                                    err = result);
+                                log:printError(io:sprintf(
+                                    "Error sending response for image %s for transaction %s", imageFQN, transactionId),
+                                        err = result);
                             }
                         } else {
-                            log:printError("Error forwarding request to the Docker Registry for transaction "
-                                + transactionId, err = clientResponse);
+                            log:printError(io:sprintf(
+                                "Error forwarding request to the Docker Registry for image %s for transaction %s",
+                                    imageFQN, transactionId), err = clientResponse);
                             handleApiError(caller, untaint apiErrorMessage);
                             abort;
                         }
                     } else {
-                        log:printError("Failed to read request payload for " + transactionId, err = reqPayload);
+                        log:printError(io:sprintf(
+                            "Failed to read request payload for image %s for transaction %s", imageFQN, transactionId),
+                                err = reqPayload);
                         handleApiError(caller, untaint apiErrorMessage);
                         abort;
                     }
@@ -181,7 +185,8 @@ service registryProxy on new http:Listener(9090, config = registryProxyServiceEP
                     log:printDebug("Pushing Image successful for transaction "
                         + transactions:getCurrentTransactionId());
                 } aborted {
-                    log:printError("Pushing Image aborted for transaction " + transactions:getCurrentTransactionId());
+                    log:printError(io:sprintf("Pushing Image aborted for image %s for transaction %s", imageFQN,
+                        transactions:getCurrentTransactionId()));
                 }
                 hub_database:cleanUpAfterLockForImage(imageFQN);
             } else if (req.method == "GET") {
@@ -198,8 +203,9 @@ service registryProxy on new http:Listener(9090, config = registryProxyServiceEP
                         if (clientResponse.statusCode >= 200 && clientResponse.statusCode < 300) {
                             var err = hub_database:incrementPullCount(orgName, imageName, imageVersion);
                             if (err is error) {
-                                log:printError("Failed to update pull count for transaction " + transactionId,
-                                    err = err);
+                                log:printError(io:sprintf(
+                                    "Failed to update pull count for image %s for transaction %s", imageFQN,
+                                        transactionId), err = err);
                                 handleApiError(caller, untaint apiErrorMessage);
                                 abort;
                             }
@@ -207,11 +213,13 @@ service registryProxy on new http:Listener(9090, config = registryProxyServiceEP
                         // Any requests without a 2xx response is passed through without any interference.
                         var result = caller->respond(clientResponse);
                         if (result is error) {
-                            log:printError("Error sending response for transaction " + transactionId, err = result);
+                            log:printError(io:sprintf("Error sending response for pulling image %s for transaction %s",
+                                imageFQN, transactionId), err = result);
                         }
                     } else {
-                        log:printError("Failed to forward pull manifest request to the Docker Registry for transaction "
-                            + transactionId, err = clientResponse);
+                        log:printError(io:sprintf(
+                            "Failed to forward pull manifest request to the Docker Registry for image %s for transaction %s",
+                                imageFQN, transactionId), err = clientResponse);
                         handleApiError(caller, untaint apiErrorMessage);
                     }
                 } onretry {
@@ -221,8 +229,8 @@ service registryProxy on new http:Listener(9090, config = registryProxyServiceEP
                     log:printDebug("Updating pull count successful for transaction "
                         + transactions:getCurrentTransactionId());
                 } aborted {
-                    log:printError("Updating pull count aborted for transaction "
-                        + transactions:getCurrentTransactionId());
+                    log:printError(io:sprintf("Updating pull count aborted for image %s for transaction %s",
+                        imageFQN, transactions:getCurrentTransactionId()));
                 }
             } else {
                 handlePassThroughProxying(caller, req);
@@ -243,10 +251,12 @@ function handlePassThroughProxying(http:Caller caller, http:Request req) {
     if (clientResponse is http:Response) {
         var result = caller->respond(clientResponse);
         if (result is error) {
-            log:printError("Error sending response", err = result);
+            log:printError(io:sprintf("Error sending response for request %s %s", req.method, req.rawPath),
+                err = result);
         }
     } else {
-        log:printError("Error forwarding request to the Docker Registry", err = clientResponse);
+        log:printError(io:sprintf("Error forwarding request %s %s to the Docker Registry", req.method, req.rawPath),
+            err = clientResponse);
         handleApiError(caller, "Failed to perform action");
     }
 }
