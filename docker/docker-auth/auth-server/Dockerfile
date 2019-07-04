@@ -32,6 +32,6 @@ RUN chown -R hubUser /server/
 
 USER hubUser
 
-ENTRYPOINT ["/server/auth-server"]
+ENTRYPOINT ["/server/auth_server"]
 
 EXPOSE 8080

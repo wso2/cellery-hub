@@ -25,6 +25,7 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/cellery-io/cellery-hub/components/docker-auth/pkg/authserver"
 	"github.com/cellery-io/cellery-hub/components/docker-auth/pkg/extension"
 )
 
@@ -58,7 +59,7 @@ func main() {
 		log.Printf("[%s] Authentication request received by server. Uname : %s, Token : %s", execId,
 			authParams.UName, authParams.Token)
 
-		authnRes := Authenticate(authParams.UName, authParams.Token, execId)
+		authnRes := authserver.Authenticate(authParams.UName, authParams.Token, execId)
 
 		if authnRes == extension.SuccessExitCode {
 			log.Printf("[%s] Authentication Success. Writing status code %d as response", execId,
@@ -81,7 +82,7 @@ func main() {
 
 		log.Printf("[%s] Authorization request received by server", execId)
 
-		authzRes := Authorization(string(body), execId)
+		authzRes := authserver.Authorization(string(body), execId)
 
 		if authzRes == extension.SuccessExitCode {
 			log.Printf("[%s] Authorization Success. Writing status code %d as response", execId,

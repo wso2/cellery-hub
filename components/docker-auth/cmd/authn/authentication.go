@@ -39,12 +39,12 @@ func main() {
 		err = file.Close()
 		if err != nil {
 			log.Printf("Error while closing the file : %s\n", err)
-			os.Exit(2)
+			os.Exit(extension.MisuseExitCode)
 		}
 	}()
 	if err != nil {
 		log.Println("Error creating the file :", err)
-		os.Exit(1)
+		os.Exit(extension.ErrorExitCode)
 	}
 	log.SetOutput(file)
 
