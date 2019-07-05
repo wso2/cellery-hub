@@ -42,18 +42,33 @@ services:
       - ./docker-auth/conf:/conf
       - ./docker-auth/security:/security
     environment:
-      - IDP_CERT=/security/idp.crt
       - REGISTRY_AUTH_TOKEN_ROOTCERTBUNDLE=/security/docker-auth-sign.crt
       - REGISTRY_AUTH_TOKEN_ISSUER="auth.registry.hub.cellery.io"
+      - AUTH_SERVER=http://localhost:8080
+      - AUTHENTICATION_END_POINT=/authentication
+      - AUTHORIZATION_END_POINT=/authorization
+  auth.server.registry.hub.cellery.io:
+    image: wso2cellery/cellery-hub-docker-auth-server:latest
+    restart: always
+    ports:
+      - "5002:5002"
+    volumes:
+      - ./docker-auth/security:/security
+    environment:
+      - IDP_CERT=/security/idp.crt
       - IS_JWT=false
       - IDP_END_POINT=https://idp.hub.cellery.io:9443
       - INTROSPECTION_END_POINT=/oauth2/introspect
       - USERNAME=admin
       - PASSWORD=admin
+      - AUTH_SERVER_PORT=8080
       - MYSQL_USER=celleryhub
       - MYSQL_PASSWORD=celleryhub
       - MYSQL_HOST=mysql.hub.internal
       - MYSQL_PORT=3306
+      - MAX_OPEN_CONNECTIONS=30
+      - MAX_IDLE_CONNECTIONS=10
+      - MAX_LIFE_TIME=5
   idp.hub.cellery.io:
     image: wso2cellery/cellery-hub-idp:5.7.0
     restart: always

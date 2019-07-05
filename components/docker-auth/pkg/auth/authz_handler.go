@@ -16,22 +16,27 @@
  * under the License.
  */
 
-package extension
+package auth
 
 import (
-	"crypto/rand"
-	"fmt"
+	"database/sql"
 	"log"
+
+	"github.com/cellery-io/cellery-hub/components/docker-auth/pkg/extension"
 )
 
-func GetExecID() (string, error) {
-	b := make([]byte, 16)
-	_, err := rand.Read(b)
+func Authorization(dbConn *sql.DB, accessToken string, execId string) int {
+	log.Printf("[%s] Authorization logic handler reached and access will be validated\n", execId)
+	isValid, err := extension.ValidateAccess(dbConn, accessToken, execId)
 	if err != nil {
-		log.Println("Error generating uuid :", err)
-		return "", err
+		log.Printf("[%s] Error occurred while validating the user :%s\n", execId, err)
+		return extension.ErrorExitCode
 	}
-	uuid := fmt.Sprintf("%x-%x-%x-%x-%x", b[0:4], b[4:6], b[6:8], b[8:10], b[10:])
-	log.Printf("Exec ID : %s is generated", uuid)
-	return uuid, nil
+	if isValid {
+		log.Printf("[%s] Authorized user. Access granted by authz handler\n", execId)
+		return extension.SuccessExitCode
+	} else {
+		log.Printf("[%s] User access denied by authz handler\n", execId)
+		return extension.ErrorExitCode
+	}
 }

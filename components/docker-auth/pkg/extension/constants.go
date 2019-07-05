@@ -29,8 +29,14 @@ const MYSQL_PORT_ENV_VAR = "MYSQL_PORT"
 const MYSQL_DRIVER = "mysql"
 const DB_NAME = "CELLERY_HUB"
 
+const MaxOpenConnectionsEnvVar = "MAX_OPEN_CONNECTIONS"
+const MaxIdleConnectionsEnvVar = "MAX_IDLE_CONNECTIONS"
+const ConnectionMaxLifetimeEnvVar = "MAX_LIFE_TIME"
+
 const pullAction = "pull"
 const publicVisibility = "PUBLIC"
+
+const ExecIdHeaderName = "x-cellery-hub-exec-id"
 
 // db queries
 const getImageAndRoleQuery = "SELECT USER_ROLE, VISIBILITY FROM " +
