@@ -211,14 +211,8 @@ class NavBar extends React.Component {
                             className={classNames(classes.navButton, classes.navButtonCollapse)}>
                             Docs</Button>
                         <Menu id={"user-info"} anchorEl={docsPopoverElement}
-                            anchorOrigin={{
-                                vertical: "top",
-                                horizontal: "right"
-                            }}
-                            transformOrigin={{
-                                vertical: "top",
-                                horizontal: "right"
-                            }}
+                            anchorOrigin={{vertical: "top", horizontal: "right"}}
+                            transformOrigin={{vertical: "top", horizontal: "right"}}
                             open={isDocsPopoverOpen}
                             onClose={this.handleDocsPopoverClose}>
                             <MenuItem onClick={this.handleDocsPopoverClose} className={classes.docMenuItem}>
@@ -235,6 +229,10 @@ class NavBar extends React.Component {
                             </MenuItem>
                         </Menu>
                     </React.Fragment>
+                    <Button disableTouchRipple={true} color={"inherit"}
+                        className={classNames(classes.navButton, classes.navButtonCollapse)}
+                        href={"https://wso2-cellery.github.io/"} target={"_blank"}>Cellery.io
+                    </Button>
                     {
                         user
                             ? (
@@ -254,14 +252,8 @@ class NavBar extends React.Component {
                                         {user.username.split(" ")[0]}
                                     </Button>
                                     <Menu id={"user-info"} anchorEl={accountPopoverElement}
-                                        anchorOrigin={{
-                                            vertical: "top",
-                                            horizontal: "right"
-                                        }}
-                                        transformOrigin={{
-                                            vertical: "top",
-                                            horizontal: "right"
-                                        }}
+                                        anchorOrigin={{vertical: "top", horizontal: "right"}}
+                                        transformOrigin={{vertical: "top", horizontal: "right"}}
                                         open={isAccountPopoverOpen}
                                         onClose={this.handleAccountPopoverClose}>
                                         {
@@ -307,14 +299,8 @@ class NavBar extends React.Component {
                                         className={classNames(classes.navButton, classes.navButtonCollapse)}>
                                         SIGN IN/ SIGN UP</Button>
                                     <Menu id={"user-info-appbar"} anchorEl={accountPopoverElement}
-                                        anchorOrigin={{
-                                            vertical: "top",
-                                            horizontal: "right"
-                                        }}
-                                        transformOrigin={{
-                                            vertical: "top",
-                                            horizontal: "right"
-                                        }}
+                                        anchorOrigin={{vertical: "top", horizontal: "right"}}
+                                        transformOrigin={{vertical: "top", horizontal: "right"}}
                                         open={isAccountPopoverOpen}
                                         onClose={this.handleAccountPopoverClose}>
                                         <MenuItem onClick={() => {
@@ -358,14 +344,8 @@ class NavBar extends React.Component {
                         className={classes.navButton} ria-haspopup={"true"}
                         onClick={this.handleDocsPopoverOpen}>Docs</Button>
                     <Menu id={"user-info"} anchorEl={docsPopoverElement}
-                        anchorOrigin={{
-                            vertical: "top",
-                            horizontal: "right"
-                        }}
-                        transformOrigin={{
-                            vertical: "top",
-                            horizontal: "right"
-                        }}
+                        anchorOrigin={{vertical: "top", horizontal: "right"}}
+                        transformOrigin={{vertical: "top", horizontal: "right"}}
                         open={isDocsPopoverOpen}
                         onClose={this.handleDocsPopoverClose}>
                         <MenuItem onClick={this.handleDocsPopoverClose} className={classes.docMenuItem}>
@@ -381,6 +361,9 @@ class NavBar extends React.Component {
                                 target={"_blank"} className={classes.docLink}>How to use the CLI</Link>
                         </MenuItem>
                     </Menu>
+                    <Button disableTouchRipple={true} color={"inherit"} className={classes.navButton}
+                        href={"https://wso2-cellery.github.io/"} target={"_blank"}>Cellery.io
+                    </Button>
                     {
                         user
                             ? (
@@ -399,14 +382,8 @@ class NavBar extends React.Component {
                                         {user.username.split(" ")[0]}
                                     </Button>
                                     <Menu id={"user-info"} anchorEl={accountPopoverElement}
-                                        anchorOrigin={{
-                                            vertical: "top",
-                                            horizontal: "right"
-                                        }}
-                                        transformOrigin={{
-                                            vertical: "top",
-                                            horizontal: "right"
-                                        }}
+                                        anchorOrigin={{vertical: "top", horizontal: "right"}}
+                                        transformOrigin={{vertical: "top", horizontal: "right"}}
                                         open={isAccountPopoverOpen}
                                         onClose={this.handleAccountPopoverClose}>
                                         {
@@ -451,14 +428,8 @@ class NavBar extends React.Component {
                                         className={classes.navButton} aria-haspopup={"true"}
                                         onClick={this.handleAccountPopoverOpen}>SIGN IN/ SIGN UP</Button>
                                     <Menu id={"user-info-appbar"} anchorEl={accountPopoverElement}
-                                        anchorOrigin={{
-                                            vertical: "top",
-                                            horizontal: "right"
-                                        }}
-                                        transformOrigin={{
-                                            vertical: "top",
-                                            horizontal: "right"
-                                        }}
+                                        anchorOrigin={{vertical: "top", horizontal: "right"}}
+                                        transformOrigin={{vertical: "top", horizontal: "right"}}
                                         open={isAccountPopoverOpen}
                                         onClose={this.handleAccountPopoverClose}>
                                         <MenuItem onClick={() => {

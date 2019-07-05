@@ -47,6 +47,9 @@ const styles = (theme) => ({
     headerLogo: {
         flexGrow: 1
     },
+    logo: {
+        cursor: "pointer"
+    },
     hubText: {
         fontSize: 32,
         fontWeight: 400,
@@ -121,7 +124,7 @@ class Header extends React.Component {
     };
 
     render = () => {
-        const {classes, globalState} = this.props;
+        const {classes, globalState, history} = this.props;
         const {accountPopoverElement, user} = this.state;
 
         const isAccountPopoverOpen = Boolean(accountPopoverElement);
@@ -132,10 +135,12 @@ class Header extends React.Component {
                         <AppBar position={"static"} className={classes.appbar}>
                             <Toolbar className={classes.toolbar}>
                                 <div className={classes.headerLogo}>
-                                    <img src={CelleryLogo} className={classes.celleryLogo} alt={"Cellery logo"}/>
-                                    <Typography className={classes.hubText}>
-                                        hub
-                                    </Typography>
+                                    <div className={classes.logo} onClick={() => history.push("/")}>
+                                        <img src={CelleryLogo} className={classes.celleryLogo} alt={"Cellery logo"}/>
+                                        <Typography className={classes.hubText}>
+                                            hub
+                                        </Typography>
+                                    </div>
                                 </div>
                                 {
                                     user

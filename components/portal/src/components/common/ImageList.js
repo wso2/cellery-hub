@@ -47,7 +47,7 @@ const styles = (theme) => ({
     },
     elementText: {
         flex: "none",
-        paddingLeft: theme.spacing(2),
+        paddingLeft: theme.spacing(1 / 2),
         color: "#666666"
     },
     elementIcon: {

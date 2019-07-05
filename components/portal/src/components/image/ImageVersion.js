@@ -167,6 +167,21 @@ class ImageVersion extends React.Component {
     }
 
     componentDidMount() {
+        this.loadImageMetadata();
+    }
+
+    componentDidUpdate(prevProps, prevState, snapshot) {
+        const {match} = this.props;
+        const orgName = match.params.orgName;
+        const imageName = match.params.imageName;
+        const version = match.params.version;
+        if (!(orgName === prevProps.match.params.orgName && imageName === prevProps.match.params.imageName
+            && version === prevProps.match.params.version)) {
+            this.loadImageMetadata();
+        }
+    }
+
+    loadImageMetadata() {
         const self = this;
         const {globalState, match} = self.props;
         const orgName = match.params.orgName;
