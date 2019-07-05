@@ -25,6 +25,8 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/cellery-io/cellery-hub/components/docker-auth/pkg/db"
+
 	"github.com/cellery-io/cellery-hub/components/docker-auth/pkg/authserver"
 	"github.com/cellery-io/cellery-hub/components/docker-auth/pkg/extension"
 )
@@ -37,10 +39,15 @@ type AuthParams struct {
 func main() {
 	authServerPort := os.Getenv("AUTH_SERVER_PORT")
 	if len(authServerPort) == 0 {
-		log.Printf("Unable to start the auth server : AUTH_SERVER_PORT environment variable is empty\n")
+		log.Printf("Failed to start the auth server : AUTH_SERVER_PORT environment variable is empty\n")
 		os.Exit(extension.ErrorExitCode)
 	}
 	log.Printf("Auth server is starting on port %s", authServerPort)
+	dbConn, err := db.GetDbConnection()
+	if err != nil {
+		log.Printf("Failed to establish the MySql connection in Auth server : %s\n", err)
+		os.Exit(extension.ErrorExitCode)
+	}
 
 	http.HandleFunc("/authentication", func(w http.ResponseWriter, r *http.Request) {
 		log.Printf("Authentication endpoint reached")
@@ -80,7 +87,7 @@ func main() {
 
 		log.Printf("[%s] Authorization request received by server", execId)
 
-		authzRes := authserver.Authorization(string(body), execId)
+		authzRes := authserver.Authorization(dbConn, string(body), execId)
 
 		if authzRes == extension.SuccessExitCode {
 			log.Printf("[%s] Authorization Success. Writing status code %d as response", execId,

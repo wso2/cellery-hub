@@ -18,6 +18,8 @@
 
 package extension
 
+import "time"
+
 const userAdminRole = "admin"
 const userPullRole = "pull"
 const userPushRole = "push"
@@ -28,6 +30,10 @@ const MYSQL_HOST_ENV_VAR = "MYSQL_HOST"
 const MYSQL_PORT_ENV_VAR = "MYSQL_PORT"
 const MYSQL_DRIVER = "mysql"
 const DB_NAME = "CELLERY_HUB"
+
+const MaxOpenConnectionsEnvVar = 30
+const MaxIdleConnectionsEnvVar = 10
+const ConnectionMaxLifetimeEnvVar = time.Minute * 10
 
 const pullAction = "pull"
 const publicVisibility = "PUBLIC"

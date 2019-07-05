@@ -20,52 +20,28 @@ package authserver
 
 import (
 	"database/sql"
-	"fmt"
 	"log"
-	"os"
 
 	"github.com/cellery-io/cellery-hub/components/docker-auth/pkg/extension"
 )
 
-func dbConn() (*sql.DB, error) {
-	dbDriver := extension.MYSQL_DRIVER
-	dbUser := os.Getenv(extension.MYSQL_USER_ENV_VAR)
-	dbPass := os.Getenv(extension.MYSQL_PASSWORD_ENV_VAR)
-	dbName := extension.DB_NAME
-	host := os.Getenv(extension.MYSQL_HOST_ENV_VAR)
-	port := os.Getenv(extension.MYSQL_PORT_ENV_VAR)
-
-	db, err := sql.Open(dbDriver, fmt.Sprint(dbUser, ":", dbPass, "@tcp(", host, ":", port, ")/"+dbName))
-	if err != nil {
-		log.Printf("Failed to connect to the database : %s", err)
-		return nil, fmt.Errorf("error occurred while connecting to the database from authorization handler "+
-			" : %s", err)
-	}
-	return db, nil
-}
-
-func Authorization(accessToken string, execId string) int {
+func Authorization(dbConn *sql.DB, accessToken string, execId string) int {
 	log.Printf("[%s] Authorization logic handler reached and access will be validated\n", execId)
-	db, err := dbConn()
-	if err != nil {
-		log.Printf("[%s] Error occurred while establishing the mysql connection : %s\n", execId, err)
-		return extension.ErrorExitCode
-	}
-	isValid, err := extension.ValidateAccess(db, accessToken, execId)
+	isValid, err := extension.ValidateAccess(dbConn, accessToken, execId)
 	if err != nil {
 		log.Printf("[%s] Error occurred while validating the user :%s\n", execId, err)
 		return extension.ErrorExitCode
 	}
 	if isValid {
-		err = db.Close()
+		err = dbConn.Close()
 		if err != nil {
 			log.Printf("[%s] Error occurred while closing the db connection :%s\n", execId, err)
 			return extension.ErrorExitCode
 		}
-		log.Printf("[%s] User access granted\n", execId)
+		log.Printf("[%s] Authorized user. Access granted by authz handler\n", execId)
 		return extension.SuccessExitCode
 	} else {
-		err = db.Close()
+		err = dbConn.Close()
 		if err != nil {
 			log.Printf("[%s] Error occurred while closing the db connection :%s\n", execId, err)
 			return extension.ErrorExitCode
