@@ -84,7 +84,13 @@ func main() {
 	req.Header.Add(extension.ExecIdHeaderName, execId)
 	res, _ := http.DefaultClient.Do(req)
 
-	defer res.Body.Close()
+	defer func() {
+		err := res.Body.Close()
+		if err != nil {
+			log.Printf("[%s] Error occured while closing the response received from auth server "+
+				" : %v\n", execId, err)
+		}
+	}()
 
 	log.Printf("[%s] Response received from the auth server with the status code %d", execId, res.StatusCode)
 
@@ -110,7 +116,7 @@ func main() {
 
 // resolves the authentication end point from the environment variables.
 func resolveAuthenticationUrl(execId string) string {
-	authServer := os.Getenv("AUTH_SERVER")
+	authServer := os.Getenv("AUTH_SERVER_URL")
 	authenticationEP := os.Getenv("AUTHENTICATION_END_POINT")
 	if len(authServer) == 0 {
 		log.Printf("[%s] Error: AUTH_SERVER environment variable is empty\n", execId)

@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package authserver
+package auth
 
 import (
 	"crypto/tls"
@@ -215,8 +215,7 @@ func validateAccessToken(token string, providedUsername string, execId string) b
 		log.Printf("[%s] %d status code returned from IDP probably due to empty token\n", execId,
 			res.StatusCode)
 		return false
-	}
-	if res.StatusCode != http.StatusOK {
+	} else if res.StatusCode != http.StatusOK {
 		log.Printf("[%s] Error while calling IDP, status code :%d. Exiting without authorization\n", execId,
 			res.StatusCode)
 		os.Exit(extension.ErrorExitCode)

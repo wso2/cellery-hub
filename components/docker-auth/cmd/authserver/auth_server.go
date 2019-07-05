@@ -20,6 +20,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -27,7 +28,7 @@ import (
 
 	"github.com/cellery-io/cellery-hub/components/docker-auth/pkg/db"
 
-	"github.com/cellery-io/cellery-hub/components/docker-auth/pkg/authserver"
+	"github.com/cellery-io/cellery-hub/components/docker-auth/pkg/auth"
 	"github.com/cellery-io/cellery-hub/components/docker-auth/pkg/extension"
 )
 
@@ -63,7 +64,7 @@ func main() {
 		log.Printf("[%s] Authentication request received by server. Uname : %s, Token : %s", execId,
 			authParams.UName, authParams.Token)
 
-		authnRes := authserver.Authenticate(authParams.UName, authParams.Token, execId)
+		authnRes := auth.Authenticate(authParams.UName, authParams.Token, execId)
 
 		if authnRes == extension.SuccessExitCode {
 			log.Printf("[%s] Authentication Success. Writing status code %d as response", execId,
@@ -87,7 +88,7 @@ func main() {
 
 		log.Printf("[%s] Authorization request received by server", execId)
 
-		authzRes := authserver.Authorization(dbConnectionPool, string(body), execId)
+		authzRes := auth.Authorization(dbConnectionPool, string(body), execId)
 
 		if authzRes == extension.SuccessExitCode {
 			log.Printf("[%s] Authorization Success. Writing status code %d as response", execId,
@@ -99,5 +100,5 @@ func main() {
 			w.WriteHeader(http.StatusUnauthorized)
 		}
 	})
-	_ = http.ListenAndServe(authServerPort, nil)
+	_ = http.ListenAndServe(fmt.Sprintf(":%s", authServerPort), nil)
 }

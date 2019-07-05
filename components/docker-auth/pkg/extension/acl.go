@@ -134,13 +134,12 @@ func getImageVisibility(db *sql.DB, image string, execId string) (string, error)
 	}
 	if results.Next() {
 		err = results.Scan(&visibility)
-		log.Printf("[%s] Visibility is found as %s\n", execId, visibility)
+		log.Printf("[%s] Visibility of the image is found as %s\n", execId, visibility)
 	}
 	if err != nil {
 		log.Printf("[%s] Error in retrieving the visibility from the database :%s\n", execId, err)
 		return visibility, err
 	}
-	log.Printf("[%s] Visibility of the image is :%s\n", execId, visibility)
 	return visibility, nil
 }
 

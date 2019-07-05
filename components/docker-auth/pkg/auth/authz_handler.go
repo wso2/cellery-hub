@@ -16,7 +16,7 @@
  * under the License.
  */
 
-package authserver
+package auth
 
 import (
 	"database/sql"

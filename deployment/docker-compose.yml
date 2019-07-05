@@ -61,7 +61,7 @@ services:
       - INTROSPECTION_END_POINT=/oauth2/introspect
       - USERNAME=admin
       - PASSWORD=admin
-      - AUTH_SERVER_PORT=:8080
+      - AUTH_SERVER_PORT=8080
       - MYSQL_USER=celleryhub
       - MYSQL_PASSWORD=celleryhub
       - MYSQL_HOST=mysql.hub.internal
