@@ -24,7 +24,8 @@ import * as PropTypes from "prop-types";
 
 const styles = (theme) => ({
     content: {
-        paddingTop: theme.spacing(4)
+        marginTop: theme.spacing(4),
+        border: "1px dashed #eee"
     }
 });
 
@@ -123,7 +124,7 @@ class DependencyDiagram extends React.Component {
                         const {history} = this.props;
                         const nodeUrl = nodeId.replace(/:/g, "/");
                         history.push(`/images/${nodeUrl}`);
-                    }}/>
+                    }} className={classes.diagram}/>
             </div>
         );
     }
