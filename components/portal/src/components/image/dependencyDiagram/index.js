@@ -18,9 +18,9 @@
 
 import CellDiagram from "./CellDiagram";
 import React from "react";
+import {withRouter} from "react-router-dom";
 import {withStyles} from "@material-ui/core/styles";
 import * as PropTypes from "prop-types";
-
 
 const styles = (theme) => ({
     content: {
@@ -118,7 +118,12 @@ class DependencyDiagram extends React.Component {
 
         return (
             <div className={classes.content}>
-                <CellDiagram data={diagramData} focusedCell={`${data.org}/${data.name}:${data.ver}`}/>
+                <CellDiagram data={diagramData} focusedCell={`${data.org}/${data.name}:${data.ver}`}
+                    onClickNode={(nodeId) => {
+                        const {history} = this.props;
+                        const nodeUrl = nodeId.replace(/:/g, "/");
+                        history.push(`/images/${nodeUrl}`);
+                    }}/>
             </div>
         );
     }
@@ -127,7 +132,10 @@ class DependencyDiagram extends React.Component {
 
 DependencyDiagram.propTypes = {
     classes: PropTypes.object.isRequired,
-    data: PropTypes.object.isRequired
+    data: PropTypes.object.isRequired,
+    history: PropTypes.shape({
+        push: PropTypes.func.isRequired
+    })
 };
 
-export default withStyles(styles)(DependencyDiagram);
+export default withStyles(styles)(withRouter(DependencyDiagram));

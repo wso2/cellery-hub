@@ -137,7 +137,7 @@ class CellDiagram extends React.Component {
     };
 
     draw = () => {
-        const {data, focusedCell} = this.props;
+        const {data, focusedCell, onClickNode} = this.props;
         const componentNodes = [];
         const dataEdges = [];
         const cellNodes = [];
@@ -458,6 +458,10 @@ class CellDiagram extends React.Component {
 
             this.network.on("selectNode", (event) => {
                 this.network.unselectAll();
+                const clickedNode = nodes.get(event.nodes[0]);
+                if (clickedNode.group === CellDiagram.NodeType.CELL && clickedNode.id !== focusedCell) {
+                    onClickNode(event.nodes[0]);
+                }
             });
 
             this.network.on("dragging", (event) => {
@@ -483,7 +487,8 @@ class CellDiagram extends React.Component {
 CellDiagram.propTypes = {
     classes: PropTypes.object.isRequired,
     data: PropTypes.object,
-    focusedCell: PropTypes.string
+    focusedCell: PropTypes.string,
+    onClickNode: PropTypes.func
 };
 
 export default withStyles(styles)(CellDiagram);
