@@ -22,7 +22,7 @@ import ballerina/io;
 import ballerina/log;
 import ballerina/transactions;
 
-public type CellImageMetadata record {|
+public type CellImageMetadata record {
 	string org;
 	string name;
 	string ver;
@@ -35,7 +35,9 @@ public type CellImageMetadata record {|
 	map<CellImageMetadata> dependencies;
 	map<string[]> componentDep;
 	string[] exposed;
-|};
+	boolean zeroScaling;
+	boolean autoScaling;
+};
 
 
 # Extract the metadata for the cell iamge file layer.
@@ -86,19 +88,28 @@ public function extractMetadataFromImage(byte[] cellImageBytes) returns (CellIma
                     }
                     var cellImageMetadata = CellImageMetadata.convert(parsedMetadata);
                     if (cellImageMetadata is error) {
+                        var stringConvertedMetadata = string.convert(parsedMetadata);
+                        string metadataPayloadMessage;
+                        if (stringConvertedMetadata is string) {
+                            metadataPayloadMessage = " with metadata: " + stringConvertedMetadata;
+                        } else {
+                            metadataPayloadMessage = "";
+                        }
+
                         var isForeignFormat = true;
                         if (parsedMetadata["buildCelleryVersion"] != ()) {
                             var buildCelleryVersion = string.convert(parsedMetadata["buildCelleryVersion"]);
                             if (buildCelleryVersion is string) {
                                 log:printError("Format of the received metadata built using Cellery "
                                     + buildCelleryVersion + " does not match Cellery Hub supported metadata "
-                                    + "format for transaction " + transactionId);
+                                    + "format for transaction " + transactionId + metadataPayloadMessage);
                                 isForeignFormat = false;
                             }
                         }
                         if (isForeignFormat) {
                             log:printError("Format of the received metadata does not match Cellery Hub "
-                                + "supported metadata format for transaction " + transactionId);
+                                + "supported metadata format for transaction " + transactionId
+                                + metadataPayloadMessage);
                         }
                     }
                     return cellImageMetadata;
