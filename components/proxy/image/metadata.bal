@@ -58,7 +58,8 @@ public function extractMetadataFromImage(byte[] cellImageBytes) returns (CellIma
             return err;
         }
         var decompressResult = internal:decompressFromByteArray(cellImageBytes, zipDest);
-        log:printDebug("Extracted Cell image at " + extractedCellImageDir + " for transaction " + transactionId);
+        log:printDebug(io:sprintf("Extracted Cell image at %s for transaction %s", extractedCellImageDir,
+            transactionId));
 
         if (decompressResult is error) {
             error err = error("failed to extract Cell Image due to " + decompressResult.reason());
@@ -75,18 +76,41 @@ public function extractMetadataFromImage(byte[] cellImageBytes) returns (CellIma
                 if (parsedMetadata is json) {
                     var extracedCellImageDeleteResult = zipDest.delete();
                     if (extracedCellImageDeleteResult is error) {
-                        log:printError("Failed to cleanup Cell Image extracted in directory " + extractedCellImageDir +
-                            " for transaction " + transactionId, err = extracedCellImageDeleteResult);
+                        log:printError(
+                            io:sprintf("Failed to cleanup Cell Image extracted in directory %s for transaction %s",
+                                extractedCellImageDir, transactionId),
+                            err = extracedCellImageDeleteResult
+                        );
                     } else {
                         log:printDebug("Cleaned up extracted Cell Image for transaction " + transactionId);
                     }
-                    return CellImageMetadata.convert(parsedMetadata);
+                    var cellImageMetadata = CellImageMetadata.convert(parsedMetadata);
+                    if (cellImageMetadata is error) {
+                        var isForeignFormat = true;
+                        if (parsedMetadata["buildCelleryVersion"] != ()) {
+                            var buildCelleryVersion = string.convert(parsedMetadata["buildCelleryVersion"]);
+                            if (buildCelleryVersion is string) {
+                                log:printError("Format of the received metadata built using Cellery "
+                                    + buildCelleryVersion + " does not match Cellery Hub supported metadata "
+                                    + "format for transaction " + transactionId);
+                                isForeignFormat = false;
+                            }
+                        }
+                        if (isForeignFormat) {
+                            log:printError("Format of the received metadata does not match Cellery Hub "
+                                + "supported metadata format for transaction " + transactionId);
+                        }
+                    }
+                    return cellImageMetadata;
                 } else {
                     error err = error("failed to parse metadata.json due to " + parsedMetadata.reason());
                     var extracedCellImageDeleteResult = zipDest.delete();
                     if (extracedCellImageDeleteResult is error) {
-                        log:printError("Failed to cleanup Cell Image extracted in directory " + extractedCellImageDir +
-                            " for transaction " + transactionId, err = extracedCellImageDeleteResult);
+                        log:printError(
+                            io:sprintf("Failed to cleanup Cell Image extracted in directory %s for transaction %s",
+                                extractedCellImageDir, transactionId),
+                            err = extracedCellImageDeleteResult
+                        );
                     } else {
                         log:printDebug("Cleaned up extracted Cell Image for transaction " + transactionId);
                     }
@@ -96,8 +120,11 @@ public function extractMetadataFromImage(byte[] cellImageBytes) returns (CellIma
                 error err = error("failed to resolve metadata.json file due to " + cellImageMetadataFile.reason());
                 var extracedCellImageDeleteResult = zipDest.delete();
                 if (extracedCellImageDeleteResult is error) {
-                    log:printError("Failed to cleanup Cell Image extracted in directory " + extractedCellImageDir +
-                        " for transaction " + transactionId, err = extracedCellImageDeleteResult);
+                    log:printError(
+                        io:sprintf("Failed to cleanup Cell Image extracted in directory %s for transaction %s",
+                            extractedCellImageDir, transactionId),
+                        err = extracedCellImageDeleteResult
+                    );
                 } else {
                     log:printDebug("Cleaned up extracted Cell Image for transaction " + transactionId);
                 }

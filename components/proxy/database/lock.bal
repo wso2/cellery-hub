@@ -26,15 +26,14 @@ import ballerina/log;
 # + imageFQN - imageFQN Fully qualified Cell Image name
 # + return - error if an error occurred
 public function acquireWriteLockForImage(string imageFQN) returns error? {
-    _ = check celleryHubDB->update("INSERT INTO REGISTRY_ARTIFACT_LOCK(ARTIFACT_NAME, LOCK_COUNT) VALUES (?, 1) " +
-        "ON DUPLICATE KEY UPDATE LOCK_COUNT = LOCK_COUNT + 1", imageFQN);
+    _ = check celleryHubDB->update(LOCK_QUERY, imageFQN);
 }
 
 # Cleanup any data usd in acquiring the write lock.
 #
 # + imageFQN - imageFQN Parameter Description
 public function cleanUpAfterLockForImage(string imageFQN) {
-    var lockCleanupResult = celleryHubDB->update("DELETE FROM REGISTRY_ARTIFACT_LOCK WHERE ARTIFACT_NAME = ?", imageFQN);
+    var lockCleanupResult = celleryHubDB->update(DELETE_LOCK_ENTRIES_QUERY, imageFQN);
     if (lockCleanupResult is error) {
         log:printError("Failed to cleanup lock rows created for image " + imageFQN, err = lockCleanupResult);
     } else {
