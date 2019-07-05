@@ -23,38 +23,71 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strconv"
+	"time"
 
 	"github.com/cellery-io/cellery-hub/components/docker-auth/pkg/extension"
 )
 
-func GetDbConnection() (*sql.DB, error) {
+func GetDbConnectionPool() (*sql.DB, error) {
 	dbDriver := extension.MYSQL_DRIVER
 	dbUser := os.Getenv(extension.MYSQL_USER_ENV_VAR)
 	dbPass := os.Getenv(extension.MYSQL_PASSWORD_ENV_VAR)
 	dbName := extension.DB_NAME
 	host := os.Getenv(extension.MYSQL_HOST_ENV_VAR)
 	port := os.Getenv(extension.MYSQL_PORT_ENV_VAR)
+	dbPoolConfigurations, err := resolvePoolingConfigurations()
+	if err != nil {
+		log.Printf("No db connction pooling configurations found : %s", err)
+		return nil, fmt.Errorf("failed to fetch db connection pooling configurations : %v", err)
+	}
 
 	conn := fmt.Sprint(dbUser, ":", dbPass, "@tcp(", host, ":", port, ")/"+dbName)
-	log.Printf("Creating a new connection: %v", conn)
+	log.Printf("Creating a new db connection pool: %v", conn)
 
 	dbConnection, err := sql.Open(dbDriver, conn)
 
 	if err != nil {
-		log.Printf("Failed to create database connection : %s", err)
-		return nil, fmt.Errorf("error occurred while establishing database connection "+
-			" : %s", err)
+		log.Printf("Failed to create database connection pool: %s", err)
+		return nil, fmt.Errorf("error occurred while establishing database connection pool "+
+			" : %v", err)
 	}
-	err = dbConnection.Ping()
-	if err != nil {
-		log.Printf("Failed to verify the liveness of connection to the database : %s", err)
-		return nil, err
-	}
-	log.Printf("DB connection established")
+	log.Printf("DB connection pool established")
 
-	dbConnection.SetMaxOpenConns(extension.MaxOpenConnectionsEnvVar)
-	dbConnection.SetMaxIdleConns(extension.MaxIdleConnectionsEnvVar)
-	dbConnection.SetConnMaxLifetime(extension.ConnectionMaxLifetimeEnvVar)
+	dbConnection.SetMaxOpenConns(dbPoolConfigurations[extension.MaxIdleConnectionsEnvVar])
+	dbConnection.SetMaxIdleConns(dbPoolConfigurations[extension.ConnectionMaxLifetimeEnvVar])
+	dbConnection.SetConnMaxLifetime(time.Minute * time.Duration(dbPoolConfigurations[extension.
+		ConnectionMaxLifetimeEnvVar]))
 
 	return dbConnection, nil
+}
+
+func resolvePoolingConfigurations() (map[string]int, error) {
+	m := make(map[string]int)
+
+	maxOpenConnections, err := strconv.Atoi(os.Getenv(extension.MaxOpenConnectionsEnvVar))
+	if err != nil {
+		log.Printf("Failed to convert max open connections string into integer : %s", err)
+		return nil, fmt.Errorf("error occurred while converting max open connections string into integer "+
+			" : %v", err)
+	}
+	m[extension.MaxOpenConnectionsEnvVar] = maxOpenConnections
+	maxIdleConnections, err := strconv.Atoi(os.Getenv(extension.MaxIdleConnectionsEnvVar))
+	if err != nil {
+		log.Printf("Failed to convert max idle connections string into integer : %s", err)
+		return nil, fmt.Errorf("error occurred while converting max idle connections string into integer "+
+			" : %v", err)
+	}
+	m[extension.MaxIdleConnectionsEnvVar] = maxIdleConnections
+	maxLifetime, err := strconv.Atoi(os.Getenv(extension.ConnectionMaxLifetimeEnvVar))
+	if err != nil {
+		log.Printf("Failed to convert max lifetime string into integer : %s", err)
+		return nil, fmt.Errorf("error occurred while converting max lifetime string into integer "+
+			" : %v", err)
+	}
+	m[extension.ConnectionMaxLifetimeEnvVar] = maxLifetime
+	log.Printf("Fetched db connection pooling configurations. MaxOpenConns = %d, "+
+		"MaxIdleConns = %d, MaxLifetime = %d", maxOpenConnections, maxIdleConnections, maxLifetime)
+
+	return m, nil
 }

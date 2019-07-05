@@ -102,6 +102,9 @@ func getOrganizationAndImage(imageFullName string, execId string) (string, strin
 
 func checkImageAndRole(db *sql.DB, image, user string, execId string) (string, string, error) {
 	results, err := db.Query(getImageAndRoleQuery, image, user)
+	defer func() {
+		closeResultSet(results, "checkImageAndRole", execId)
+	}()
 	if err != nil {
 		log.Printf("[%s] Error while calling the mysql query getImageAndRoleQuery : %s\n", execId, err)
 		return "", "", err
@@ -122,6 +125,9 @@ func checkImageAndRole(db *sql.DB, image, user string, execId string) (string, s
 func getImageVisibility(db *sql.DB, image string, execId string) (string, error) {
 	var visibility = ""
 	results, err := db.Query(getVisibilityQuery, image)
+	defer func() {
+		closeResultSet(results, "getImageVisibility", execId)
+	}()
 	if err != nil {
 		log.Printf("[%s] Error while calling the mysql query getVisibilityQuery :%s\n", execId, err)
 		return visibility, err
@@ -140,6 +146,9 @@ func getImageVisibility(db *sql.DB, image string, execId string) (string, error)
 
 func isUserAvailable(db *sql.DB, organization, user string, execId string) (bool, error) {
 	results, err := db.Query(getUserAvailabilityQuery, user, organization)
+	defer func() {
+		closeResultSet(results, "isUserAvailable", execId)
+	}()
 	if err != nil {
 		log.Printf("[%s] Error while calling the mysql query getUserAvailabilityQuery :%s\n", execId, err)
 		return false, err
@@ -183,6 +192,9 @@ func isAuthorizedToPull(db *sql.DB, user, organization, image string, execId str
 func isAuthorizedToPush(db *sql.DB, user, organization string, execId string) (bool, error) {
 	log.Printf("[%s] User %s is trying to push to organization :%s\n", execId, user, organization)
 	results, err := db.Query(getUserRoleQuery, user, organization)
+	defer func() {
+		closeResultSet(results, "isAuthorizedToPush", execId)
+	}()
 	if err != nil {
 		log.Printf("[%s] Error while calling the mysql query getUserRoleQuery :%s\n", execId, err)
 		return false, err
@@ -205,4 +217,13 @@ func isAuthorizedToPush(db *sql.DB, user, organization string, execId string) (b
 		}
 	}
 	return false, nil
+}
+
+func closeResultSet(r *sql.Rows, caller string, execId string) {
+	if r != nil {
+		err := r.Close()
+		if err != nil {
+			log.Printf("[%s] Error while closing result set in %s : %v\n", execId, caller, err)
+		}
+	}
 }

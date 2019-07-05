@@ -43,7 +43,7 @@ func main() {
 		os.Exit(extension.ErrorExitCode)
 	}
 	log.Printf("Auth server is starting on port %s", authServerPort)
-	dbConn, err := db.GetDbConnection()
+	dbConnectionPool, err := db.GetDbConnectionPool()
 	if err != nil {
 		log.Printf("Failed to establish the MySql connection in Auth server : %s\n", err)
 		os.Exit(extension.ErrorExitCode)
@@ -87,7 +87,7 @@ func main() {
 
 		log.Printf("[%s] Authorization request received by server", execId)
 
-		authzRes := authserver.Authorization(dbConn, string(body), execId)
+		authzRes := authserver.Authorization(dbConnectionPool, string(body), execId)
 
 		if authzRes == extension.SuccessExitCode {
 			log.Printf("[%s] Authorization Success. Writing status code %d as response", execId,

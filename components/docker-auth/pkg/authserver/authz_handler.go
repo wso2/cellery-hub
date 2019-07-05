@@ -33,20 +33,10 @@ func Authorization(dbConn *sql.DB, accessToken string, execId string) int {
 		return extension.ErrorExitCode
 	}
 	if isValid {
-		err = dbConn.Close()
-		if err != nil {
-			log.Printf("[%s] Error occurred while closing the db connection :%s\n", execId, err)
-			return extension.ErrorExitCode
-		}
 		log.Printf("[%s] Authorized user. Access granted by authz handler\n", execId)
 		return extension.SuccessExitCode
 	} else {
-		err = dbConn.Close()
-		if err != nil {
-			log.Printf("[%s] Error occurred while closing the db connection :%s\n", execId, err)
-			return extension.ErrorExitCode
-		}
-		log.Printf("[%s] User access denied\n", execId)
+		log.Printf("[%s] User access denied by authz handler\n", execId)
 		return extension.ErrorExitCode
 	}
 }

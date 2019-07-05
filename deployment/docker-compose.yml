@@ -66,6 +66,9 @@ services:
       - MYSQL_PASSWORD=celleryhub
       - MYSQL_HOST=mysql.hub.internal
       - MYSQL_PORT=3306
+      - MAX_OPEN_CONNECTIONS=30
+      - MAX_IDLE_CONNECTIONS=10
+      - MAX_LIFE_TIME=5
   idp.hub.cellery.io:
     image: wso2cellery/cellery-hub-idp:5.7.0
     restart: always
