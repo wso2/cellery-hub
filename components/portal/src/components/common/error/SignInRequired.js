@@ -103,7 +103,7 @@ const SignInRequired = ({classes, history, title, description, showNavigationBut
                         <React.Fragment>
                             <Button variant={"outlined"} size={"medium"} className={classes.gotoHubButton}
                                 onClick={() => history.push("/")}>
-                                <Typography>Go to Celley Hub Home</Typography>
+                                <Typography>Go to Cellery Hub Home</Typography>
                             </Button>
                         </React.Fragment>
                     )
