@@ -58,12 +58,14 @@ public function incrementPullCount(string orgName, string imageName, string imag
 
     if (registryArtifactImageTable.count() == 1) {
         var registryArtifactImage = check RegistryArtifactImage.convert(registryArtifactImageTable.getNext());
+        registryArtifactImageTable.close();
         var imageUuid = registryArtifactImage.ARTIFACT_IMAGE_ID;
 
         _ = check celleryHubDB->update(UPDATE_PULL_COUNT_QUERY, imageUuid, imageVersion);
         log:printDebug(io:sprintf("Incremented pull count of image %s for transaction %s", imageUuid,
             transactions:getCurrentTransactionId()));
     } else {
+        registryArtifactImageTable.close();
         var err = error(io:sprintf("unexpected error due to artifact image %s/%s not being available in the database",
             orgName, imageName));
         return err;
@@ -83,10 +85,12 @@ function persistImageMetadata(string userId, string orgName, string imageName) r
     string uuid;
     if (registryArtifactImageTable.count() == 1) {
         var registryArtifactImage = check RegistryArtifactImage.convert(registryArtifactImageTable.getNext());
+        registryArtifactImageTable.close();
         uuid = registryArtifactImage.ARTIFACT_IMAGE_ID;
         log:printDebug(io:sprintf("Using existing image %s/%s with id %s for transaction %s", orgName, imageName, uuid,
             transactions:getCurrentTransactionId()));
     } else {
+        registryArtifactImageTable.close();
         var defaultVisibility = check getOrganizationDefaultVisibility(orgName);
         uuid = system:uuid();
         _ = check celleryHubDB->update(INSERT_ARTIFACT_IMAGE_QUERY, uuid, orgName, imageName, userId,
@@ -106,8 +110,10 @@ function getOrganizationDefaultVisibility(string orgName) returns (error|string)
         orgName, loadToMemory = true);
     if (organizationTable.count() == 1) {
         var organization = check RegistryOrganization.convert(organizationTable.getNext());
+        organizationTable.close();
         return organization.DEFAULT_IMAGE_VISIBILITY;
     } else {
+        organizationTable.close();
         var err = error(io:sprintf("unexpected error due to organization %s not being available in the database",
             orgName));
         return err;
@@ -129,6 +135,7 @@ function persistImageArtifactMetadata(string userId, string artifactImageId, ima
     string artifactUuid;
     if (registryArtifactTable.count() == 1) {
         var registryArtifact = check RegistryArtifact.convert(registryArtifactTable.getNext());
+        registryArtifactTable.close();
         artifactUuid = registryArtifact.ARTIFACT_ID;
         _ = check celleryHubDB->update(UPDATE_REGISTRY_ARTIFACT_QUERY, userId, metadataString, false, artifactUuid,
             metadata.ver);
@@ -139,12 +146,10 @@ function persistImageArtifactMetadata(string userId, string artifactImageId, ima
         _ = check cleanUpLabels(artifactUuid);
         _ = check cleanUpIngresses(artifactUuid);
     } else {
+        registryArtifactTable.close();
         artifactUuid = system:uuid();
-        var updateResult = celleryHubDB->update(INSERT_REGISTRY_ARTIFACT_QUERY, artifactUuid, artifactImageId,
+        _ = check celleryHubDB->update(INSERT_REGISTRY_ARTIFACT_QUERY, artifactUuid, artifactImageId,
             metadata.ver, userId, userId, metadataString, false);
-        if (updateResult is error) {
-            return updateResult;
-        }
         log:printDebug(io:sprintf("Created new image with image id %s and version %s for transaction %s",
             artifactImageId, metadata.ver, transactions:getCurrentTransactionId()));
     }
