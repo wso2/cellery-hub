@@ -104,14 +104,13 @@ class OrgCreateDialog extends React.Component {
             let errorMessage;
             if (err instanceof HubApiError) {
                 if (err.getStatusCode() === 429) {
-                    errorMessage = "Too Many Requests. Please try again later.";
+                    if (err.getErrorCode() === Constants.ApplicationErrorCode.ALLOWED_LIMIT_EXCEEDED) {
+                        errorMessage = "Already exceeded the maximum organization creation limit";
+                    } else {
+                        errorMessage = "Too Many Requests. Please try again later.";
+                    }
                 } else if (err.getErrorCode() === Constants.ApplicationErrorCode.ALREADY_EXISTS) {
                     errorMessage = `Organization ${orgNameToBeCreated} is already taken, try another`;
-                    self.setState({
-                        orgNameErrorMessage: errorMessage
-                    });
-                } else if (err.getErrorCode() === Constants.ApplicationErrorCode.ALLOWED_LIMIT_EXCEEDED) {
-                    errorMessage = "Already exceeded the maximum organization creation limit";
                     self.setState({
                         orgNameErrorMessage: errorMessage
                     });
