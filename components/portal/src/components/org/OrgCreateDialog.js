@@ -110,6 +110,11 @@ class OrgCreateDialog extends React.Component {
                     self.setState({
                         orgNameErrorMessage: errorMessage
                     });
+                } else if (err.getErrorCode() === Constants.ApplicationErrorCode.ALLOWED_LIMIT_EXCEEDED) {
+                    errorMessage = "Already exceeded the maximum organization creation limit";
+                    self.setState({
+                        orgNameErrorMessage: errorMessage
+                    });
                 } else if (err.getMessage()) {
                     errorMessage = err.getMessage();
                 } else {
