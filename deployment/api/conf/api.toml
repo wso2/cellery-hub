@@ -22,6 +22,7 @@ password="celleryhub"
 secret="someSecret"
 endpoint="https://www.google.com/recaptcha/api/siteverify"
 engaged.paths="[{\"path\" : \"/api/0.1.0/orgs/*\", \"method\": \"post\"}]"
+max.allowd.organization.count=3
 
 [idp]
 endpoint="https://idp.hub.cellery.io:9443"
