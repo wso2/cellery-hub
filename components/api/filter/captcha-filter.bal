@@ -46,9 +46,9 @@ public type CaptchaRequestFilter object {
         if (orgCountResult is int) {
             if (orgCountResult == 0) {
                 return true;
-            } else if (orgCountResult > config:getAsInt("filter.captcha.max.allowd.organization.count")) {    
-                log:printDebug(io:sprintf("More than %d organization found for user : %s . Count : %d", 
-                config:getAsInt("filter.captcha.max.allowd.organization.count"), userId, orgCountResult));            
+            } else if (orgCountResult >= config:getAsInt("filter.captcha.max.allowd.organization.count")) {    
+                log:printInfo(io:sprintf("User %s has already created %d organizations. Hence denying request for organization creation.", userId, 
+                orgCountResult));            
                 checkpanic caller->respond(getMaxOrgCountExceededResponse());
                 return false;
             } else {
@@ -157,7 +157,11 @@ function getRateLimitResponse() returns http:Response {
 
 function getMaxOrgCountExceededResponse() returns http:Response {
     http:Response res = getRateLimitResponse();
-    json errorCodeResponse = { code: constants:ALLOWED_LIMIT_EXCEEDED_ERROR_CODE};
+    json errorCodeResponse = { 
+        code: constants:ALLOWED_LIMIT_EXCEEDED_ERROR_CODE,
+        message: "Organization creation denied",
+        description: "Exceeded maximum organization creation limit"
+    };
     log:printDebug("Setting allowed limit exceeded API error code");
     res.setJsonPayload(errorCodeResponse);
     return res;
