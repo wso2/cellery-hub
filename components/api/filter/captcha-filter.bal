@@ -46,8 +46,13 @@ public type CaptchaRequestFilter object {
         if (orgCountResult is int) {
             if (orgCountResult == 0) {
                 return true;
+            } else if (orgCountResult > config:getAsInt("filter.captcha.max.allowd.organization.count")) {    
+                log:printDebug(io:sprintf("More than %d organization found for user : %s . Count : %d", 
+                config:getAsInt("filter.captcha.max.allowd.organization.count"), userId, orgCountResult));            
+                checkpanic caller->respond(getMaxOrgCountExceededResponse());
+                return false;
             } else {
-                log:printDebug("More than one organization found for user : " + userId + ". Count: " + orgCountResult);
+                log:printDebug(io:sprintf("%d organizations found for user : %s", orgCountResult, userId));
                 boolean catpchaValid = validateCaptcha(request);
                 if (catpchaValid) {
                     return true;
@@ -141,10 +146,19 @@ public function isEngaged(http:Request request) returns boolean | error {
     return false;
 }
 
-public function getRateLimitResponse() returns http:Response {
+
+function getRateLimitResponse() returns http:Response {
     http:Response res = new;
     // Status code for request throttled out. This is not found in ballerina http status codes.
     res.statusCode = 429;
     return res;
 }
 
+
+function getMaxOrgCountExceededResponse() returns http:Response {
+    http:Response res = getRateLimitResponse();
+    json errorCodeResponse = { code: constants:ALLOWED_LIMIT_EXCEEDED_ERROR_CODE};
+    log:printDebug("Setting allowed limit exceeded API error code");
+    res.setJsonPayload(errorCodeResponse);
+    return res;
+}

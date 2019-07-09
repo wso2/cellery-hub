@@ -45,7 +45,8 @@ const Constants = {
         CELLERY_HUB_CAPTCHA: "g-recaptcha-response"
     },
     ApplicationErrorCode: {
-        ALREADY_EXISTS: 2
+        ALREADY_EXISTS: 2,
+        ALLOWED_LIMIT_EXCEEDED: 3
     }
 };
 

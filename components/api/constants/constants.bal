@@ -24,6 +24,7 @@ public const string SET_COOKIE_HEADER = "Set-Cookie";
 
 public const int API_ERROR_CODE = 1;
 public const int ENTRY_ALREADY_EXISTING_ERROR_CODE = 2;
+public const int ALLOWED_LIMIT_EXCEEDED_ERROR_CODE = 3;
 
 public const string VALIDATE_USER = "validateUser";
 public const string OFFSET = "offset";
