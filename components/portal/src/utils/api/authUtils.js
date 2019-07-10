@@ -22,7 +22,6 @@ import HttpUtils from "./httpUtils";
 import NotificationUtils from "../common/notificationUtils";
 import {StateHolder} from "../../components/common/state";
 import jwtDecode from "jwt-decode";
-import * as moment from "moment";
 
 /**
  * Authentication/Authorization related utilities.
@@ -235,12 +234,6 @@ class AuthUtils {
         let user;
         try {
             user = JSON.parse(localStorage.getItem(AuthUtils.USER_KEY));
-            if (user && user.tokens && user.tokens.expirationTime
-                    && moment().valueOf() > user.tokens.expirationTime) {
-                // Removing expired user login data
-                user = null;
-                localStorage.removeItem(AuthUtils.USER_KEY);
-            }
         } catch {
             user = null;
             localStorage.removeItem(AuthUtils.USER_KEY);
