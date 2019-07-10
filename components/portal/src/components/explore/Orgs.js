@@ -106,12 +106,34 @@ class Orgs extends React.Component {
 
     handleSearchButtonClick = () => {
         const {pagination} = this.state;
+
+        this.setState({
+            pagination: {
+                pageNo: Orgs.DEFAULT_PAGE_NO,
+                rowsPerPage: Orgs.DEFAULT_ROWS_PER_PAGE
+            }
+        });
+        this.handleQueryParamUpdate({
+            pageNo: null,
+            rowsPerPage: null
+        });
         this.searchOrgs(pagination.rowsPerPage, pagination.pageNo);
     };
 
     handleOrgNameSearchKeyDown = (event) => {
-        const {pagination} = this.state;
         if (event.keyCode === Constants.KeyCode.ENTER) {
+            const {pagination} = this.state;
+
+            this.setState({
+                pagination: {
+                    pageNo: Orgs.DEFAULT_PAGE_NO,
+                    rowsPerPage: Orgs.DEFAULT_ROWS_PER_PAGE
+                }
+            });
+            this.handleQueryParamUpdate({
+                pageNo: null,
+                rowsPerPage: null
+            });
             this.searchOrgs(pagination.rowsPerPage, pagination.pageNo);
         }
     };

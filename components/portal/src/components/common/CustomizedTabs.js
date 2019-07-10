@@ -74,15 +74,13 @@ TabContainer.propTypes = {
 class CustomizedTabs extends React.Component {
 
     handleTabChange = (event, newSelectedIndex) => {
-        const {history, match, location, tabs} = this.props;
+        const {history, match, location, tabs, retainCurrentQueryParams} = this.props;
 
         const queryParamsString = HttpUtils.generateQueryParamString({
-            ...HttpUtils.parseQueryParams(location.search),
+            ...(retainCurrentQueryParams ? HttpUtils.parseQueryParams(location.search) : {}),
             tab: tabs[newSelectedIndex].label
         });
-        history.replace(match.url + queryParamsString, {
-            ...location.state
-        });
+        history.replace(match.url + queryParamsString, retainCurrentQueryParams ? {...location.state} : {});
     };
 
     render = () => {
@@ -125,7 +123,8 @@ CustomizedTabs.propTypes = {
     tabs: PropTypes.arrayOf(PropTypes.shape({
         label: PropTypes.string.isRequired,
         render: PropTypes.func.isRequired
-    })).isRequired
+    })).isRequired,
+    retainCurrentQueryParams: PropTypes.bool
 };
 
 export default withRouter(withStyles(styles)(CustomizedTabs));
