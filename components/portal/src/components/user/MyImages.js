@@ -57,6 +57,7 @@ class MyImages extends React.Component {
 
     static DEFAULT_ROWS_PER_PAGE = 5;
     static DEFAULT_PAGE_NO = 0;
+    static DEFAULT_SORT = Constants.SortingOrder.MOST_POPULAR;
 
     constructor(props) {
         super(props);
@@ -79,7 +80,7 @@ class MyImages extends React.Component {
                 pageNo: queryParams.pageNo ? queryParams.pageNo : MyImages.DEFAULT_PAGE_NO,
                 rowsPerPage: queryParams.rowsPerPage ? queryParams.rowsPerPage : MyImages.DEFAULT_ROWS_PER_PAGE
             },
-            sort: queryParams.sort ? queryParams.sort : Constants.SortingOrder.MOST_POPULAR
+            sort: queryParams.sort ? queryParams.sort : MyImages.DEFAULT_SORT
         };
     }
 
@@ -132,12 +133,18 @@ class MyImages extends React.Component {
         const {pagination, sort} = this.state;
         const newOrg = event.target.value;
         this.handleQueryParamUpdate({
-            orgName: newOrg ? newOrg : null
+            orgName: newOrg ? newOrg : null,
+            pageNo: null,
+            rowsPerPage: null
         });
         this.setState((prevState) => ({
             search: {
                 ...prevState.search,
                 orgName: newOrg
+            },
+            pagination: {
+                pageNo: MyImages.DEFAULT_PAGE_NO,
+                rowsPerPage: MyImages.DEFAULT_ROWS_PER_PAGE
             }
         }));
         this.searchImages(newOrg, pagination.rowsPerPage, pagination.pageNo, sort);
@@ -173,12 +180,34 @@ class MyImages extends React.Component {
     handleImageNameSearchKeyDown = (event) => {
         if (event.keyCode === Constants.KeyCode.ENTER) {
             const {search, pagination, sort} = this.state;
+
+            this.setState({
+                pagination: {
+                    pageNo: MyImages.DEFAULT_PAGE_NO,
+                    rowsPerPage: MyImages.DEFAULT_ROWS_PER_PAGE
+                }
+            });
+            this.handleQueryParamUpdate({
+                pageNo: null,
+                rowsPerPage: null
+            });
             this.searchImages(search.orgName, pagination.rowsPerPage, pagination.pageNo, sort);
         }
     };
 
     handleSearchButtonClick = () => {
         const {search, pagination, sort} = this.state;
+
+        this.setState({
+            pagination: {
+                pageNo: MyImages.DEFAULT_PAGE_NO,
+                rowsPerPage: MyImages.DEFAULT_ROWS_PER_PAGE
+            }
+        });
+        this.handleQueryParamUpdate({
+            pageNo: null,
+            rowsPerPage: null
+        });
         this.searchImages(search.orgName, pagination.rowsPerPage, pagination.pageNo, sort);
     };
 
@@ -186,10 +215,16 @@ class MyImages extends React.Component {
         const {search, pagination} = this.state;
         const newSort = event.target.value;
         this.handleQueryParamUpdate({
-            sort: newSort
+            sort: newSort,
+            pageNo: null,
+            rowsPerPage: null
         });
         this.setState({
-            sort: newSort
+            sort: newSort,
+            pagination: {
+                pageNo: MyImages.DEFAULT_PAGE_NO,
+                rowsPerPage: MyImages.DEFAULT_ROWS_PER_PAGE
+            }
         });
         this.searchImages(search.orgName, pagination.rowsPerPage, pagination.pageNo, newSort);
     };

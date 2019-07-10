@@ -48,6 +48,7 @@ class Images extends React.Component {
 
     static DEFAULT_ROWS_PER_PAGE = 5;
     static DEFAULT_PAGE_NO = 0;
+    static DEFAULT_SORT = Constants.SortingOrder.MOST_POPULAR;
 
     constructor(props) {
         super(props);
@@ -58,7 +59,7 @@ class Images extends React.Component {
             isLoading: true,
             totalCount: 0,
             images: [],
-            sort: queryParams.sort ? queryParams.sort : Constants.SortingOrder.MOST_POPULAR,
+            sort: queryParams.sort ? queryParams.sort : Images.DEFAULT_SORT,
             search: {
                 imageFQN: {
                     value: imageFQN,
@@ -107,12 +108,34 @@ class Images extends React.Component {
     handleImageFQNSearchKeyDown = (event) => {
         if (event.keyCode === Constants.KeyCode.ENTER) {
             const {pagination, sort} = this.state;
+
+            this.setState({
+                pagination: {
+                    pageNo: Images.DEFAULT_PAGE_NO,
+                    rowsPerPage: Images.DEFAULT_ROWS_PER_PAGE
+                }
+            });
+            this.handleQueryParamUpdate({
+                pageNo: null,
+                rowsPerPage: null
+            });
             this.searchImages(pagination.rowsPerPage, pagination.pageNo, sort);
         }
     };
 
     handleSearchButtonClick = () => {
         const {pagination, sort} = this.state;
+
+        this.setState({
+            pagination: {
+                pageNo: Images.DEFAULT_PAGE_NO,
+                rowsPerPage: Images.DEFAULT_ROWS_PER_PAGE
+            }
+        });
+        this.handleQueryParamUpdate({
+            pageNo: null,
+            rowsPerPage: null
+        });
         this.searchImages(pagination.rowsPerPage, pagination.pageNo, sort);
     };
 
@@ -135,10 +158,16 @@ class Images extends React.Component {
         const {pagination} = this.state;
         const newSort = event.target.value;
         this.handleQueryParamUpdate({
-            sort: newSort
+            sort: newSort,
+            pageNo: null,
+            rowsPerPage: null
         });
         this.setState({
-            sort: newSort
+            sort: newSort,
+            pagination: {
+                pageNo: Images.DEFAULT_PAGE_NO,
+                rowsPerPage: Images.DEFAULT_ROWS_PER_PAGE
+            }
         });
         this.searchImages(pagination.rowsPerPage, pagination.pageNo, newSort);
     };

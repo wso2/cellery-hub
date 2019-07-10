@@ -94,6 +94,7 @@ class VersionList extends React.Component {
 
     static DEFAULT_ROWS_PER_PAGE = 5;
     static DEFAULT_PAGE_NO = 0;
+    static DEFAULT_SORT = Constants.SortingOrder.MOST_POPULAR;
 
     constructor(props) {
         super(props);
@@ -110,7 +111,7 @@ class VersionList extends React.Component {
                     error: this.getErrorForVersion(version)
                 }
             },
-            sort: queryParams.sort ? queryParams.sort : Constants.SortingOrder.MOST_POPULAR,
+            sort: queryParams.sort ? queryParams.sort : VersionList.DEFAULT_SORT,
             pagination: {
                 pageNo: queryParams.pageNo ? queryParams.pageNo : VersionList.DEFAULT_PAGE_NO,
                 rowsPerPage: queryParams.rowsPerPage ? queryParams.rowsPerPage : VersionList.DEFAULT_ROWS_PER_PAGE
@@ -160,12 +161,34 @@ class VersionList extends React.Component {
     handleVersionSearchKeyDown = (event) => {
         if (event.keyCode === Constants.KeyCode.ENTER) {
             const {pagination, sort} = this.state;
+
+            this.setState({
+                pagination: {
+                    pageNo: VersionList.DEFAULT_PAGE_NO,
+                    rowsPerPage: VersionList.DEFAULT_ROWS_PER_PAGE
+                }
+            });
+            this.handleQueryParamUpdate({
+                pageNo: null,
+                rowsPerPage: null
+            });
             this.searchVersions(pagination.rowsPerPage, pagination.pageNo, sort);
         }
     };
 
     handleSearchButtonClick = () => {
         const {pagination, sort} = this.state;
+
+        this.setState({
+            pagination: {
+                pageNo: VersionList.DEFAULT_PAGE_NO,
+                rowsPerPage: VersionList.DEFAULT_ROWS_PER_PAGE
+            }
+        });
+        this.handleQueryParamUpdate({
+            pageNo: null,
+            rowsPerPage: null
+        });
         this.searchVersions(pagination.rowsPerPage, pagination.pageNo, sort);
     };
 
@@ -206,10 +229,16 @@ class VersionList extends React.Component {
         const {pagination} = this.state;
         const newSort = event.target.value;
         this.handleQueryParamUpdate({
-            sort: newSort
+            sort: newSort,
+            pageNo: null,
+            rowsPerPage: null
         });
         this.setState({
-            sort: newSort
+            sort: newSort,
+            pagination: {
+                pageNo: VersionList.DEFAULT_PAGE_NO,
+                rowsPerPage: VersionList.DEFAULT_ROWS_PER_PAGE
+            }
         });
         this.searchVersions(pagination.rowsPerPage, pagination.pageNo, newSort);
     };
