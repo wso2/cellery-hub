@@ -86,12 +86,12 @@ const Footer = (props) => {
                         </Typography>
                         <Link className={classes.footerLink} target={"_blank"} href={"/policy/tos"}>
                             Terms of Service</Link>
-                        {/* <Typography component={"span"} className={classes.separator}>|</Typography>*/}
-                        {/* <Link className={classes.footerLink} target={"_blank"} href={"/policy/privacy"}>*/}
-                        {/* Privacy Policy</Link>*/}
-                        {/* <Typography component={"span"} className={classes.separator}>|</Typography>*/}
-                        {/* <Link className={classes.footerLink} target={"_blank"} href={"/policy/cookie"}>*/}
-                        {/* Cookie Policy</Link>*/}
+                        <Typography component={"span"} className={classes.separator}>|</Typography>
+                        <Link className={classes.footerLink} target={"_blank"} href={"/policy/privacy"}>
+                            Privacy Policy</Link>
+                        <Typography component={"span"} className={classes.separator}>|</Typography>
+                        <Link className={classes.footerLink} target={"_blank"} href={"/policy/cookie"}>
+                            Cookie Policy</Link>
                     </div>
                     <Link href={"https://wso2-cellery.github.io/"} target={"_blank"}>
                         <img src={CelleryLogo} className={classes.celleryLogoFooter} alt={"Cellery logo"}/>

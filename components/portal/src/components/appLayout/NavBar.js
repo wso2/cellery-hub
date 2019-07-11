@@ -353,7 +353,7 @@ class NavBar extends React.Component {
                                 target={"_blank"} className={classes.docLink}>Get stared with Cellery</Link>
                         </MenuItem>
                         <MenuItem onClick={this.handleDocsPopoverClose} className={classes.docMenuItem}>
-                            <Link href={"https://github.com/wso2-cellery/sdk/blob/master/docs/cell-reference.md"}
+                            <Link href={"https://github.com/wso2-cellery/sdk/blob/master/docs/cellery-syntax.md"}
                                 target={"_blank"} className={classes.docLink}>How to code cell</Link>
                         </MenuItem>
                         <MenuItem onClick={this.handleDocsPopoverClose} className={classes.docMenuItem}>
