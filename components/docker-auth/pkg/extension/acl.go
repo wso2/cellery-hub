@@ -122,9 +122,11 @@ func checkImageAndRole(db *sql.DB, image, user string, execId string) (string, s
 	return userRole, visibility, errors.New("image not available")
 }
 
-func getImageVisibility(db *sql.DB, image string, execId string) (string, error) {
+func getImageVisibility(db *sql.DB, image string, organization string, execId string) (string, error) {
+	log.Printf("[%s] Retrieving image visibility for image %s in organization %s\n", execId,
+		image, organization)
 	var visibility = ""
-	results, err := db.Query(getVisibilityQuery, image)
+	results, err := db.Query(getVisibilityQuery, image, organization)
 	defer func() {
 		closeResultSet(results, "getImageVisibility", execId)
 	}()
@@ -134,10 +136,12 @@ func getImageVisibility(db *sql.DB, image string, execId string) (string, error)
 	}
 	if results.Next() {
 		err = results.Scan(&visibility)
-		log.Printf("[%s] Visibility of the image is found as %s\n", execId, visibility)
+		log.Printf("[%s] Visibility of the image %s/%s is found as %s\n", execId, organization,
+			image, visibility)
 	}
 	if err != nil {
-		log.Printf("[%s] Error in retrieving the visibility from the database :%s\n", execId, err)
+		log.Printf("[%s] Error in retrieving the visibility for %s/%s from the database :%s\n", execId,
+			organization, image, err)
 		return visibility, err
 	}
 	return visibility, nil
@@ -165,7 +169,7 @@ func isAuthorizedToPull(db *sql.DB, user, organization, image string, execId str
 	log.Printf("[%s] %s user is trying to pull the image %s for the organization %s\n",
 		execId, user, image, organization)
 	// check if image PUBLIC
-	visibility, err := getImageVisibility(db, image, execId)
+	visibility, err := getImageVisibility(db, image, organization, execId)
 	if strings.EqualFold(visibility, publicVisibility) {
 		log.Printf("[%s] Received a public image\n", execId)
 		return true, nil
