@@ -40,8 +40,10 @@ public function getTokenDetails(string token) returns (TokenDetail)|error {
     http:Client idpClientEP = getClientEP();
     var response = idpClientEP->post(config:getAsString(constants:IDP_INTROSPCET_VAR), req);
     if (response is http:Response) {
-        if (response.statusCode < 200 && response.statusCode > 300){
-            log:printError("Something went wrong while connecting to introspection endpoint");
+        if (response.statusCode < 200 || response.statusCode > 300){
+            log:printError("Failed to call introspection endpoint with status code " + response.statusCode);
+            error err = error("Failed to call introspection endpoint with status code " + response.statusCode);
+            return err;
         }
         json result = check response.getJsonPayload();
         log:printDebug(io:sprintf("Response json from the introspection endpoint is %s", check string.convert(result)));
