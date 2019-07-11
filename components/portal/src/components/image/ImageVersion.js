@@ -293,7 +293,7 @@ class ImageVersion extends React.Component {
                             )
                     }
                     <Typography variant={"h5"} color={"inherit"} className={classes.title}>
-                        {orgName}/{imageName} - {version}
+                        {orgName}/{imageName}:{version}
                     </Typography>
                     <Divider/>
                     {
