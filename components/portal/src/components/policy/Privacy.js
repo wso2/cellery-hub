@@ -70,6 +70,7 @@ const Privacy = (props) => {
                     <ul>
                         <li>Your user name</li>
                         <li>Email address</li>
+                        <li>Profile image URL from github or google, if applicable</li>
                     </ul>
                 </Typography>
                 <Typography variant={"body1"} gutterBottom>
