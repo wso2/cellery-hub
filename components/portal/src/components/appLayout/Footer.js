@@ -21,6 +21,7 @@ import Container from "@material-ui/core/Container";
 import Link from "@material-ui/core/Link";
 import React from "react";
 import Typography from "@material-ui/core/Typography";
+import {withRouter} from "react-router-dom";
 import {withStyles} from "@material-ui/core/styles";
 import * as PropTypes from "prop-types";
 
@@ -28,7 +29,7 @@ const styles = (theme) => ({
     footerContent: {
         backgroundColor: "#e5eaea",
         color: "#57595d",
-        height: 60,
+        height: 70,
         display: "flex",
         alignItems: "center"
     },
@@ -37,7 +38,21 @@ const styles = (theme) => ({
         color: "#57595d",
         letterSpacing: 1,
         fontWeight: 500,
-        textDecoration: "none"
+        textDecoration: "none",
+        "&:hover": {
+            textDecoration: "none"
+        },
+        fontSize: 11
+    },
+    footerLinkCompany: {
+        textTransform: "uppercase",
+        color: "#57595d",
+        letterSpacing: 1,
+        fontWeight: 500,
+        textDecoration: "none",
+        "&:hover": {
+            textDecoration: "none"
+        }
     },
     title: {
         flexGrow: 1
@@ -48,6 +63,11 @@ const styles = (theme) => ({
     celleryLogoFooter: {
         height: 20,
         verticalAlign: "middle"
+    },
+    separator: {
+        paddingLeft: theme.spacing(2),
+        paddingRight: theme.spacing(2),
+        color: "#c3c6cc"
     }
 });
 
@@ -58,12 +78,22 @@ const Footer = (props) => {
         <footer>
             <div className={classes.footerContent}>
                 <Container maxWidth={"md"} className={classes.copyRightInfo}>
-                    <Typography variant={"subtitle2"} color={"inherit"} className={classes.title}>
-                        &copy; 2019
-                        <Link href={"https://wso2.com"} target={"_blank"}
-                            className={classes.footerLink}> WSO2</Link>
-                    </Typography>
-                    <Link href={"https://wso2-cellery.github.io/"} target={"_blank"} className={classes.footerLink}>
+                    <div className={classes.title}>
+                        <Typography variant={"subtitle2"} color={"inherit"}>
+                            &copy; 2019
+                            <Link href={"https://wso2.com"} target={"_blank"}
+                                className={classes.footerLinkCompany}> WSO2</Link>
+                        </Typography>
+                        <Link className={classes.footerLink} target={"_blank"} href={"/policy/tos"}>
+                            Terms of Service</Link>
+                        {/* <Typography component={"span"} className={classes.separator}>|</Typography>*/}
+                        {/* <Link className={classes.footerLink} target={"_blank"} href={"/policy/privacy"}>*/}
+                        {/* Privacy Policy</Link>*/}
+                        {/* <Typography component={"span"} className={classes.separator}>|</Typography>*/}
+                        {/* <Link className={classes.footerLink} target={"_blank"} href={"/policy/cookie"}>*/}
+                        {/* Cookie Policy</Link>*/}
+                    </div>
+                    <Link href={"https://wso2-cellery.github.io/"} target={"_blank"}>
                         <img src={CelleryLogo} className={classes.celleryLogoFooter} alt={"Cellery logo"}/>
                     </Link>
                 </Container>
@@ -76,4 +106,4 @@ Footer.propTypes = {
     classes: PropTypes.object.isRequired
 };
 
-export default withStyles(styles)(Footer);
+export default withStyles(styles)(withRouter(Footer));

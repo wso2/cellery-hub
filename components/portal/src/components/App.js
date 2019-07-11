@@ -18,6 +18,7 @@
 
 import "typeface-roboto";
 import AppLayout from "./appLayout";
+import Cookie from "./policy/Cookie";
 import CssBaseline from "@material-ui/core/CssBaseline/CssBaseline";
 import ErrorBoundary from "./common/error/ErrorBoundary";
 import Explore from "./explore";
@@ -29,9 +30,11 @@ import MyOrgs from "./user/MyOrgs";
 import NotFound from "./common/error/NotFound";
 import NotificationAdditions from "./common/NotificationAdditions";
 import Org from "./org";
+import Privacy from "./policy/Privacy";
 import React from "react";
 import RequirementsValidator from "./RequirementsValidator";
 import SDK from "./sdk";
+import ServiceTerms from "./policy/ServiceTerms";
 import SignIn from "./SignIn";
 import SignInRequired from "./common/error/SignInRequired";
 import {BrowserRouter, Route, Switch} from "react-router-dom";
@@ -61,7 +64,10 @@ class GlobalStatelessHubPortal extends React.Component {
             <Route key={0} exact path={"/explore"} component={Explore}/>,
             <Route key={1} exact path={"/orgs/:orgName"} component={Org}/>,
             <Route key={2} exact path={"/images/:orgName/:imageName"} component={Image}/>,
-            <Route key={3} exact path={"/images/:orgName/:imageName/:version"} component={ImageVersion}/>
+            <Route key={3} exact path={"/images/:orgName/:imageName/:version"} component={ImageVersion}/>,
+            <Route key={4} exact path={"/policy/tos"} component={ServiceTerms}/>,
+            <Route key={5} exact path={"/policy/cookie"} component={Cookie}/>,
+            <Route key={6} exact path={"/policy/privacy"} component={Privacy}/>
         ];
         const notFoundRoute = <Route render={(props) => <NotFound {...props} showNavigationButtons={true}/>}/>;
 
