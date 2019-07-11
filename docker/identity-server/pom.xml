@@ -21,7 +21,7 @@
 
     <groupId>io.cellery.hub</groupId>
     <artifactId>io.cellery.docker.hub.idp.distribution</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>0.3.0</version>
     <name>Cellery Distribution - Dockerfiles - Cellery Hub IDP</name>
     <description>Docker files for Hub IDP</description>
     <modelVersion>4.0.0</modelVersion>
@@ -166,7 +166,7 @@
                             <goal>build</goal>
                         </goals>
                         <configuration>
-                            <repository>${docker.repo.name}/cellery-hub-idp</repository>
+                            <repository>${docker.repo.name}/cellery-hub-idp-570</repository>
                             <tag>${docker.image.tag}</tag>
                         </configuration>
                     </execution>
@@ -176,10 +176,10 @@
     </build>
 
     <properties>
-        <docker.hub.identity.customization.version>0.0.1-SNAPSHOT</docker.hub.identity.customization.version>
+        <docker.hub.identity.customization.version>0.3.0</docker.hub.identity.customization.version>
         <docker.hub.github.authenticator.version>1.0.1</docker.hub.github.authenticator.version>
 
         <docker.repo.name>wso2cellery</docker.repo.name>
-        <docker.image.tag>5.7.0</docker.image.tag>
+        <docker.image.tag>0.3.0</docker.image.tag>
     </properties>
 </project>
