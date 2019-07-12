@@ -22,6 +22,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"log"
 	"net"
 	"strings"
@@ -100,28 +101,6 @@ func getOrganizationAndImage(imageFullName string, execId string) (string, strin
 	}
 }
 
-func checkImageAndRole(db *sql.DB, image, user string, execId string) (string, string, error) {
-	results, err := db.Query(getImageAndRoleQuery, image, user)
-	defer func() {
-		closeResultSet(results, "checkImageAndRole", execId)
-	}()
-	if err != nil {
-		log.Printf("[%s] Error while calling the mysql query getImageAndRoleQuery : %s\n", execId, err)
-		return "", "", err
-	}
-	var userRole string
-	var visibility string
-	if results.Next() {
-		err = results.Scan(&userRole, &visibility)
-		if err != nil {
-			log.Printf("[%s] Error in retrieving the username role and visibility from the database :%s\n",
-				execId, err)
-			return "", "", err
-		}
-	}
-	return userRole, visibility, errors.New("image not available")
-}
-
 func getImageVisibility(db *sql.DB, image string, organization string, execId string) (string, error) {
 	log.Printf("[%s] Retrieving image visibility for image %s in organization %s\n", execId,
 		image, organization)
@@ -136,8 +115,11 @@ func getImageVisibility(db *sql.DB, image string, organization string, execId st
 	}
 	if results.Next() {
 		err = results.Scan(&visibility)
-		log.Printf("[%s] Visibility of the image %s/%s is found as %s\n", execId, organization,
+		log.Printf("[%s] Visibility of the image %s/%s is found as %s from the db\n", execId, organization,
 			image, visibility)
+	} else {
+		log.Printf("[%s] Visibility of the image %s/%s is not found in the db\n", execId, organization,
+			image)
 	}
 	if err != nil {
 		log.Printf("[%s] Error in retrieving the visibility for %s/%s from the database :%s\n", execId,
@@ -148,6 +130,7 @@ func getImageVisibility(db *sql.DB, image string, organization string, execId st
 }
 
 func isUserAvailable(db *sql.DB, organization, user string, execId string) (bool, error) {
+	log.Printf("[%s] Checking whether the user %s exists in the organization %s\n", execId, user, organization)
 	results, err := db.Query(getUserAvailabilityQuery, user, organization)
 	defer func() {
 		closeResultSet(results, "isUserAvailable", execId)
@@ -157,38 +140,33 @@ func isUserAvailable(db *sql.DB, organization, user string, execId string) (bool
 		return false, err
 	}
 	if results.Next() {
-		log.Printf("[%s] User is available in the organization :%s\n", execId, organization)
+		log.Printf("[%s] User %s is available in the organization :%s\n", execId, user, organization)
 		return true, nil
 	} else {
-		log.Printf("[%s] User is not available in the organization :%s\n", execId, organization)
+		log.Printf("[%s] User %s is not available in the organization :%s\n", execId, user, organization)
 		return false, nil
 	}
 }
 
 func isAuthorizedToPull(db *sql.DB, user, organization, image string, execId string) (bool, error) {
-	log.Printf("[%s] %s user is trying to pull the image %s for the organization %s\n",
-		execId, user, image, organization)
-	// check if image PUBLIC
+	log.Printf("[%s] ACL is checking whether the user %s is authorized to pull the image %s in the "+
+		" organization %s.\n", execId, user, image, organization)
+
 	visibility, err := getImageVisibility(db, image, organization, execId)
-	if strings.EqualFold(visibility, publicVisibility) {
-		log.Printf("[%s] Received a public image\n", execId)
-		return true, nil
-	}
-	userRole, visibility, err := checkImageAndRole(db, image, user, execId)
-	if err != nil && err.Error() == "image not available" {
-		// Check whether the username exists in the organization when a fresh image come and tries to push
-		return isUserAvailable(db, organization, user, execId)
-	} else if err != nil {
-		log.Printf("[%s] User does not have pulling rights\n", execId)
-		return false, err
-	}
-	// allows pulling if the visibility of the image is PUBLIC
-	if (userRole == userAdminRole) || (userRole == userPushRole) || (userRole == userPullRole) {
-		log.Printf("[%s] User is allowed to pull the image\n", execId)
+
+	if err != nil {
+		log.Printf("[%s] User %s is not authorized to pull the image %s/%s.\n", execId, user,
+			organization, image)
+		return false, fmt.Errorf("error occured while geting visibility of image %s/%s", organization, image)
+	} else if strings.EqualFold(visibility, publicVisibility) {
+		log.Printf("[%s] Visibility of the image %s/%s is public. Hence user %s is authorized to pull\n",
+			execId, organization, image, user)
 		return true, nil
 	} else {
-		log.Printf("[%s] User does not have pulling rights\n", execId)
-		return false, err
+		log.Printf("[%s] Visibility is not public for image %s/%s to the user %s\n", execId, organization,
+			image, user)
+		// Check whether the username exists in the organization when a fresh image come and tries to push
+		return isUserAvailable(db, organization, user, execId)
 	}
 }
 

@@ -201,6 +201,9 @@ func TestInvalidAccess(t *testing.T) {
 		{"{\"Account\":\"other.com\",\"Type\":\"repository\",\"Name\":\"cellery/image\",\"Service\":" +
 			"\"Docker registry\",\"IP\":\"172.25.0.1\",\"Actions\":[\"push\",\"pull\"],\"labels\": " +
 			" {\"isAuthSuccess\":[\"true\"]}}"},
+		{"{\"Account\":\"other.com\",\"Type\":\"repository\",\"Name\":\"cellery1/pqr\",\"Service\":" +
+			"\"Docker registry\",\"IP\":\"172.25.0.1\",\"Actions\":[\"push\",\"pull\"],\"labels\": " +
+			" {\"isAuthSuccess\":[\"true\"]}}"},
 	}
 	for _, value := range values {
 		isAuthorized, err := ValidateAccess(dbConnection, value.text, testUser)
@@ -254,28 +257,6 @@ func TestIsAuthorizedToPull(t *testing.T) {
 	}
 }
 
-func TestCheckImage(t *testing.T) {
-	values := []struct {
-		username   string
-		image      string
-		visibility string
-		userRole   string
-	}{
-		{"wso2.com", "image", "public", "push"},
-	}
-	for _, value := range values {
-		role, visib, err := checkImageAndRole(dbConnection, value.image, value.username, testUser)
-		if err != nil {
-			log.Println("Error while validating the access token :", err)
-		}
-		if (!strings.EqualFold(role, value.userRole)) && (!strings.EqualFold(visib, value.visibility)) {
-			fmt.Println("sss:", role, "ddd:", visib)
-			t.Error("Image and organization is not correct")
-		}
-	}
-
-}
-
 func TestIsUserAvailable(t *testing.T) {
 	values := []struct {
 		organization string
@@ -297,14 +278,15 @@ func TestIsUserAvailable(t *testing.T) {
 
 func TestGetImageVisibility(t *testing.T) {
 	values := []struct {
-		image string
-		visib string
+		organization string
+		image        string
+		visib        string
 	}{
-		{"image", "public"},
-		{"newImage", "private"},
+		{"cellery", "image", "public"},
+		{"is", "pqr", "private"},
 	}
 	for _, value := range values {
-		visibility, err := getImageVisibility(dbConnection, value.image, testUser)
+		visibility, err := getImageVisibility(dbConnection, value.image, value.organization, testUser)
 		if err != nil {
 			log.Println("Error while validating the access token :", err)
 		}
