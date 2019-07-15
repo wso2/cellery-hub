@@ -17,7 +17,7 @@
 PROJECT_ROOT := $(realpath $(dir $(abspath $(lastword $(MAKEFILE_LIST)))))
 PROJECT_PKG := github.com/cellery-io/cellery-hub
 DOCKER_REPO ?= wso2cellery
-VERSION ?= latest
+VERSION ?= 0.3.0
 
 PROXY := proxy
 DOCKER_AUTH := docker-auth
@@ -271,7 +271,7 @@ docker.$(API): build.$(API)
 
 .PHONY: docker.$(IDENTITY_SERVER_CUSTOMIZATION)
 docker.$(IDENTITY_SERVER_CUSTOMIZATION): build.$(IDENTITY_SERVER_CUSTOMIZATION)
-	mvn clean install -f docker/identity-server/pom.xml -Ddocker.repo.name=$(DOCKER_REPO) -Ddocker.image.tag=5.7.0
+	mvn clean install -f docker/identity-server/pom.xml -Ddocker.repo.name=$(DOCKER_REPO) -Ddocker.image.tag=$(VERSION)
 
 .PHONY: docker.$(DEPLOYMENT_INIT)
 docker.$(DEPLOYMENT_INIT): build.$(DEPLOYMENT_INIT)
@@ -298,7 +298,7 @@ docker-push.$(API):
 
 .PHONY: docker-push.$(IDENTITY_SERVER_CUSTOMIZATION)
 docker-push.$(IDENTITY_SERVER_CUSTOMIZATION):
-	docker push $(DOCKER_REPO)/cellery-hub-idp:5.7.0
+	docker push $(DOCKER_REPO)/cellery-hub-idp-570:$(VERSION)
 
 .PHONY: docker-push.$(DEPLOYMENT_INIT)
 docker-push.$(DEPLOYMENT_INIT):
