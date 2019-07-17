@@ -284,7 +284,7 @@ func resolveCredentials(execId string) (string, string, bool) {
 func isValidUser(tokenUsername interface{}, providedUsername string, execId string) bool {
 	if username, ok := tokenUsername.(string); ok {
 		usernameTokens := strings.Split(username, "@")
-		log.Printf("[%s] User needed to be validated %s with provided username %s\n",
+		log.Printf("[%s] User %s, needed to be validated with provided username %s\n",
 			execId, usernameTokens[0], providedUsername)
 		if providedUsername == usernameTokens[0] {
 			log.Printf("[%s] User received is valid\n", execId)

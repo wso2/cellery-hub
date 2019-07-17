@@ -61,8 +61,7 @@ func main() {
 			log.Printf("[%s] Error occured while decoding POST request for authentication : %s", execId, err)
 		}
 
-		log.Printf("[%s] Authentication request received by server. Uname : %s, Token : %s", execId,
-			authParams.UName, authParams.Token)
+		log.Printf("[%s] Authentication request received by server for Uname : %s", execId, authParams.UName)
 
 		authnRes := auth.Authenticate(authParams.UName, authParams.Token, execId)
 
