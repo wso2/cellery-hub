@@ -218,7 +218,7 @@ func validateAccessToken(token string, providedUsername string, execId string) b
 	} else if res.StatusCode != http.StatusOK {
 		log.Printf("[%s] Error while calling IDP, status code :%d. Exiting without authorization\n", execId,
 			res.StatusCode)
-		os.Exit(extension.ErrorExitCode)
+		return false
 	}
 
 	defer res.Body.Close()

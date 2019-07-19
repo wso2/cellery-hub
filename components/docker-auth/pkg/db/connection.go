@@ -53,20 +53,19 @@ func GetDbConnectionPool() (*sql.DB, error) {
 			" : %v", err)
 	}
 
+	dbConnection.SetMaxOpenConns(dbPoolConfigurations[extension.MaxIdleConnectionsEnvVar])
+	dbConnection.SetMaxIdleConns(dbPoolConfigurations[extension.ConnectionMaxLifetimeEnvVar])
+	dbConnection.SetConnMaxLifetime(time.Minute * time.Duration(dbPoolConfigurations[extension.
+		ConnectionMaxLifetimeEnvVar]))
+
 	err = dbConnection.Ping()
 	if err != nil {
 		log.Printf("Failed to ping database connection pool: %s", err)
 		return nil, fmt.Errorf("error occurred while pinging database connection pool "+
 			" : %v", err)
 	}
-	log.Printf("Ping successful")
 
-	dbConnection.SetMaxOpenConns(dbPoolConfigurations[extension.MaxIdleConnectionsEnvVar])
-	dbConnection.SetMaxIdleConns(dbPoolConfigurations[extension.ConnectionMaxLifetimeEnvVar])
-	dbConnection.SetConnMaxLifetime(time.Minute * time.Duration(dbPoolConfigurations[extension.
-		ConnectionMaxLifetimeEnvVar]))
-
-	log.Printf("DB connection pool established")
+	log.Printf("Ping successful. DB connection pool established")
 
 	return dbConnection, nil
 }
