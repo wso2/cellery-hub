@@ -337,6 +337,8 @@ definitions:
     properties:
       description:
         type: "string"
+      summary:
+        type: "string"
   OrgResponse:
     type: "object"
     properties:
