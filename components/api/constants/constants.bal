@@ -48,6 +48,7 @@ public const string COOKIE_HEADER = "Cookie";
 public const string TOKEN_COOKIE_KEY = "chpat";
 
 public const string ROLE_ADMIN = "admin";
+public const string ROLE_PUSH = "push";
 public const string DEFAULT_IMAGE_VISIBILITY = "PUBLIC";
 public const string PULL_COUNT = "PULL_COUNT";
 public const string UPDATED_DATE = "UPDATED_DATE";
