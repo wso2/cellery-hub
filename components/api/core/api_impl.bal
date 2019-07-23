@@ -504,25 +504,69 @@ public function updateImage(http:Request updateImageReq, string orgName, string 
         string userId = updateImageReq.getHeader(constants:AUTHENTICATED_USER);
         log:printDebug(io:sprintf("%s is attempting to update image \'%s\' in organization %s", userId, imageName, orgName));
         log:printDebug(io:sprintf("Description : %s, Summary : %s", updateImageBody.description, updateImageBody.summary));
-        sql:UpdateResult | error? updateImageRes = db:updateImage(orgName, imageName, updateImageBody.description, updateImageBody.summary, userId);
 
-        if (updateImageRes is sql:UpdateResult) {
-            if (updateImageRes.updatedRowCount == 1) {
-                log:printDebug(io:sprintf("Image \'%s\' in organization \'%s\' is successfully updated. Author : %s", imageName, orgName, userId));
-                return buildSuccessResponse();
-            } else if (updateImageRes.updatedRowCount == 0) {
-                log:printError(io:sprintf("Failed to update image \'%s\' in organization \'%s\' for Author %s : No matching records found",
-                imageName, orgName, userId));
+        http:Response resp;
+        transaction {
+            var transactionId = transactions:getCurrentTransactionId();
+            log:printDebug("Started transaction " + transactionId + " for updating image " + imageName);
+
+            sql:UpdateResult | error? updateImageRes = db:updateImageDescriptionNSummary(orgName, imageName, updateImageBody.description, updateImageBody.summary, userId);
+            if (updateImageRes is sql:UpdateResult) {
+                if (updateImageRes.updatedRowCount == 1) {
+                    log:printDebug(io:sprintf("Description and summery of the image %s/%s is successfully updated. Author : %s", orgName, imageName, userId));
+                    error? updateImageKWRes = db:updateImageKeywords(orgName, imageName, updateImageBody.keywords, userId);
+                    resp = buildSuccessResponse();
+                } else if (updateImageRes.updatedRowCount == 0) {
+                    log:printError(io:sprintf("Failed to update image \'%s\' in organization \'%s\' for Author %s : No matching records found",
+                    imageName, orgName, userId));
+                    resp = buildErrorResponse(http:EXPECTATION_FAILED_417, constants:API_ERROR_CODE, "Unable to update image", "");
+                } else {
+                    log:printError(io:sprintf("Failed to update image \'%s\' in organization \'%s\' for Author %s : More than one matching records found",
+                    imageName, orgName, userId));
+                    resp = buildErrorResponse(http:EXPECTATION_FAILED_417, constants:API_ERROR_CODE, "Unable to update image", "");
+                }                
             } else {
-                log:printError(io:sprintf("Failed to update image \'%s\' in organization \'%s\' for Author %s : More than one matching records found",
-                imageName, orgName, userId));
+                log:printError(io:sprintf("Unexpected error occured while updating image \'%s\' in organization %s", imageName, orgName),
+                err = updateImageRes);
+                resp = buildUnknownErrorResponse();
             }
-            return buildErrorResponse(http:EXPECTATION_FAILED_417, constants:API_ERROR_CODE, "Unable to update image", "");
-        } else {
-            log:printError(io:sprintf("Unexpected error occured while updating image \'%s\' in organization %s", imageName, orgName),
-            err = updateImageRes);
-            return buildUnknownErrorResponse();
+        } onretry {
+            log:printDebug(io:sprintf("Retrying updating image %s/%s for transaction %s", orgName, imageName,
+            transactions:getCurrentTransactionId()));
+        } committed {
+            log:printDebug(io:sprintf("Updating image %s/%s successful for transaction %s", orgName, imageName,
+            transactions:getCurrentTransactionId()));
+        } aborted {
+            log:printError(io:sprintf("Updating image %s/%s aborted for transaction %s", orgName, imageName,
+            transactions:getCurrentTransactionId()));
         }
+        return resp;
+
+
+
+
+
+
+
+        // sql:UpdateResult | error? updateImageRes = db:updateImage(orgName, imageName, updateImageBody.description, updateImageBody.summary, userId);
+
+        // if (updateImageRes is sql:UpdateResult) {
+        //     if (updateImageRes.updatedRowCount == 1) {
+        //         log:printDebug(io:sprintf("Image \'%s\' in organization \'%s\' is successfully updated. Author : %s", imageName, orgName, userId));
+        //         return buildSuccessResponse();
+        //     } else if (updateImageRes.updatedRowCount == 0) {
+        //         log:printError(io:sprintf("Failed to update image \'%s\' in organization \'%s\' for Author %s : No matching records found",
+        //         imageName, orgName, userId));
+        //     } else {
+        //         log:printError(io:sprintf("Failed to update image \'%s\' in organization \'%s\' for Author %s : More than one matching records found",
+        //         imageName, orgName, userId));
+        //     }
+        //     return buildErrorResponse(http:EXPECTATION_FAILED_417, constants:API_ERROR_CODE, "Unable to update image", "");
+        // } else {
+        //     log:printError(io:sprintf("Unexpected error occured while updating image \'%s\' in organization %s", imageName, orgName),
+        //     err = updateImageRes);
+        //     return buildUnknownErrorResponse();
+        // }
     } else {
         log:printError("Unauthenticated request for updateImage: Username is not found");
         return buildErrorResponse(http:UNAUTHORIZED_401, constants:API_ERROR_CODE, "Unable to update image",
