@@ -18,6 +18,7 @@
 
 /* eslint camelcase: ["off"] */
 
+import Constants from "../constants";
 import HttpUtils from "./httpUtils";
 import NotificationUtils from "../common/notificationUtils";
 import {StateHolder} from "../../components/common/state";
@@ -154,7 +155,13 @@ class AuthUtils {
                     accessToken: resp.accessToken,
                     idToken: resp.idToken,
                     expirationTime: decodedToken.exp * 1000
-                }
+                },
+                // TODO: Need to load the user permissions from backend
+                roles: [
+                    Constants.Permission.ADMIN,
+                    Constants.Permission.PUSH,
+                    Constants.Permission.PULL
+                ]
             };
             AuthUtils.updateUser(user, globalState);
             if (onSuccess) {

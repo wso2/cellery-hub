@@ -16,30 +16,40 @@
  * under the License.
  */
 
+/* eslint max-lines: ["off"] */
+
 import AccessTime from "@material-ui/icons/AccessTime";
 import ArrowBack from "@material-ui/icons/ArrowBack";
-import CellImage from "../../img/CellImage";
-import Constants from "../../utils/constants";
-import CustomizedTabs from "../common/CustomizedTabs";
-import DataUtils from "../../utils/api/dataUtils";
-import DependencyDiagram from "./dependencyDiagram";
+import CellImage from "../../../img/CellImage";
+import Constants from "../../../utils/constants";
+import CustomizedTabs from "../../common/CustomizedTabs";
+import DataUtils from "../../../utils/api/dataUtils";
+import DeleteOutline from "@material-ui/icons/DeleteOutline";
+import DependencyDiagram from "../dependencyDiagram/index";
+import Description from "../../common/Description";
 import Divider from "@material-ui/core/Divider";
+import EditOutlined from "@material-ui/icons/EditOutlined";
 import FileCopy from "@material-ui/icons/FileCopyOutlined";
 import GetApp from "@material-ui/icons/GetApp";
 import Grid from "@material-ui/core/Grid";
 import HelpOutline from "@material-ui/icons/HelpOutline";
 import IconButton from "@material-ui/core/IconButton/IconButton";
 import InputBase from "@material-ui/core/InputBase/InputBase";
-import NotFound from "../common/error/NotFound";
-import NotificationUtils from "../../utils/common/notificationUtils";
+import Menu from "@material-ui/core/Menu";
+import MenuItem from "@material-ui/core/MenuItem";
+import MoreVert from "@material-ui/icons/MoreVert";
+import NotFound from "../../common/error/NotFound";
+import NotificationUtils from "../../../utils/common/notificationUtils";
 import React from "react";
 import Tooltip from "@material-ui/core/Tooltip/Tooltip";
 import Typography from "@material-ui/core/Typography";
+import VersionDeleteDialog from "./VersionDeleteDialog";
+import VersionUpdateDialog from "./VersionUpdateDialog";
 import classNames from "classnames";
 import {withRouter} from "react-router-dom";
 import {withStyles} from "@material-ui/core/styles";
-import HttpUtils, {HubApiError} from "../../utils/api/httpUtils";
-import withGlobalState, {StateHolder} from "../common/state";
+import HttpUtils, {HubApiError} from "../../../utils/api/httpUtils";
+import withGlobalState, {StateHolder} from "../../common/state/index";
 import * as PropTypes from "prop-types";
 import * as moment from "moment";
 
@@ -146,6 +156,15 @@ const styles = (theme) => ({
     helpIconBtn: {
         padding: 0,
         marginLeft: theme.spacing(1 / 2)
+    },
+    menuIcon: {
+        marginRight: theme.spacing(1)
+    },
+    header: {
+        display: "flex"
+    },
+    titleContainer: {
+        flexGrow: 1
     }
 });
 
@@ -159,7 +178,10 @@ class ImageVersion extends React.Component {
             isRunCopiedTooltipOpen: false,
             isLoading: true,
             isVersionNotFound: false,
-            versionData: null
+            versionData: null,
+            morePopoverElement: null,
+            isEditDialogOpen: false,
+            isDeleteDialogOpen: false
         };
 
         this.pullCmdRef = React.createRef();
@@ -266,9 +288,47 @@ class ImageVersion extends React.Component {
         });
     };
 
+    handleMorePopoverOpen = (event) => {
+        this.setState({
+            morePopoverElement: event.currentTarget
+        });
+    };
+
+    handleMorePopoverClose = () => {
+        this.setState({
+            morePopoverElement: null
+        });
+    };
+
+    handleEditDialogOpen = () => {
+        this.setState({
+            isEditDialogOpen: true
+        });
+    };
+
+    handleEditDialogClose = () => {
+        this.setState({
+            isEditDialogOpen: false
+        });
+    };
+
+    handleDeleteDialogOpen = () => {
+        this.setState({
+            isDeleteDialogOpen: true
+        });
+    };
+
+    handleDeleteDialogClose = () => {
+        this.setState({
+            isDeleteDialogOpen: false
+        });
+    };
+
     render = () => {
-        const {classes, history, location, match} = this.props;
-        const {isPullCopiedTooltipOpen, isRunCopiedTooltipOpen, isLoading, isVersionNotFound, versionData} = this.state;
+        const {classes, history, location, match, globalState} = this.props;
+        const {isPullCopiedTooltipOpen, isRunCopiedTooltipOpen, isLoading, isVersionNotFound, versionData,
+            morePopoverElement, isEditDialogOpen, isDeleteDialogOpen} = this.state;
+        const isMorePopoverOpen = Boolean(morePopoverElement);
         const orgName = match.params.orgName;
         const imageName = match.params.imageName;
         const version = match.params.version;
@@ -276,25 +336,73 @@ class ImageVersion extends React.Component {
             {
                 label: "Dependencies",
                 render: () => <DependencyDiagram data={versionData.metadata}/>
+            },
+            {
+                label: "Description",
+                render: () => <Description data={versionData.description}/>
             }
         ];
 
         return (
             <React.Fragment>
                 <div className={classes.content}>
-                    {
-                        (history.length <= 2 || location.pathname === "/")
-                            ? null
-                            : (
-                                <IconButton color={"inherit"} aria-label={"Back"}
-                                    onClick={() => history.goBack()}>
-                                    <ArrowBack/>
-                                </IconButton>
-                            )
-                    }
-                    <Typography variant={"h5"} color={"inherit"} className={classes.title}>
-                        {orgName}/{imageName}:{version}
-                    </Typography>
+                    <div className={classes.header}>
+                        <div className={classes.titleContainer}>
+                            {
+                                (history.length <= 2 || location.pathname === "/")
+                                    ? null
+                                    : (
+                                        <IconButton color={"inherit"} aria-label={"Back"}
+                                            onClick={() => history.goBack()}>
+                                            <ArrowBack/>
+                                        </IconButton>
+                                    )
+                            }
+                            <Typography variant={"h5"} color={"inherit"} className={classes.title}>
+                                {orgName}/{imageName}:{version}
+                            </Typography>
+                        </div>
+                        {
+                            globalState.get(StateHolder.USER).roles.includes(Constants.Permission.PUSH)
+                                ? (
+                                    <React.Fragment>
+                                        <IconButton color={"inherit"} aria-label={"More"}
+                                            onClick={this.handleMorePopoverOpen}>
+                                            <MoreVert/>
+                                        </IconButton>
+                                        <Menu id={"image-more-option-menu"} anchorEl={morePopoverElement}
+                                            anchorOrigin={{vertical: "top", horizontal: "right"}}
+                                            transformOrigin={{vertical: "top", horizontal: "right"}}
+                                            open={isMorePopoverOpen}
+                                            onClose={this.handleMorePopoverClose}>
+                                            <MenuItem onClick={() => {
+                                                this.handleEditDialogOpen();
+                                                this.handleMorePopoverClose();
+                                            }}>
+                                                <EditOutlined className={classes.menuIcon}/> Edit
+                                            </MenuItem>
+                                            {
+                                                globalState.get(StateHolder.USER).roles
+                                                    .includes(Constants.Permission.ADMIN)
+                                                    ? (
+                                                        <React.Fragment>
+                                                            <Divider/>
+                                                            <MenuItem onClick={() => {
+                                                                this.handleDeleteDialogOpen();
+                                                                this.handleMorePopoverClose();
+                                                            }}>
+                                                                <DeleteOutline className={classes.menuIcon}/> Delete
+                                                            </MenuItem>
+                                                        </React.Fragment>
+                                                    )
+                                                    : null
+                                            }
+                                        </Menu>
+                                    </React.Fragment>
+                                )
+                                : null
+                        }
+                    </div>
                     <Divider/>
                     {
                         isLoading || isVersionNotFound || !versionData
@@ -408,6 +516,11 @@ class ImageVersion extends React.Component {
                                             </div>
                                         </Grid>
                                     </Grid>
+                                    <VersionUpdateDialog open={isEditDialogOpen} image={`${orgName}/${imageName}`}
+                                        version={version} description={versionData.description}
+                                        onClose={this.handleEditDialogClose}/>
+                                    <VersionDeleteDialog open={isDeleteDialogOpen} image={`${orgName}/${imageName}`}
+                                        version={version} onClose={this.handleDeleteDialogClose}/>
                                 </div>
                             )
                     }

@@ -24,7 +24,7 @@ import ErrorBoundary from "./common/error/ErrorBoundary";
 import Explore from "./explore";
 import Home from "./Home";
 import Image from "./image";
-import ImageVersion from "./image/ImageVersion";
+import ImageVersion from "./image/version";
 import MyImages from "./user/MyImages";
 import MyOrgs from "./user/MyOrgs";
 import NotFound from "./common/error/NotFound";
