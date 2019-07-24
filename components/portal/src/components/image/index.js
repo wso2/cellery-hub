@@ -16,23 +16,34 @@
  * under the License.
  */
 
+/* eslint max-lines: ["error", 600] */
+
 import ArrowBack from "@material-ui/icons/ArrowBack";
 import CellImage from "../../img/CellImage";
 import Chip from "@material-ui/core/Chip";
 import Constants from "../../utils/constants";
 import CustomizedTabs from "../common/CustomizedTabs";
+import DeleteOutline from "@material-ui/icons/DeleteOutline";
+import Description from "../common/Description";
 import Divider from "@material-ui/core/Divider";
+import EditOutlined from "@material-ui/icons/EditOutlined";
 import FileCopy from "@material-ui/icons/FileCopyOutlined";
 import GetApp from "@material-ui/icons/GetApp";
 import Grid from "@material-ui/core/Grid";
 import HelpOutline from "@material-ui/icons/HelpOutline";
 import IconButton from "@material-ui/core/IconButton/IconButton";
+import ImageDeleteDialog from "./ImageDeleteDialog";
+import ImageUpdateDialog from "./ImageUpdateDialog";
 import InputBase from "@material-ui/core/InputBase";
 import Language from "@material-ui/icons/Language";
 import Lock from "@material-ui/icons/Lock";
+import Menu from "@material-ui/core/Menu";
+import MenuItem from "@material-ui/core/MenuItem";
+import MoreVert from "@material-ui/icons/MoreVert";
 import NotFound from "../common/error/NotFound";
 import NotificationUtils from "../../utils/common/notificationUtils";
 import React from "react";
+import StateHolder from "../common/state/stateHolder";
 import Tooltip from "@material-ui/core/Tooltip/Tooltip";
 import Typography from "@material-ui/core/Typography";
 import VersionList from "./VersionList";
@@ -136,7 +147,7 @@ const styles = (theme) => ({
         display: "inline-block"
     },
     keywords: {
-        display: "none"
+        marginTop: theme.spacing(4)
     },
     visibility: {
         textTransform: "capitalize"
@@ -149,6 +160,15 @@ const styles = (theme) => ({
     helpIconBtn: {
         padding: 0,
         marginLeft: theme.spacing(1 / 2)
+    },
+    menuIcon: {
+        marginRight: theme.spacing(1)
+    },
+    header: {
+        display: "flex"
+    },
+    titleContainer: {
+        flexGrow: 1
     }
 });
 
@@ -162,7 +182,10 @@ class Image extends React.Component {
             isRunCopiedTooltipOpen: false,
             isLoading: true,
             isImageNotFound: false,
-            imageData: null
+            imageData: null,
+            morePopoverElement: null,
+            isEditDialogOpen: false,
+            isDeleteDialogOpen: false
         };
 
         this.pullCmdRef = React.createRef();
@@ -252,34 +275,121 @@ class Image extends React.Component {
         });
     };
 
+    handleMorePopoverOpen = (event) => {
+        this.setState({
+            morePopoverElement: event.currentTarget
+        });
+    };
+
+    handleMorePopoverClose = () => {
+        this.setState({
+            morePopoverElement: null
+        });
+    };
+
+    handleEditDialogOpen = () => {
+        this.setState({
+            isEditDialogOpen: true
+        });
+    };
+
+    handleEditDialogClose = () => {
+        this.setState({
+            isEditDialogOpen: false
+        });
+    };
+
+    handleDeleteDialogOpen = () => {
+        this.setState({
+            isDeleteDialogOpen: true
+        });
+    };
+
+    handleDeleteDialogClose = () => {
+        this.setState({
+            isDeleteDialogOpen: false
+        });
+    };
+
+
     render = () => {
-        const {classes, location, match, history} = this.props;
-        const {isPullCopiedTooltipOpen, isRunCopiedTooltipOpen, isLoading, isImageNotFound, imageData} = this.state;
+        const {classes, location, match, history, globalState} = this.props;
+        const {isPullCopiedTooltipOpen, isRunCopiedTooltipOpen, isLoading, isImageNotFound, imageData,
+            morePopoverElement, isEditDialogOpen, isDeleteDialogOpen} = this.state;
+        const isMorePopoverOpen = Boolean(morePopoverElement);
         const orgName = match.params.orgName;
         const imageName = match.params.imageName;
         const tabs = [
             {
                 label: "Versions",
                 render: () => <VersionList/>
+            },
+            {
+                label: "Description",
+                render: () => <Description data={imageData.description}/>
             }
         ];
 
         return (
             <React.Fragment>
                 <div className={classes.content}>
-                    {
-                        (history.length <= 2 || location.pathname === "/")
-                            ? null
-                            : (
-                                <IconButton color={"inherit"} aria-label={"Back"}
-                                    onClick={() => history.goBack()}>
-                                    <ArrowBack/>
-                                </IconButton>
-                            )
-                    }
-                    <Typography variant={"h5"} color={"inherit"} className={classes.title}>
-                        {orgName}/{imageName}
-                    </Typography>
+                    <div className={classes.header}>
+                        <div className={classes.titleContainer}>
+                            {
+                                (history.length <= 2 || location.pathname === "/")
+                                    ? null
+                                    : (
+                                        <IconButton color={"inherit"} aria-label={"Back"}
+                                            onClick={() => history.goBack()}>
+                                            <ArrowBack/>
+                                        </IconButton>
+                                    )
+                            }
+                            <Typography variant={"h5"} color={"inherit"} className={classes.title}>
+                                {orgName}/{imageName}
+                            </Typography>
+                        </div>
+                        {
+                            globalState.get(StateHolder.USER).roles.includes(Constants.Permission.PUSH)
+                                ? (
+                                    <React.Fragment>
+                                        <IconButton color={"inherit"} aria-label={"More"}
+                                            onClick={this.handleMorePopoverOpen}>
+                                            <MoreVert/>
+                                        </IconButton>
+                                        <Menu id={"image-more-option-menu"} anchorEl={morePopoverElement}
+                                            anchorOrigin={{vertical: "top", horizontal: "right"}}
+                                            transformOrigin={{vertical: "top", horizontal: "right"}}
+                                            open={isMorePopoverOpen}
+                                            onClose={this.handleMorePopoverClose}>
+                                            <MenuItem onClick={() => {
+                                                this.handleEditDialogOpen();
+                                                this.handleMorePopoverClose();
+                                            }}>
+                                                <EditOutlined className={classes.menuIcon}/> Edit
+                                            </MenuItem>
+                                            {
+                                                globalState.get(StateHolder.USER).roles
+                                                    .includes(Constants.Permission.ADMIN)
+                                                    ? (
+                                                        <React.Fragment>
+                                                            <Divider/>
+                                                            <MenuItem onClick={() => {
+                                                                this.handleDeleteDialogOpen();
+                                                                this.handleMorePopoverClose();
+                                                            }}>
+                                                                <DeleteOutline className={classes.menuIcon}/> Delete
+                                                            </MenuItem>
+                                                        </React.Fragment>
+                                                    )
+                                                    : null
+                                            }
+                                        </Menu>
+                                    </React.Fragment>
+                                )
+                                : null
+                        }
+                    </div>
                     <Divider/>
                     {
                         isLoading || isImageNotFound || !imageData
@@ -325,7 +435,11 @@ class Image extends React.Component {
                                                                 </React.Fragment>
                                                         }
                                                     </div>
-
+                                                    <div>
+                                                        <Typography variant={"body1"} color={"inherit"}>
+                                                            {imageData.summary}
+                                                        </Typography>
+                                                    </div>
                                                 </Grid>
                                                 <Grid item xs={12} sm={12} md={12}>
                                                     <CustomizedTabs tabs={tabs}/>
@@ -389,19 +503,31 @@ class Image extends React.Component {
                                                     </Tooltip>
                                                 </div>
                                             </div>
-                                            <div className={classes.keywords}>
-                                                <Typography variant={"subtitle2"} color={"inherit"}
-                                                    className={classes.rightPanelTitle}>Keywords
-                                                </Typography>
-                                                <div className={classes.keywordContent}>
-                                                    {imageData.keywords.map((keyword) => (
-                                                        <Chip key={keyword} label={keyword}
-                                                            className={classes.chip}/>
-                                                    ))}
-                                                </div>
-                                            </div>
+                                            {
+                                                imageData.keywords
+                                                    ? (
+                                                        <div className={classes.keywords}>
+                                                            <Typography variant={"subtitle2"} color={"inherit"}
+                                                                className={classes.rightPanelTitle}>Keywords
+                                                            </Typography>
+                                                            <div className={classes.keywordContent}>
+                                                                {imageData.keywords.map((keyword) => (
+                                                                    <Chip key={keyword} label={keyword}
+                                                                        className={classes.chip}/>
+                                                                ))}
+                                                            </div>
+                                                        </div>
+                                                    )
+                                                    : null
+                                            }
+
                                         </Grid>
                                     </Grid>
+                                    <ImageUpdateDialog open={isEditDialogOpen} image={`${orgName}/${imageName}`}
+                                        summary={imageData.summary} description={imageData.description}
+                                        keywords={imageData.keywords} onClose={this.handleEditDialogClose}/>
+                                    <ImageDeleteDialog open={isDeleteDialogOpen} image={`${orgName}/${imageName}`}
+                                        onClose={this.handleDeleteDialogClose}/>
                                 </div>
                             )
                     }
@@ -428,7 +554,8 @@ Image.propTypes = {
             orgName: PropTypes.string.isRequired,
             imageName: PropTypes.string.isRequired
         })
-    })
+    }),
+    globalState: PropTypes.instanceOf(StateHolder).isRequired
 };
 
 export default withStyles(styles)(withRouter(withGlobalState(Image)));

@@ -15,6 +15,7 @@
     "react": "^16.8.6",
     "react-dom": "^16.8.6",
     "react-google-recaptcha": "^1.0.5",
+    "react-markdown": "^4.1.0",
     "react-router-dom": "^5.0.0",
     "react-scripts": "3.0.0",
     "typeface-roboto": "0.0.54",

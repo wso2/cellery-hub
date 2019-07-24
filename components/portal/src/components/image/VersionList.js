@@ -56,7 +56,7 @@ const styles = (theme) => ({
     },
     elementText: {
         flex: "none",
-        paddingLeft: theme.spacing(2),
+        paddingLeft: theme.spacing(1),
         color: "#666666"
     },
     elementIcon: {
@@ -76,7 +76,8 @@ const styles = (theme) => ({
     versionName: {
         color: theme.palette.primary.main,
         fontWeight: 500,
-        fontSize: 12
+        fontSize: 12,
+        marginRight: theme.spacing(2)
     },
     searchFilters: {
         marginBottom: theme.spacing(2)

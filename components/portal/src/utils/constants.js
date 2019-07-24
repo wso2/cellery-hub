@@ -47,6 +47,11 @@ const Constants = {
     ApplicationErrorCode: {
         ALREADY_EXISTS: 2,
         ALLOWED_LIMIT_EXCEEDED: 3
+    },
+    Permission: {
+        ADMIN: "admin",
+        PUSH: "push",
+        PULL: "pull"
     }
 };
 

@@ -20,13 +20,21 @@ import ArrowBack from "@material-ui/icons/ArrowBack";
 import Constants from "../../utils/constants";
 import CustomizedTabs from "../common/CustomizedTabs";
 import DataUtils from "../../utils/api/dataUtils";
+import DeleteOutline from "@material-ui/icons/DeleteOutline";
+import Description from "../common/Description";
 import Divider from "@material-ui/core/Divider";
+import EditOutlined from "@material-ui/icons/EditOutlined";
 import Grid from "@material-ui/core/Grid";
 import IconButton from "@material-ui/core/IconButton/IconButton";
 import Link from "@material-ui/core/Link";
+import Menu from "@material-ui/core/Menu";
+import MenuItem from "@material-ui/core/MenuItem";
+import MoreVert from "@material-ui/icons/MoreVert";
 import NotFound from "../common/error/NotFound";
 import NotificationUtils from "../../utils/common/notificationUtils";
+import OrgDeleteDialog from "./OrgDeleteDialog";
 import OrgImageList from "./OrgImageList";
+import OrgUpdateDialog from "./OrgUpdateDialog";
 import React from "react";
 import StateHolder from "../common/state/stateHolder";
 import Typography from "@material-ui/core/Typography";
@@ -76,7 +84,17 @@ const styles = (theme) => ({
         backgroundColor: "#91c56f",
         borderRadius: 5,
         minHeight: 100
+    },
+    menuIcon: {
+        marginRight: theme.spacing(1)
+    },
+    header: {
+        display: "flex"
+    },
+    titleContainer: {
+        flexGrow: 1
     }
+
 });
 
 class Org extends React.Component {
@@ -86,7 +104,10 @@ class Org extends React.Component {
         this.state = {
             isLoading: true,
             isOrgNotFound: false,
-            orgData: null
+            orgData: null,
+            morePopoverElement: null,
+            isEditDialogOpen: false,
+            isDeleteDialogOpen: false
         };
     }
 
@@ -139,33 +160,110 @@ class Org extends React.Component {
         });
     }
 
+    handleMorePopoverOpen = (event) => {
+        this.setState({
+            morePopoverElement: event.currentTarget
+        });
+    };
+
+    handleMorePopoverClose = () => {
+        this.setState({
+            morePopoverElement: null
+        });
+    };
+
+    handleEditDialogOpen = () => {
+        this.setState({
+            isEditDialogOpen: true
+        });
+    };
+
+    handleEditDialogClose = () => {
+        this.setState({
+            isEditDialogOpen: false
+        });
+    };
+
+    handleDeleteDialogOpen = () => {
+        this.setState({
+            isDeleteDialogOpen: true
+        });
+    };
+
+    handleDeleteDialogClose = () => {
+        this.setState({
+            isDeleteDialogOpen: false
+        });
+    };
+
     render() {
-        const {classes, history, location, match} = this.props;
-        const {isLoading, isOrgNotFound, orgData} = this.state;
+        const {classes, history, location, match, globalState} = this.props;
+        const {isLoading, isOrgNotFound, orgData, morePopoverElement, isEditDialogOpen,
+            isDeleteDialogOpen} = this.state;
+        const isMorePopoverOpen = Boolean(morePopoverElement);
         const orgName = match.params.orgName;
         const tabs = [
             {
                 label: "Images",
                 render: () => <OrgImageList organization={orgName}/>
+            },
+            {
+                label: "About",
+                render: () => <Description data={orgData.description}/>
             }
         ];
 
         return (
             <React.Fragment>
                 <div className={classes.content}>
-                    {
-                        (history.length <= 2 || location.pathname === "/")
-                            ? null
-                            : (
-                                <IconButton color={"inherit"} aria-label={"Back"}
-                                    onClick={() => history.goBack()}>
-                                    <ArrowBack/>
-                                </IconButton>
-                            )
-                    }
-                    <Typography variant={"h5"} color={"inherit"} className={classes.title}>
-                        {orgName}
-                    </Typography>
+                    <div className={classes.header}>
+                        <div className={classes.titleContainer}>
+                            {
+                                (history.length <= 2 || location.pathname === "/")
+                                    ? null
+                                    : (
+                                        <IconButton color={"inherit"} aria-label={"Back"}
+                                            onClick={() => history.goBack()}>
+                                            <ArrowBack/>
+                                        </IconButton>
+                                    )
+                            }
+                            <Typography variant={"h5"} color={"inherit"} className={classes.title}>
+                                {orgName}
+                            </Typography>
+                        </div>
+                        {
+                            globalState.get(StateHolder.USER).roles.includes(Constants.Permission.ADMIN)
+                                ? (
+                                    <React.Fragment>
+                                        <IconButton color={"inherit"} aria-label={"More"}
+                                            onClick={this.handleMorePopoverOpen}>
+                                            <MoreVert/>
+                                        </IconButton>
+                                        <Menu id={"image-more-option-menu"} anchorEl={morePopoverElement}
+                                            anchorOrigin={{vertical: "top", horizontal: "right"}}
+                                            transformOrigin={{vertical: "top", horizontal: "right"}}
+                                            open={isMorePopoverOpen}
+                                            onClose={this.handleMorePopoverClose}>
+                                            <MenuItem onClick={() => {
+                                                this.handleEditDialogOpen();
+                                                this.handleMorePopoverClose();
+                                            }}>
+                                                <EditOutlined className={classes.menuIcon}/> Edit
+                                            </MenuItem>
+                                            <Divider/>
+                                            <MenuItem onClick={() => {
+                                                this.handleDeleteDialogOpen();
+                                                this.handleMorePopoverClose();
+                                            }}>
+                                                <DeleteOutline className={classes.menuIcon}/> Delete
+                                            </MenuItem>
+                                        </Menu>
+                                    </React.Fragment>
+                                )
+                                : null
+                        }
+                    </div>
                     <Divider/>
                     {
                         isLoading || isOrgNotFound || !orgData
@@ -193,7 +291,7 @@ class Org extends React.Component {
                                             </div>
                                             <div>
                                                 <Typography variant={"body1"} color={"inherit"}>
-                                                    {orgData.description}
+                                                    {orgData.summary}
                                                 </Typography>
                                             </div>
                                             <div>
@@ -213,6 +311,11 @@ class Org extends React.Component {
                                             </Grid>
                                         </Grid>
                                     </Grid>
+                                    <OrgUpdateDialog open={isEditDialogOpen} org={orgName}
+                                        description={orgData.description} summary={orgData.summary}
+                                        onClose={this.handleEditDialogClose}/>
+                                    <OrgDeleteDialog open={isDeleteDialogOpen} org={orgName}
+                                        onClose={this.handleDeleteDialogClose}/>
                                 </div>
                             )
                     }
