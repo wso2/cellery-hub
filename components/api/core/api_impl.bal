@@ -498,7 +498,8 @@ returns http:Response {
 # + updateImageReq - received request which contains header
 # + orgName - Organization name
 # + imageName - Image ID
-# + return - http response (200 if success, 405 or 500 otherwise)
+# + updateImageBody - received body which contain the description, summary and keywords array
+# + return - http response (200 if success, 401 or 417 otherwise)
 public function updateImage(http:Request updateImageReq, string orgName, string imageName, gen:ImageUpdateRequest updateImageBody) returns http:Response {
     if (updateImageReq.hasHeader(constants:AUTHENTICATED_USER)) {
         string userId = updateImageReq.getHeader(constants:AUTHENTICATED_USER);
@@ -556,6 +557,21 @@ public function updateImage(http:Request updateImageReq, string orgName, string 
         return buildErrorResponse(http:UNAUTHORIZED_401, constants:API_ERROR_CODE, "Unable to update image",
         "Unauthenticated request. Auth token is not provided");
     }
+}
+
+# Update an existing organization
+#
+# + updateOrganizationReq - received request which contains header
+# + orgName - organization name received as a path parameter
+# + updateOrganizationBody - received body which contain the description and summary
+# + return - http response (200 if success, 401 or 500 otherwise)
+public function updateOrganization (http:Request updateOrganizationReq, string orgName, gen:OrgUpdateRequest updateOrganizationBody) returns http:Response {
+    // stub code - fill as necessary
+    http:Response updateOrganizationRes = new;
+    string _updateOrganizationPayload = "Sample updateOrganization Response";
+    updateOrganizationRes.setTextPayload(_updateOrganizationPayload);
+
+	return updateOrganizationRes;
 }
 
 # Search images belongs to a given user

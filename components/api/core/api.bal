@@ -690,6 +690,30 @@ service CelleryHubAPI on ep {
     }
 
     @openapi:ResourceInfo {
+        summary: "Update an existing organization",
+        parameters: [
+            {
+                name: "orgName",
+                inInfo: "path",
+                paramType: "string",
+                description: "Name of the organization",
+                required: true,
+                allowEmptyValue: ""
+            }
+        ]
+    }
+    @http:ResourceConfig {
+        methods:["PUT"],
+        path:"/orgs/{orgName}",
+        body:"_updateOrganizationBody"
+    }
+    resource function updateOrganization (http:Caller outboundEp, http:Request _updateOrganizationReq, string orgName, 
+    gen:OrgUpdateRequest _updateOrganizationBody) returns error? {
+        http:Response _updateOrganizationRes = updateOrganization(_updateOrganizationReq, orgName, _updateOrganizationBody);
+        error? x = outboundEp->respond(_updateOrganizationRes);
+    }
+
+    @openapi:ResourceInfo {
         summary: "Find images which user is the first author",
         parameters: [
         {
