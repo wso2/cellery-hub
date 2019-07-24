@@ -521,7 +521,7 @@ public function updateImage(http:Request updateImageReq, string orgName, string 
                     } else {
                         log:printDebug(io:sprintf("Successfully updated the keywords of the image %s/%s by %s", orgName, imageName, userId));
                         resp = buildSuccessResponse();
-                    }                    
+                    }
                 } else if (updateImageRes.updatedRowCount == 0) {
                     log:printError(io:sprintf("Failed to update image %s/%s for Author %s : No matching records found",
                     imageName, orgName, userId));
@@ -530,7 +530,7 @@ public function updateImage(http:Request updateImageReq, string orgName, string 
                     log:printError(io:sprintf("Failed to update image %s/%s for Author %s : More than one matching records found",
                     imageName, orgName, userId));
                     resp = buildErrorResponse(http:EXPECTATION_FAILED_417, constants:API_ERROR_CODE, "Unable to update image", "");
-                }                
+                }
             } else {
                 log:printError(io:sprintf("Unexpected error occured while updating image %s/%s", imageName, orgName),
                 err = updateImageRes);

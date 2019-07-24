@@ -397,14 +397,14 @@ public function updateImageDescriptionNSummary(string orgName, string imageName,
 
 public function updateImageKeywords(string orgName, string imageName, string[] keywords, string userId) returns error? {
     log:printInfo(io:sprintf("Updating keywords of the image %s/%s", orgName, imageName));
-    _ = check connection->update(DELETE_IMAGE_KEYWORDS_QUERY, imageName, orgName, userId);
-    log:printInfo(io:sprintf("Successfully deleted keywords of the image %s/%s", orgName, imageName));
-
     string role = check getUserRole(userId, orgName);
     if role == constants:ROLE_ADMIN || role == constants:ROLE_PUSH {
-        log:printInfo(io:sprintf("User %s is allowd to insert keywords for the image %s/%s", userId, orgName, imageName));
+        log:printInfo(io:sprintf("User %s is allowd to update the image %s/%s", userId, orgName, imageName));
         string imageId = check getArtifactImageID(orgName, imageName);
         if imageId != "" {
+            _ = check connection->update(DELETE_IMAGE_KEYWORDS_QUERY, imageId);
+            log:printInfo(io:sprintf("Successfully deleted keywords of the image %s/%s", orgName, imageName));
+
             string[][] dataBatch = [];
             int i = 0;
             foreach var keyword in keywords {
