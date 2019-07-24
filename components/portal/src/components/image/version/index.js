@@ -16,7 +16,7 @@
  * under the License.
  */
 
-/* eslint max-lines: ["off"] */
+/* eslint max-lines: ["error", 600] */
 
 import AccessTime from "@material-ui/icons/AccessTime";
 import ArrowBack from "@material-ui/icons/ArrowBack";
