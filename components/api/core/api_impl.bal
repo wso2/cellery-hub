@@ -531,7 +531,7 @@ public function updateImage(http:Request updateImageReq, string orgName, string 
                 } else {
                     log:printError(io:sprintf("Failed to update image %s/%s for Author %s : More than one matching records found",
                     imageName, orgName, userId));
-                    resp = buildErrorResponse(http:INTERNAL_SERVER_ERROR_500, constants:API_ERROR_CODE, "Unable to update image", "");
+                    resp = buildUnknownErrorResponse();
                     abort;
                 }
             } else {
@@ -546,7 +546,6 @@ public function updateImage(http:Request updateImageReq, string orgName, string 
         } committed {
             log:printDebug(io:sprintf("Transaction %s successfully commited for updating the image %s/%s", transactions:getCurrentTransactionId(),
             orgName, imageName));
-
         } aborted {
             log:printError(io:sprintf("Updating image %s/%s aborted for transaction %s", orgName, imageName,
             transactions:getCurrentTransactionId()));

@@ -34,7 +34,7 @@ type RegistryArtifactImage record {|
 
 public function getOrganization(string orgName) returns json | error {
     log:printDebug(io:sprintf("Performing data retreival on REGISTRY_ORGANIZATION table, Org name : \'%s\': ", orgName));
-    table< record {}> res = check connection->select(GET_ORG_QUERY, gen:OrgResponse, orgName, loadToMemory = true);
+    table<record {}> res = check connection->select(GET_ORG_QUERY, gen:OrgResponse, orgName, loadToMemory = true);
     if (res.count() == 1) {
         gen:OrgResponse orgRes = check gen:OrgResponse.convert(res.getNext());
         json resPayload = check json.convert(orgRes);
@@ -50,7 +50,7 @@ public function getOrganization(string orgName) returns json | error {
 
 public function getOrganizationAvailability(string orgName) returns boolean | error {
     log:printDebug(io:sprintf("Checking orgName avialability on REGISTRY_ORGANIZATION table for Org name : \'%s\': ", orgName));
-    table< record {}> res = check connection->select(GET_ORG_QUERY, gen:OrgResponse, orgName, loadToMemory = true);
+    table<record {}> res = check connection->select(GET_ORG_QUERY, gen:OrgResponse, orgName, loadToMemory = true);
     if (res.count() == 0) {
         log:printDebug(io:sprintf("Organization name \'%s\' is not exists in REGISTRY_ORGANIZATION", orgName));
         res.close();
@@ -75,7 +75,7 @@ public function insertOrgUserMapping(string author, string orgName, string role)
 
 public function getOrganizationCount(string userId) returns int | error {
     log:printDebug(io:sprintf("Retriving number organiations for user : \'%s\'", userId));
-    table< record {}> selectRet = check connection->select(GET_ORG_COUNT_FOR_USER, (), userId);
+    table<record {}> selectRet = check connection->select(GET_ORG_COUNT_FOR_USER, (), userId);
     json jsonConversionRet = check json.convert(selectRet);
     log:printDebug(io:sprintf("Response from organization count query from DB: %s",check string.convert(jsonConversionRet)));
     int value = check int.convert(jsonConversionRet[0]["COUNT(ORG_NAME)"]);
@@ -118,7 +118,7 @@ returns table<gen:ArtifactListResponse> | error {
 
 public function getPublicArtifact(string orgName, string imageName, string artifactVersion) returns json | error {
     log:printDebug(io:sprintf("Performing data retrieval for articat \'%s/%s:%s\'", orgName, imageName, artifactVersion));
-    table< record {}> res = check connection->select(GET_ARTIFACT_FROM_IMG_NAME_N_VERSION, gen:ArtifactResponse, orgName, imageName,
+    table<record {}> res = check connection->select(GET_ARTIFACT_FROM_IMG_NAME_N_VERSION, gen:ArtifactResponse, orgName, imageName,
     artifactVersion, loadToMemory = true);
     return buildJsonPayloadForGetArtifact(res, orgName, imageName, artifactVersion);
 }
@@ -131,7 +131,7 @@ public function getImageKeywords(string imageId) returns table<gen:StringRecord>
 
 public function getUserArtifact(string userId, string orgName, string imageName, string artifactVersion) returns json | error {
     log:printDebug(io:sprintf("Performing data retrieval for articat \'%s/%s:%s\'", orgName, imageName, artifactVersion));
-    table< record {}> res = check connection->select(GET_ARTIFACT_FOR_USER_FROM_IMG_NAME_N_VERSION, gen:ArtifactResponse, orgName, imageName,
+    table<record {}> res = check connection->select(GET_ARTIFACT_FOR_USER_FROM_IMG_NAME_N_VERSION, gen:ArtifactResponse, orgName, imageName,
     artifactVersion, userId, orgName, imageName, artifactVersion, loadToMemory = true);
     return buildJsonPayloadForGetArtifact(res, orgName, imageName, artifactVersion);
 }
@@ -180,7 +180,7 @@ returns table<gen:Count> | error {
 
 public function searchOrganizations(string orgName, int offset, int resultLimit) returns json | error {
     log:printDebug(io:sprintf("Performing data retreival on REGISTRY_ORGANIZATION table, Org name : \'%s\': ", orgName));
-    table< record {}> resTotal = check connection->select(SEARCH_ORGS_TOTAL_COUNT, gen:Count, orgName);
+    table<record {}> resTotal = check connection->select(SEARCH_ORGS_TOTAL_COUNT, gen:Count, orgName);
     json resTotalJson = check json.convert(resTotal);
     int totalOrgs = check int.convert(resTotalJson[0]["count"]);
     resTotal.close();
@@ -215,7 +215,7 @@ public function searchUserOrganizations(string userId, string apiUserId, string 
 returns json | error {
     log:printDebug(io:sprintf("Performing data retreival on REGISTRY_ORGANIZATION table for userId : %s, Org name : \'%s\': ",
     userId, orgName));
-    table< record {}> resTotal = check connection->select(SEARCH_USER_ORGS_TOTAL_COUNT, gen:Count, orgName, userId);
+    table<record {}> resTotal = check connection->select(SEARCH_USER_ORGS_TOTAL_COUNT, gen:Count, orgName, userId);
     json resTotalJson = check json.convert(resTotal);
     int totalOrgs = check int.convert(resTotalJson[0]["count"]);
     resTotal.close();
@@ -404,7 +404,7 @@ public function updateImageKeywords(string orgName, string imageName, string[] k
 
 function getArtifactImageID(string orgName, string imageName) returns string | error {
     log:printDebug(io:sprintf("Retrieving Artifact Image Id of image %s/%s", orgName, imageName));
-    table< record {}> imageIdRes = check connection->select(GET_ARTIFACT_IMAGE_ID, RegistryArtifactImage, imageName, orgName);
+    table<record {}> imageIdRes = check connection->select(GET_ARTIFACT_IMAGE_ID, RegistryArtifactImage, imageName, orgName);
     json imageIdRecord = check json.convert(imageIdRes);
     string imageId = check string.convert(imageIdRecord[0]["ARTIFACT_IMAGE_ID"]);
     log:printDebug(io:sprintf("Artifact Image Id of %s/%s is %s ", orgName, imageName, imageId));
