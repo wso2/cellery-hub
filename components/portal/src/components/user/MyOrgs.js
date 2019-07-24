@@ -93,8 +93,10 @@ class MyOrgs extends React.Component {
                 }
             },
             pagination: {
-                pageNo: queryParams.pageNo ? queryParams.pageNo : MyOrgs.DEFAULT_PAGE_NO,
-                rowsPerPage: queryParams.rowsPerPage ? queryParams.rowsPerPage : MyOrgs.DEFAULT_ROWS_PER_PAGE
+                pageNo: queryParams.pageNo ? parseInt(queryParams.pageNo, 10) : MyOrgs.DEFAULT_PAGE_NO,
+                rowsPerPage: queryParams.rowsPerPage
+                    ? parseInt(queryParams.rowsPerPage, 10)
+                    : MyOrgs.DEFAULT_ROWS_PER_PAGE
             }
         };
     }

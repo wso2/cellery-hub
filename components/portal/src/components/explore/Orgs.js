@@ -66,8 +66,10 @@ class Orgs extends React.Component {
                 }
             },
             pagination: {
-                pageNo: queryParams.pageNo ? queryParams.pageNo : Orgs.DEFAULT_PAGE_NO,
-                rowsPerPage: queryParams.rowsPerPage ? queryParams.rowsPerPage : Orgs.DEFAULT_ROWS_PER_PAGE
+                pageNo: queryParams.pageNo ? parseInt(queryParams.pageNo, 10) : Orgs.DEFAULT_PAGE_NO,
+                rowsPerPage: queryParams.rowsPerPage
+                    ? parseInt(queryParams.rowsPerPage, 10)
+                    : Orgs.DEFAULT_ROWS_PER_PAGE
             }
         };
     }

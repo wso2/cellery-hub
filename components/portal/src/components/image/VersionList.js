@@ -113,8 +113,10 @@ class VersionList extends React.Component {
             },
             sort: queryParams.sort ? queryParams.sort : VersionList.DEFAULT_SORT,
             pagination: {
-                pageNo: queryParams.pageNo ? queryParams.pageNo : VersionList.DEFAULT_PAGE_NO,
-                rowsPerPage: queryParams.rowsPerPage ? queryParams.rowsPerPage : VersionList.DEFAULT_ROWS_PER_PAGE
+                pageNo: queryParams.pageNo ? parseInt(queryParams.pageNo, 10) : VersionList.DEFAULT_PAGE_NO,
+                rowsPerPage: queryParams.rowsPerPage
+                    ? parseInt(queryParams.rowsPerPage, 10)
+                    : VersionList.DEFAULT_ROWS_PER_PAGE
             }
         };
     }

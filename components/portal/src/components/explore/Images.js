@@ -67,8 +67,10 @@ class Images extends React.Component {
                 }
             },
             pagination: {
-                pageNo: queryParams.pageNo ? queryParams.pageNo : Images.DEFAULT_PAGE_NO,
-                rowsPerPage: queryParams.rowsPerPage ? queryParams.rowsPerPage : Images.DEFAULT_ROWS_PER_PAGE
+                pageNo: queryParams.pageNo ? parseInt(queryParams.pageNo, 10) : Images.DEFAULT_PAGE_NO,
+                rowsPerPage: queryParams.rowsPerPage
+                    ? parseInt(queryParams.rowsPerPage, 10)
+                    : Images.DEFAULT_ROWS_PER_PAGE
             }
         };
     }
