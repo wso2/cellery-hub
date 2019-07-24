@@ -502,8 +502,8 @@ returns http:Response {
 public function updateImage(http:Request updateImageReq, string orgName, string imageName, gen:ImageUpdateRequest updateImageBody) returns http:Response {
     if (updateImageReq.hasHeader(constants:AUTHENTICATED_USER)) {
         string userId = updateImageReq.getHeader(constants:AUTHENTICATED_USER);
-        log:printDebug(io:sprintf("%s is attempting to update image \'%s\' in organization %s", userId, imageName, orgName));
-        log:printDebug(io:sprintf("Description : %s, Summary : %s", updateImageBody.description, updateImageBody.summary));
+        log:printDebug(io:sprintf("Entries to be updated in the image %s/%s by user %s, Description : %s, Summary : %s, Keywords : %s", 
+        orgName, imageName, userId, updateImageBody.description, updateImageBody.summary, updateImageBody.keywords));
 
         http:Response resp;
         transaction {
@@ -517,7 +517,8 @@ public function updateImage(http:Request updateImageReq, string orgName, string 
                     error? updateImageKeywordsRes = db:updateImageKeywords(orgName, imageName, updateImageBody.keywords, userId);
                     if updateImageKeywordsRes is error {
                         log:printError(io:sprintf("Failed to update image %s/%s for Author %s.", orgName, imageName, userId), err = updateImageKeywordsRes);
-                        resp = buildErrorResponse(http:EXPECTATION_FAILED_417, constants:API_ERROR_CODE, "Unable to update image", "");
+                        resp = buildUnknownErrorResponse();
+                        abort;
                     } else {
                         log:printDebug(io:sprintf("Successfully updated the keywords of the image %s/%s by %s", orgName, imageName, userId));
                         resp = buildSuccessResponse();
@@ -525,16 +526,19 @@ public function updateImage(http:Request updateImageReq, string orgName, string 
                 } else if (updateImageRes.updatedRowCount == 0) {
                     log:printError(io:sprintf("Failed to update image %s/%s for Author %s : No matching records found",
                     imageName, orgName, userId));
-                    resp = buildErrorResponse(http:EXPECTATION_FAILED_417, constants:API_ERROR_CODE, "Unable to update image", "");
+                    resp = buildErrorResponse(http:NOT_FOUND_404, constants:ENTRY_NOT_FOUND_ERROR_CODE, "Unable to update image", "");
+                    abort;
                 } else {
                     log:printError(io:sprintf("Failed to update image %s/%s for Author %s : More than one matching records found",
                     imageName, orgName, userId));
-                    resp = buildErrorResponse(http:EXPECTATION_FAILED_417, constants:API_ERROR_CODE, "Unable to update image", "");
+                    resp = buildErrorResponse(http:INTERNAL_SERVER_ERROR_500, constants:API_ERROR_CODE, "Unable to update image", "");
+                    abort;
                 }
             } else {
                 log:printError(io:sprintf("Unexpected error occured while updating image %s/%s", imageName, orgName),
                 err = updateImageRes);
                 resp = buildUnknownErrorResponse();
+                abort;
             }
         } onretry {
             log:printDebug(io:sprintf("Retrying updating image %s/%s for transaction %s", orgName, imageName,
@@ -542,6 +546,7 @@ public function updateImage(http:Request updateImageReq, string orgName, string 
         } committed {
             log:printDebug(io:sprintf("Transaction %s successfully commited for updating the image %s/%s", transactions:getCurrentTransactionId(),
             orgName, imageName));
+
         } aborted {
             log:printError(io:sprintf("Updating image %s/%s aborted for transaction %s", orgName, imageName,
             transactions:getCurrentTransactionId()));
