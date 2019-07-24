@@ -564,14 +564,35 @@ public function updateImage(http:Request updateImageReq, string orgName, string 
 # + updateOrganizationReq - received request which contains header
 # + orgName - organization name received as a path parameter
 # + updateOrganizationBody - received body which contain the description and summary
-# + return - http response (200 if success, 401 or 500 otherwise)
+# + return - http response (200 if success, 401 or 417 otherwise)
 public function updateOrganization (http:Request updateOrganizationReq, string orgName, gen:OrgUpdateRequest updateOrganizationBody) returns http:Response {
-    // stub code - fill as necessary
-    http:Response updateOrganizationRes = new;
-    string _updateOrganizationPayload = "Sample updateOrganization Response";
-    updateOrganizationRes.setTextPayload(_updateOrganizationPayload);
+    if (updateOrganizationReq.hasHeader(constants:AUTHENTICATED_USER)) {
+        string userId = updateOrganizationReq.getHeader(constants:AUTHENTICATED_USER);
+        log:printDebug(io:sprintf("%s is attempting to update the organization %s", userId, orgName));
+        log:printDebug(io:sprintf("Description : %s, Summary : %s", updateOrganizationBody.description, updateOrganizationBody.summary));
 
-	return updateOrganizationRes;
+        sql:UpdateResult | error? updateOrgRes = db:updateOrgDescriptionNSummary(updateOrganizationBody.description, orgName, userId);
+        if (updateOrgRes is sql:UpdateResult) {
+            if (updateOrgRes.updatedRowCount == 1) {
+                log:printDebug(io:sprintf("Description and summery of the organization %s is successfully updated. Author : %s", orgName, userId));
+                return buildSuccessResponse();
+            } else if (updateOrgRes.updatedRowCount == 0) {
+                log:printError(io:sprintf("Failed to update organization %s for Author %s : No matching records found", orgName, userId));
+                return buildErrorResponse(http:NOT_FOUND_404, constants:ENTRY_NOT_FOUND_ERROR_CODE, "Unable to update organization", "");
+            } else {
+                log:printError(io:sprintf("Failed to update organization %s for Author %s : More than one matching records found", orgName, userId));
+                return buildUnknownErrorResponse();
+            }
+        } else {
+            log:printError(io:sprintf("Unexpected error occured while updating organization %s", orgName),
+            err = updateOrgRes);
+            return buildUnknownErrorResponse();
+        }
+    } else {
+        log:printError("Unauthenticated request for updateOrganization: Username is not found");
+        return buildErrorResponse(http:UNAUTHORIZED_401, constants:API_ERROR_CODE, "Unable to update organization",
+        "Unauthenticated request. Auth token is not provided");
+    }
 }
 
 # Search images belongs to a given user
