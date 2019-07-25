@@ -30,7 +30,7 @@ const styles = (theme) => ({
     content: {
         paddingTop: theme.spacing(4)
     },
-    noImagesMsgContainer: {
+    noDescriptionMsgContainer: {
         textAlign: "center",
         paddingTop: theme.spacing(6),
         paddingBottom: theme.spacing(4)
@@ -38,7 +38,7 @@ const styles = (theme) => ({
     descriptionIcon: {
         color: "#a0a0a0"
     },
-    noResultsMsg: {
+    noDescriptionMsg: {
         fontWeight: 500,
         color: "#a0a0a0",
         paddingTop: theme.spacing(1)
@@ -61,9 +61,9 @@ const VersionList = (props) => {
                             </Grid>
                         )
                         : (
-                            <div className={classes.noImagesMsgContainer}>
+                            <div className={classes.noDescriptionMsgContainer}>
                                 <DescriptionOutlined className={classes.descriptionIcon} fontSize={"large"}/>
-                                <Typography component={"div"} className={classes.noResultsMsg}>
+                                <Typography component={"div"} className={classes.noDescriptionMsg}>
                                     No Description Found
                                 </Typography>
                             </div>

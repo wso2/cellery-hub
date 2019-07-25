@@ -16,7 +16,6 @@
  * under the License.
  */
 
-import AccountCircle from "@material-ui/core/SvgIcon/SvgIcon";
 import AuthUtils from "../../utils/api/authUtils";
 import Avatar from "@material-ui/core/Avatar";
 import Button from "@material-ui/core/Button";
@@ -100,6 +99,11 @@ const styles = (theme) => ({
     },
     logoutMenuItem: {
         paddingLeft: theme.spacing(4)
+    },
+    avatarIcon: {
+        marginRight: theme.spacing(1),
+        backgroundColor: theme.palette.primary.main,
+        color: "#ffffff"
     }
 });
 
@@ -176,7 +180,8 @@ class NavBar extends React.Component {
         const pages = [
             "/my-images",
             "/my-orgs",
-            "/explore"
+            "/explore",
+            "/my-profile"
         ];
 
         return (
@@ -247,7 +252,9 @@ class NavBar extends React.Component {
                                                     <Avatar alt={user.username} src={user.avatarUrl}
                                                         className={classes.leftIcon} />
                                                 )
-                                                : <AccountCircle className={classes.leftIcon}/>
+                                                : <Avatar className={classes.avatarIcon}>
+                                                    {user.username.charAt(0)}
+                                                </Avatar>
                                         }
                                         {user.username.split(" ")[0]}
                                     </Button>
@@ -279,6 +286,13 @@ class NavBar extends React.Component {
                                                                     }
                                                                 />
                                                             </ListItem>
+                                                        </MenuItem>
+                                                        <Divider/>
+                                                        <MenuItem onClick={() => {
+                                                            this.handleNavItemClick(pages[3]);
+                                                            this.handleAccountPopoverClose();
+                                                        }} className={classes.logoutMenuItem}>
+                                                            <ListItemText primary={"My Profile"}/>
                                                         </MenuItem>
                                                         <Divider/>
                                                         <MenuItem onClick={() => AuthUtils.signOut(globalState)}
@@ -377,7 +391,9 @@ class NavBar extends React.Component {
                                                     <Avatar alt={user.username} src={user.avatarUrl}
                                                         className={classes.leftIcon} />
                                                 )
-                                                : <AccountCircle className={classes.leftIcon}/>
+                                                : <Avatar className={classes.avatarIcon}>
+                                                    {user.username.charAt(0)}
+                                                </Avatar>
                                         }
                                         {user.username.split(" ")[0]}
                                     </Button>
@@ -409,6 +425,13 @@ class NavBar extends React.Component {
                                                                     }
                                                                 />
                                                             </ListItem>
+                                                        </MenuItem>
+                                                        <Divider/>
+                                                        <MenuItem onClick={() => {
+                                                            this.handleNavItemClick(pages[3]);
+                                                            this.handleAccountPopoverClose();
+                                                        }} className={classes.logoutMenuItem}>
+                                                            <ListItemText primary={"My Profile"}/>
                                                         </MenuItem>
                                                         <Divider/>
                                                         <MenuItem onClick={() => AuthUtils.signOut(globalState)}
