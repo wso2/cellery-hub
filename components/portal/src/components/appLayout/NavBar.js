@@ -64,7 +64,7 @@ const styles = (theme) => ({
         marginRight: theme.spacing(1)
     },
     buttonBar: {
-        [theme.breakpoints.down("xs")]: {
+        [theme.breakpoints.down("sm")]: {
             display: "none"
         },
         margin: 10,
