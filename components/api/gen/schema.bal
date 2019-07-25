@@ -59,8 +59,8 @@ public type ArtifactListResponse record {
 };
 
 public type ArtifactListArrayResponse record {
-   int count;
-   ArtifactListResponse[] data;
+    int count;
+    ArtifactListResponse[] data;
 };
 
 public type Image record {
@@ -160,4 +160,6 @@ public type OrgImagesListResponseAtom record {
 
 public type ImageUpdateRequest record {
     string description;
+    string summary;
+    string[] keywords;
 };

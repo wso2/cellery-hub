@@ -33,11 +33,11 @@ public type validateRequestFilter object {
     public function filterRequest(http:Caller caller, http:Request request,
     http:FilterContext context) returns boolean {
         log:printDebug("Request was intercepted to validate the token");
-        if(request.hasHeader(constants:AUTHENTICATED_USER)) {
+        if (request.hasHeader(constants:AUTHENTICATED_USER)) {
             request.removeHeader(constants:AUTHENTICATED_USER);
         }
         string token = "";
-        if(request.hasHeader(constants:AUTHORIZATION_HEADER) && request.hasHeader(constants:COOKIE_HEADER)) {
+        if (request.hasHeader(constants:AUTHORIZATION_HEADER) && request.hasHeader(constants:COOKIE_HEADER)) {
             string tokenHeaderValue = request.getHeader(constants:AUTHORIZATION_HEADER);
             string[] splittedToken = tokenHeaderValue.split(" ");
             if splittedToken.length() != 2 || !(splittedToken[0].equalsIgnoreCase("Bearer")) {
@@ -46,7 +46,7 @@ public type validateRequestFilter object {
             }
             string lastTokenElement = splittedToken[1];
             string cookieHeader = request.getHeader(constants:COOKIE_HEADER);
-            string|error firstTokenElement = getCookie(cookieHeader);
+            string | error firstTokenElement = getCookie(cookieHeader);
             if (firstTokenElement is error) {
                 log:printError("Cookie value could not be resolved. Passing to the next filter", err = firstTokenElement);
                 return true;
@@ -57,7 +57,7 @@ public type validateRequestFilter object {
                     return true;
                 }
             }
-            idp:TokenDetail|error tokenDetail = {
+            idp:TokenDetail | error tokenDetail = {
                 username: "",
                 expiryTime: 0
             };
@@ -97,27 +97,27 @@ public type validateRequestFilter object {
     }
 
     public function filterResponse(http:Response response,
-                                   http:FilterContext context)
-                                    returns boolean {
+    http:FilterContext context)
+    returns boolean {
         return true;
     }
 };
 
-function getCookie(string cookiesString) returns string|error {
+function getCookie(string cookiesString) returns string | error {
     string cookieValue = "";
     string[] cookies = cookiesString.split("\\s*;\\s*");
     foreach string cookie in cookies {
         string[] cookieTokens = cookie.split("=");
-        if (cookieTokens[0] == constants:TOKEN_COOKIE_KEY){
+        if (cookieTokens[0] == constants:TOKEN_COOKIE_KEY) {
             cookieValue = cookieTokens[1];
         }
     }
     if cookieValue == "" {
         CookieNotFoundData errorDetail = {
-                        errCookie: cookiesString
+            errCookie: cookiesString
         };
         CookieNotFoundError cookieNotFoundError =
-                                    error("Cannot find the header Cookie", errorDetail);
+        error("Cannot find the header Cookie", errorDetail);
         return cookieNotFoundError;
     }
     return cookieValue;
@@ -133,11 +133,11 @@ function isExpired(int timeVal) returns boolean {
     log:printDebug("Token expiry time will be evaluated");
     time:Time time = time:currentTime();
     int timeNow = time.time;
-    if (timeNow/1000 < timeVal) {
+    if (timeNow / 1000 < timeVal) {
         return false;
     } else {
         log:printDebug(io:sprintf("The system time is %d and the expiry time is %d",
-        timeNow/1000, timeVal));
+        timeNow / 1000, timeVal));
         return true;
     }
 }

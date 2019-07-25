@@ -46,7 +46,8 @@ const Constants = {
     },
     ApplicationErrorCode: {
         ALREADY_EXISTS: 2,
-        ALLOWED_LIMIT_EXCEEDED: 3
+        ALLOWED_LIMIT_EXCEEDED: 3,
+        ENTRY_NOT_FOUND: 4
     },
     Permission: {
         ADMIN: "admin",

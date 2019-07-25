@@ -337,6 +337,12 @@ definitions:
     properties:
       description:
         type: "string"
+      summary:
+        type: "string"
+      keywords:
+        type: array
+        items:
+          type: "string"
   OrgResponse:
     type: "object"
     properties:

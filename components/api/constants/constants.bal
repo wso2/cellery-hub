@@ -25,6 +25,7 @@ public const string SET_COOKIE_HEADER = "Set-Cookie";
 public const int API_ERROR_CODE = 1;
 public const int ENTRY_ALREADY_EXISTING_ERROR_CODE = 2;
 public const int ALLOWED_LIMIT_EXCEEDED_ERROR_CODE = 3;
+public const int ENTRY_NOT_FOUND_ERROR_CODE = 4;
 
 public const string VALIDATE_USER = "validateUser";
 public const string OFFSET = "offset";
@@ -48,6 +49,7 @@ public const string COOKIE_HEADER = "Cookie";
 public const string TOKEN_COOKIE_KEY = "chpat";
 
 public const string ROLE_ADMIN = "admin";
+public const string ROLE_PUSH = "push";
 public const string DEFAULT_IMAGE_VISIBILITY = "PUBLIC";
 public const string PULL_COUNT = "PULL_COUNT";
 public const string UPDATED_DATE = "UPDATED_DATE";

@@ -43,8 +43,15 @@ listener http:Listener ep = new(9090, config = celleryHubAPIEPConfig);
     title: "Cellery Hub API",
     description: "Cellery Hub API",
     serviceVersion: "0.1.0",
-    contact: {name: "", email: "architecture@wso2.com", url: ""},
-    license: {name: "Apache 2.0", url: "http://www.apache.org/licenses/LICENSE-2.0"}
+    contact: {
+        name: "",
+        email: "architecture@wso2.com",
+        url: ""
+    },
+    license: {
+        name: "Apache 2.0",
+        url: "http://www.apache.org/licenses/LICENSE-2.0"
+    }
 }
 @http:ServiceConfig {
     basePath: "/api/0.1.0",
@@ -59,20 +66,20 @@ service CelleryHubAPI on ep {
         summary: "Ping the API",
         description: "Ping the API to validate",
         parameters: [
-            {
-                name: "validateUser",
-                inInfo: "query",
-                paramType: "boolean",
-                description: "If true check whether the user is valid",
-                allowEmptyValue: ""
-            }
+        {
+            name: "validateUser",
+            inInfo: "query",
+            paramType: "boolean",
+            description: "If true check whether the user is valid",
+            allowEmptyValue: ""
+        }
         ]
     }
     @http:ResourceConfig {
-        methods:["GET"],
-        path:"/"
+        methods: ["GET"],
+        path: "/"
     }
-    resource function ping (http:Caller outboundEp, http:Request _getHealthReq) returns error? {
+    resource function ping(http:Caller outboundEp, http:Request _getHealthReq) returns error? {
         map<string> queryParams = _getHealthReq.getQueryParams();
         boolean validateUser = false;
         if (queryParams.hasKey(constants:VALIDATE_USER)) {
@@ -105,36 +112,36 @@ service CelleryHubAPI on ep {
         summary: "Retrieve organizations",
         description: "Retrieve organizations",
         parameters: [
-            {
-                name: "orgName",
-                inInfo: "query",
-                paramType: "string",
-                description: "Name of the organization",
-                allowEmptyValue: ""
-            },
-            {
-                name: "limit",
-                inInfo: "query",
-                paramType: "int",
-                description: "Number of results returned for pagination",
-                required: true,
-                allowEmptyValue: ""
-            },
-            {
-                name: "offset",
-                inInfo: "query",
-                paramType: "int",
-                description: "Offset of the result set returned for pagination",
-                required: true,
-                allowEmptyValue: ""
-            }
+        {
+            name: "orgName",
+            inInfo: "query",
+            paramType: "string",
+            description: "Name of the organization",
+            allowEmptyValue: ""
+        },
+        {
+            name: "limit",
+            inInfo: "query",
+            paramType: "int",
+            description: "Number of results returned for pagination",
+            required: true,
+            allowEmptyValue: ""
+        },
+        {
+            name: "offset",
+            inInfo: "query",
+            paramType: "int",
+            description: "Offset of the result set returned for pagination",
+            required: true,
+            allowEmptyValue: ""
+        }
         ]
     }
     @http:ResourceConfig {
-        methods:["GET"],
-        path:"/orgs"
+        methods: ["GET"],
+        path: "/orgs"
     }
-    resource function listOrgs (http:Caller outboundEp, http:Request _listOrgsReq) returns error? {
+    resource function listOrgs(http:Caller outboundEp, http:Request _listOrgsReq) returns error? {
         map<string> queryParams = _listOrgsReq.getQueryParams();
         int offset = 0;
         int resultLimit = 10;
@@ -168,29 +175,29 @@ service CelleryHubAPI on ep {
     @openapi:ResourceInfo {
         summary: "Get tokens",
         parameters: [
-            {
-                name: "authCode",
-                inInfo: "query",
-                paramType: "string",
-                description: "Auth code retrieved from a OIDC provider",
-                required: true,
-                allowEmptyValue: ""
-            },
-            {
-                name: "callbackUrl",
-                inInfo: "query",
-                paramType: "string",
-                description: "callback Url used in the OIDC flow",
-                required: true,
-                allowEmptyValue: ""
-            }
+        {
+            name: "authCode",
+            inInfo: "query",
+            paramType: "string",
+            description: "Auth code retrieved from a OIDC provider",
+            required: true,
+            allowEmptyValue: ""
+        },
+        {
+            name: "callbackUrl",
+            inInfo: "query",
+            paramType: "string",
+            description: "callback Url used in the OIDC flow",
+            required: true,
+            allowEmptyValue: ""
+        }
         ]
     }
     @http:ResourceConfig {
-        methods:["GET"],
-        path:"/auth/token"
+        methods: ["GET"],
+        path: "/auth/token"
     }
-    resource function getTokens (http:Caller outboundEp, http:Request _getTokensReq) returns error? {
+    resource function getTokens(http:Caller outboundEp, http:Request _getTokensReq) returns error? {
         http:Response _getTokensRes = getTokens(_getTokensReq);
         error? x = outboundEp->respond(_getTokensRes);
     }
@@ -199,11 +206,11 @@ service CelleryHubAPI on ep {
         summary: "Create organization"
     }
     @http:ResourceConfig {
-        methods:["POST"],
-        path:"/orgs",
-        body:"_createOrgBody"
+        methods: ["POST"],
+        path: "/orgs",
+        body: "_createOrgBody"
     }
-    resource function createOrg (http:Caller outboundEp, http:Request _createOrgReq, gen:OrgCreateRequest _createOrgBody) returns error? {
+    resource function createOrg(http:Caller outboundEp, http:Request _createOrgReq, gen:OrgCreateRequest _createOrgBody) returns error? {
         http:Response _createOrgRes = createOrg(_createOrgReq, untaint _createOrgBody);
         error? x = outboundEp->respond(_createOrgRes);
     }
@@ -211,21 +218,21 @@ service CelleryHubAPI on ep {
     @openapi:ResourceInfo {
         summary: "Get a specific organization",
         parameters: [
-            {
-                name: "orgName",
-                inInfo: "path",
-                paramType: "string",
-                description: "Name of the organization",
-                required: true,
-                allowEmptyValue: ""
-            }
+        {
+            name: "orgName",
+            inInfo: "path",
+            paramType: "string",
+            description: "Name of the organization",
+            required: true,
+            allowEmptyValue: ""
+        }
         ]
     }
     @http:ResourceConfig {
-        methods:["GET"],
-        path:"/orgs/{orgName}"
+        methods: ["GET"],
+        path: "/orgs/{orgName}"
     }
-    resource function getOrg (http:Caller outboundEp, http:Request _getOrgReq, string orgName) returns error? {
+    resource function getOrg(http:Caller outboundEp, http:Request _getOrgReq, string orgName) returns error? {
         http:Response _getOrgRes = getOrg(_getOrgReq, untaint orgName);
         error? x = outboundEp->respond(_getOrgRes);
     }
@@ -320,37 +327,37 @@ service CelleryHubAPI on ep {
     @openapi:ResourceInfo {
         summary: "Get a specific artifact",
         parameters: [
-            {
-                name: "orgName",
-                inInfo: "path",
-                paramType: "string",
-                description: "Name of the organization",
-                required: true,
-                allowEmptyValue: ""
-            },
-            {
-                name: "imageName",
-                inInfo: "path",
-                paramType: "string",
-                description: "Name of the image",
-                required: true,
-                allowEmptyValue: ""
-            },
-            {
-                name: "artifactVersion",
-                inInfo: "path",
-                paramType: "string",
-                description: "Version of the artifact",
-                required: true,
-                allowEmptyValue: ""
-            }
+        {
+            name: "orgName",
+            inInfo: "path",
+            paramType: "string",
+            description: "Name of the organization",
+            required: true,
+            allowEmptyValue: ""
+        },
+        {
+            name: "imageName",
+            inInfo: "path",
+            paramType: "string",
+            description: "Name of the image",
+            required: true,
+            allowEmptyValue: ""
+        },
+        {
+            name: "artifactVersion",
+            inInfo: "path",
+            paramType: "string",
+            description: "Version of the artifact",
+            required: true,
+            allowEmptyValue: ""
+        }
         ]
     }
     @http:ResourceConfig {
-        methods:["GET"],
-        path:"/artifacts/{orgName}/{imageName}/{artifactVersion}"
+        methods: ["GET"],
+        path: "/artifacts/{orgName}/{imageName}/{artifactVersion}"
     }
-    resource function getArtifact (http:Caller outboundEp, http:Request _getArtifactReq, string orgName, string imageName, string artifactVersion) returns error? {
+    resource function getArtifact(http:Caller outboundEp, http:Request _getArtifactReq, string orgName, string imageName, string artifactVersion) returns error? {
         http:Response _getArtifactRes = getArtifact(_getArtifactReq, untaint orgName, untaint imageName, untaint artifactVersion);
         error? x = outboundEp->respond(_getArtifactRes);
     }
@@ -401,44 +408,44 @@ service CelleryHubAPI on ep {
     @openapi:ResourceInfo {
         summary: "Get user\'s organizations",
         parameters: [
-            {
-                name: "orgName",
-                inInfo: "query",
-                paramType: "string",
-                description: "Name of the organization",
-                allowEmptyValue: ""
-            },
-            {
-                name: "limit",
-                inInfo: "query",
-                paramType: "int",
-                description: "Number of results returned for pagination",
-                required: true,
-                allowEmptyValue: ""
-            },
-            {
-                name: "offset",
-                inInfo: "query",
-                paramType: "int",
-                description: "Offset of the result set returned for pagination",
-                required: true,
-                allowEmptyValue: ""
-            },
-            {
-                name: "userId",
-                inInfo: "path",
-                paramType: "string",
-                description: "UserId of the user",
-                required: true,
-                allowEmptyValue: ""
-            }
+        {
+            name: "orgName",
+            inInfo: "query",
+            paramType: "string",
+            description: "Name of the organization",
+            allowEmptyValue: ""
+        },
+        {
+            name: "limit",
+            inInfo: "query",
+            paramType: "int",
+            description: "Number of results returned for pagination",
+            required: true,
+            allowEmptyValue: ""
+        },
+        {
+            name: "offset",
+            inInfo: "query",
+            paramType: "int",
+            description: "Offset of the result set returned for pagination",
+            required: true,
+            allowEmptyValue: ""
+        },
+        {
+            name: "userId",
+            inInfo: "path",
+            paramType: "string",
+            description: "UserId of the user",
+            required: true,
+            allowEmptyValue: ""
+        }
         ]
     }
     @http:ResourceConfig {
-        methods:["GET"],
-        path:"/orgs/users/{userId}"
+        methods: ["GET"],
+        path: "/orgs/users/{userId}"
     }
-    resource function getUserOrgs (http:Caller outboundEp, http:Request _getUserOrgsReq, string userId) returns error? {
+    resource function getUserOrgs(http:Caller outboundEp, http:Request _getUserOrgsReq, string userId) returns error? {
         map<string> queryParams = _getUserOrgsReq.getQueryParams();
         int offset = 0;
         int resultLimit = 10;
@@ -472,52 +479,52 @@ service CelleryHubAPI on ep {
     @openapi:ResourceInfo {
         summary: "Search images of a specific organization",
         parameters: [
-            {
-                name: "orgName",
-                inInfo: "path",
-                paramType: "string",
-                description: "Name of the organization",
-                required: true,
-                allowEmptyValue: ""
-            },
-            {
-                name: "imageName",
-                inInfo: "query",
-                paramType: "string",
-                description: "Name of the Image",
-                allowEmptyValue: ""
-            },
-            {
-                name: "orderBy",
-                inInfo: "query",
-                paramType: "string",
-                description: "Enum to oder result",
-                required: true,
-                allowEmptyValue: ""
-            },
-            {
-                name: "limit",
-                inInfo: "query",
-                paramType: "int",
-                description: "Number of results returned for pagination",
-                required: true,
-                allowEmptyValue: ""
-            },
-            {
-                name: "offset",
-                inInfo: "query",
-                paramType: "int",
-                description: "Offset of the result set returned for pagination",
-                required: true,
-                allowEmptyValue: ""
-            }
+        {
+            name: "orgName",
+            inInfo: "path",
+            paramType: "string",
+            description: "Name of the organization",
+            required: true,
+            allowEmptyValue: ""
+        },
+        {
+            name: "imageName",
+            inInfo: "query",
+            paramType: "string",
+            description: "Name of the Image",
+            allowEmptyValue: ""
+        },
+        {
+            name: "orderBy",
+            inInfo: "query",
+            paramType: "string",
+            description: "Enum to oder result",
+            required: true,
+            allowEmptyValue: ""
+        },
+        {
+            name: "limit",
+            inInfo: "query",
+            paramType: "int",
+            description: "Number of results returned for pagination",
+            required: true,
+            allowEmptyValue: ""
+        },
+        {
+            name: "offset",
+            inInfo: "query",
+            paramType: "int",
+            description: "Offset of the result set returned for pagination",
+            required: true,
+            allowEmptyValue: ""
+        }
         ]
     }
     @http:ResourceConfig {
-        methods:["GET"],
-        path:"/images/{orgName}"
+        methods: ["GET"],
+        path: "/images/{orgName}"
     }
-    resource function listOrgImages (http:Caller outboundEp, http:Request _listOrgImagesReq, string orgName) returns error? {
+    resource function listOrgImages(http:Caller outboundEp, http:Request _listOrgImagesReq, string orgName) returns error? {
         map<string> queryParams = _listOrgImagesReq.getQueryParams();
         int offset = 0;
         int resultLimit = 10;
@@ -560,51 +567,51 @@ service CelleryHubAPI on ep {
     @openapi:ResourceInfo {
         summary: "Search images of any organization",
         parameters: [
-            {
-                name: "orgName",
-                inInfo: "query",
-                paramType: "string",
-                description: "Name of the organization",
-                allowEmptyValue: ""
-            },
-            {
-                name: "imageName",
-                inInfo: "query",
-                paramType: "string",
-                description: "Name of the Image",
-                allowEmptyValue: ""
-            },
-            {
-                name: "orderBy",
-                inInfo: "query",
-                paramType: "string",
-                description: "Enum to oder result",
-                required: true,
-                allowEmptyValue: ""
-            },
-            {
-                name: "limit",
-                inInfo: "query",
-                paramType: "int",
-                description: "Number of results returned for pagination",
-                required: true,
-                allowEmptyValue: ""
-            },
-            {
-                name: "offset",
-                inInfo: "query",
-                paramType: "int",
-                description: "Offset of the result set returned for pagination",
-                required: true,
-                allowEmptyValue: ""
-            }
+        {
+            name: "orgName",
+            inInfo: "query",
+            paramType: "string",
+            description: "Name of the organization",
+            allowEmptyValue: ""
+        },
+        {
+            name: "imageName",
+            inInfo: "query",
+            paramType: "string",
+            description: "Name of the Image",
+            allowEmptyValue: ""
+        },
+        {
+            name: "orderBy",
+            inInfo: "query",
+            paramType: "string",
+            description: "Enum to oder result",
+            required: true,
+            allowEmptyValue: ""
+        },
+        {
+            name: "limit",
+            inInfo: "query",
+            paramType: "int",
+            description: "Number of results returned for pagination",
+            required: true,
+            allowEmptyValue: ""
+        },
+        {
+            name: "offset",
+            inInfo: "query",
+            paramType: "int",
+            description: "Offset of the result set returned for pagination",
+            required: true,
+            allowEmptyValue: ""
+        }
         ]
     }
     @http:ResourceConfig {
-        methods:["GET"],
-        path:"/images"
+        methods: ["GET"],
+        path: "/images"
     }
-    resource function listImages (http:Caller outboundEp, http:Request _listImagesReq) returns error? {
+    resource function listImages(http:Caller outboundEp, http:Request _listImagesReq) returns error? {
         map<string> queryParams = _listImagesReq.getQueryParams();
         int offset = 0;
         int resultLimit = 10;
@@ -653,30 +660,30 @@ service CelleryHubAPI on ep {
     @openapi:ResourceInfo {
         summary: "Update an existing image",
         parameters: [
-            {
-                name: "orgName",
-                inInfo: "path",
-                paramType: "string",
-                description: "Name of the organization",
-                required: true,
-                allowEmptyValue: ""
-            },
-            {
-                name: "imageName",
-                inInfo: "path",
-                paramType: "string",
-                description: "Name of the image",
-                required: true,
-                allowEmptyValue: ""
-            }
+        {
+            name: "orgName",
+            inInfo: "path",
+            paramType: "string",
+            description: "Name of the organization",
+            required: true,
+            allowEmptyValue: ""
+        },
+        {
+            name: "imageName",
+            inInfo: "path",
+            paramType: "string",
+            description: "Name of the image",
+            required: true,
+            allowEmptyValue: ""
+        }
         ]
     }
     @http:ResourceConfig {
-        methods:["PUT"],
-        path:"/images/{orgName}/{imageName}",
-        body:"_updateImageBody"
+        methods: ["PUT"],
+        path: "/images/{orgName}/{imageName}",
+        body: "_updateImageBody"
     }
-    resource function updateImage (http:Caller outboundEp, http:Request _updateImageReq, string orgName, string imageName, 
+    resource function updateImage(http:Caller outboundEp, http:Request _updateImageReq, string orgName, string imageName,
     gen:ImageUpdateRequest _updateImageBody) returns error? {
         http:Response _updateImageRes = updateImage(_updateImageReq, orgName, imageName, _updateImageBody);
         error? x = outboundEp->respond(_updateImageRes);
@@ -685,59 +692,59 @@ service CelleryHubAPI on ep {
     @openapi:ResourceInfo {
         summary: "Find images which user is the first author",
         parameters: [
-            {
-                name: "userId",
-                inInfo: "path",
-                paramType: "string",
-                description: "UserId of the user",
-                required: true,
-                allowEmptyValue: ""
-            },
-            {
-                name: "orgName",
-                inInfo: "query",
-                paramType: "string",
-                description: "Name of the organization",
-                allowEmptyValue: ""
-            },
-            {
-                name: "imageName",
-                inInfo: "query",
-                paramType: "string",
-                description: "Name of the Image",
-                allowEmptyValue: ""
-            },
-            {
-                name: "orderBy",
-                inInfo: "query",
-                paramType: "string",
-                description: "Enum to oder result",
-                required: true,
-                allowEmptyValue: ""
-            },
-            {
-                name: "limit",
-                inInfo: "query",
-                paramType: "int",
-                description: "Number of results returned for pagination",
-                required: true,
-                allowEmptyValue: ""
-            },
-            {
-                name: "offset",
-                inInfo: "query",
-                paramType: "int",
-                description: "Offset of the result set returned for pagination",
-                required: true,
-                allowEmptyValue: ""
-            }
+        {
+            name: "userId",
+            inInfo: "path",
+            paramType: "string",
+            description: "UserId of the user",
+            required: true,
+            allowEmptyValue: ""
+        },
+        {
+            name: "orgName",
+            inInfo: "query",
+            paramType: "string",
+            description: "Name of the organization",
+            allowEmptyValue: ""
+        },
+        {
+            name: "imageName",
+            inInfo: "query",
+            paramType: "string",
+            description: "Name of the Image",
+            allowEmptyValue: ""
+        },
+        {
+            name: "orderBy",
+            inInfo: "query",
+            paramType: "string",
+            description: "Enum to oder result",
+            required: true,
+            allowEmptyValue: ""
+        },
+        {
+            name: "limit",
+            inInfo: "query",
+            paramType: "int",
+            description: "Number of results returned for pagination",
+            required: true,
+            allowEmptyValue: ""
+        },
+        {
+            name: "offset",
+            inInfo: "query",
+            paramType: "int",
+            description: "Offset of the result set returned for pagination",
+            required: true,
+            allowEmptyValue: ""
+        }
         ]
     }
     @http:ResourceConfig {
-        methods:["GET"],
-        path:"/images/users/{userId}"
+        methods: ["GET"],
+        path: "/images/users/{userId}"
     }
-    resource function listUserImages (http:Caller outboundEp, http:Request _listUserImagesReq, string userId) returns error? {
+    resource function listUserImages(http:Caller outboundEp, http:Request _listUserImagesReq, string userId) returns error? {
         map<string> queryParams = _listUserImagesReq.getQueryParams();
         int offset = 0;
         int resultLimit = 10;
@@ -777,7 +784,7 @@ service CelleryHubAPI on ep {
                 orderBy = constants:UPDATED_DATE;
             } else {
                 orderBy = constants:PULL_COUNT;
-            } 
+            }
         }
 
         http:Response _listUserImagesRes = listUserImages(_listUserImagesReq, userId, orgName, imageName, untaint orderBy, 
