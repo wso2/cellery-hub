@@ -99,6 +99,25 @@ paths:
           description: "Internal Server Error"
           schema:
             $ref: "#/definitions/ErrorResponse"
+    put:
+      operationId: "updateOrganization"
+      summary: "Update an existing organization"
+      produces:
+      - "application/json"
+      parameters:
+      - $ref: "#/parameters/orgNamePathParam"
+      - $ref: "#/parameters/orgUpdateBody"
+      responses:
+        200:
+          description: "OK"
+        405:
+          description: "Invalid Input"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+        500:
+          description: "Internal Server Error"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
   /orgs/users/{userId}:
     get:
       operationId: "getUserOrgs"
@@ -259,6 +278,13 @@ parameters:
     required: true
     schema:
       $ref: "#/definitions/ImageUpdateRequest"
+  orgUpdateBody:
+    name: "organization"
+    in: "body"
+    description: "Organization which needs to be updated"
+    required: true
+    schema:
+      $ref: "#/definitions/OrgUpdateRequest"
   orgNamePathParam:
     name: "orgName"
     in: "path"
@@ -333,6 +359,17 @@ definitions:
       defaultVisibility:
         type: "string"
   ImageUpdateRequest:
+    type: "object"
+    properties:
+      description:
+        type: "string"
+      summary:
+        type: "string"
+      keywords:
+        type: array
+        items:
+          type: "string"
+  OrgUpdateRequest:
     type: "object"
     properties:
       description:

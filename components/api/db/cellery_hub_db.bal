@@ -373,6 +373,12 @@ public function updateImageDescriptionNSummary(string orgName, string imageName,
     return res;
 }
 
+public function updateOrgDescriptionNSummary(string description, string summary, string orgName, string userId) returns sql:UpdateResult | error? {
+    log:printInfo(io:sprintf("Updating description and summary of the organization \'%s\'", orgName));
+    sql:UpdateResult res = check connection->update(UPDATE_ORG_DESCRIPTION_N_SUMMARY_QUERY, description, summary, orgName, userId);
+    return res;
+}
+
 public function updateImageKeywords(string orgName, string imageName, string[] keywords, string userId) returns error? {
     log:printInfo(io:sprintf("User %s is updating keywords of the image %s/%s", userId, orgName, imageName));
     string imageId = check getArtifactImageID(orgName, imageName);
@@ -399,7 +405,7 @@ public function updateImageKeywords(string orgName, string imageName, string[] k
         log:printError(errMsg);
         error er = error(errMsg);
         return er;
-    }    
+    }
 }
 
 function getArtifactImageID(string orgName, string imageName) returns string | error {

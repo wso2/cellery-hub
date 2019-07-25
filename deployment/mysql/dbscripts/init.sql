@@ -34,7 +34,8 @@ DEFAULT CHARSET = latin1;
 
 CREATE TABLE IF NOT EXISTS REGISTRY_ORGANIZATION (
     ORG_NAME                 VARCHAR(255)               NOT NULL,
-    DESCRIPTION              VARCHAR(255)               DEFAULT "",
+    DESCRIPTION              BLOB,
+    SUMMARY                  VARCHAR(255)               DEFAULT "",
     WEBSITE_URL              VARCHAR(255)               DEFAULT "",
     DEFAULT_IMAGE_VISIBILITY ENUM("PUBLIC", "PRIVATE")  NOT NULL DEFAULT "PUBLIC",
     FIRST_AUTHOR             VARCHAR(255)               NOT NULL,

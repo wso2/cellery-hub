@@ -163,3 +163,8 @@ public type ImageUpdateRequest record {
     string summary;
     string[] keywords;
 };
+
+public type OrgUpdateRequest record {
+    string description;
+    string summary;
+};
