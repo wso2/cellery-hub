@@ -559,6 +559,16 @@ public function updateImage(http:Request updateImageReq, string orgName, string 
     }
 }
 
+public function updateArtifact (http:Request _updateArtifactReq, string orgName, string imageName, string artifactVersion, 
+gen:ArtifactUpdateRequest _updateArtifactBody) returns http:Response {
+    // stub code - fill as necessary
+    http:Response _updateArtifactRes = new;
+    string _updateArtifactPayload = "Sample updateArtifact Response";
+    _updateArtifactRes.setTextPayload(_updateArtifactPayload);
+
+	return _updateArtifactRes;
+}
+
 # Update an existing organization
 #
 # + updateOrganizationReq - received request which contains header

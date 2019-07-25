@@ -168,3 +168,7 @@ public type OrgUpdateRequest record {
     string description;
     string summary;
 };
+
+public type ArtifactUpdateRequest record { 
+    string description;
+};
