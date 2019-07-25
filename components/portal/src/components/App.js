@@ -27,6 +27,7 @@ import Image from "./image";
 import ImageVersion from "./image/version";
 import MyImages from "./user/MyImages";
 import MyOrgs from "./user/MyOrgs";
+import MyProfile from "./user/MyProfile";
 import NotFound from "./common/error/NotFound";
 import NotificationAdditions from "./common/NotificationAdditions";
 import Org from "./org";
@@ -79,6 +80,7 @@ class GlobalStatelessHubPortal extends React.Component {
                         <Switch>
                             <Route exact path={["/", "/my-images"]} component={MyImages}/>
                             <Route exact path={"/my-orgs"} component={MyOrgs}/>
+                            <Route exact path={"/my-profile"} component={MyProfile}/>
                             {[...commonRoutes, notFoundRoute]}
                         </Switch>
                     </ErrorBoundary>
@@ -93,7 +95,8 @@ class GlobalStatelessHubPortal extends React.Component {
                         <AppLayout>
                             <ErrorBoundary showNavigationButtons={true}>
                                 <Switch>
-                                    <Route exact path={["/my-images", "/my-orgs"]} component={SignInRequired}/>
+                                    <Route exact path={["/my-images", "/my-orgs", "my-profile"]}
+                                        component={SignInRequired}/>
                                     {[...commonRoutes, notFoundRoute]}
                                 </Switch>
                             </ErrorBoundary>
