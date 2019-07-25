@@ -499,11 +499,11 @@ returns http:Response {
 # + orgName - Organization name
 # + imageName - Image ID
 # + updateImageBody - received body which contain the description, summary and keywords array
-# + return - http response (200 if success, 401 or 417 otherwise)
+# + return - http response (200 if success, 401, 404 or 500 otherwise)
 public function updateImage(http:Request updateImageReq, string orgName, string imageName, gen:ImageUpdateRequest updateImageBody) returns http:Response {
     if (updateImageReq.hasHeader(constants:AUTHENTICATED_USER)) {
         string userId = updateImageReq.getHeader(constants:AUTHENTICATED_USER);
-        log:printDebug(io:sprintf("Entries to be updated in the image %s/%s by user %s, Description : %s, Summary : %s, Keywords : %s", 
+        log:printDebug(io:sprintf("Entries to be updated in the image %s/%s by user %s, Description : %s, Summary : %s, Keywords : %s",
         orgName, imageName, userId, updateImageBody.description, updateImageBody.summary, updateImageBody.keywords));
 
         http:Response resp;
@@ -564,27 +564,28 @@ public function updateImage(http:Request updateImageReq, string orgName, string 
 # + updateOrganizationReq - received request which contains header
 # + orgName - organization name received as a path parameter
 # + updateOrganizationBody - received body which contain the description and summary
-# + return - http response (200 if success, 401 or 417 otherwise)
-public function updateOrganization (http:Request updateOrganizationReq, string orgName, gen:OrgUpdateRequest updateOrganizationBody) returns http:Response {
+# + return - http response (200 if success, 401, 404 or 500 otherwise)
+public function updateOrganization(http:Request updateOrganizationReq, string orgName, gen:OrgUpdateRequest updateOrganizationBody) returns http:Response {
     if (updateOrganizationReq.hasHeader(constants:AUTHENTICATED_USER)) {
         string userId = updateOrganizationReq.getHeader(constants:AUTHENTICATED_USER);
-        log:printDebug(io:sprintf("%s is attempting to update the organization %s", userId, orgName));
-        log:printDebug(io:sprintf("Description : %s, Summary : %s", updateOrganizationBody.description, updateOrganizationBody.summary));
+        log:printDebug(io:sprintf("Entries to be updated in the organization \'%s\' by user %s, Description : %s, Summary : %s", orgName, userId,
+        updateOrganizationBody.description, updateOrganizationBody.summary));
 
-        sql:UpdateResult | error? updateOrgRes = db:updateOrgDescriptionNSummary(updateOrganizationBody.description, orgName, userId);
+        sql:UpdateResult | error? updateOrgRes = db:updateOrgDescriptionNSummary(updateOrganizationBody.description, updateOrganizationBody.summary, 
+        orgName, userId);
         if (updateOrgRes is sql:UpdateResult) {
             if (updateOrgRes.updatedRowCount == 1) {
-                log:printDebug(io:sprintf("Description and summery of the organization %s is successfully updated. Author : %s", orgName, userId));
+                log:printDebug(io:sprintf("Description and summery of the organization \'%s\' is successfully updated. Author : %s", orgName, userId));
                 return buildSuccessResponse();
             } else if (updateOrgRes.updatedRowCount == 0) {
-                log:printError(io:sprintf("Failed to update organization %s for Author %s : No matching records found", orgName, userId));
+                log:printError(io:sprintf("Failed to update organization \'%s\' for Author %s : No matching records found", orgName, userId));
                 return buildErrorResponse(http:NOT_FOUND_404, constants:ENTRY_NOT_FOUND_ERROR_CODE, "Unable to update organization", "");
             } else {
-                log:printError(io:sprintf("Failed to update organization %s for Author %s : More than one matching records found", orgName, userId));
+                log:printError(io:sprintf("Failed to update organization \'%s\' for Author %s : More than one matching records found", orgName, userId));
                 return buildUnknownErrorResponse();
             }
         } else {
-            log:printError(io:sprintf("Unexpected error occured while updating organization %s", orgName),
+            log:printError(io:sprintf("Unexpected error occured while updating organization \'%s\'", orgName),
             err = updateOrgRes);
             return buildUnknownErrorResponse();
         }

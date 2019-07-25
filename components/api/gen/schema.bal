@@ -164,7 +164,7 @@ public type ImageUpdateRequest record {
     string[] keywords;
 };
 
-public type OrgUpdateRequest record { 
+public type OrgUpdateRequest record {
     string description;
     string summary;
 };
