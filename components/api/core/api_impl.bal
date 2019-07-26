@@ -377,7 +377,7 @@ returns http:Response {
             }
             gen:UserListResponse userInfoListResponse = {
                 count: userCount,
-                users: users
+                data: users
             };
             json | error resPayload =  json.convert(userInfoListResponse);
             if (resPayload is json) {

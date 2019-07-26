@@ -128,7 +128,7 @@ public type UserResponse record {
 
 public type UserListResponse record {
     int count;
-    UserResponse[] users;
+    UserResponse[] data;
 };
 
 public type ImagesListResponse record {
