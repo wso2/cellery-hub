@@ -32,13 +32,20 @@ type RegistryArtifactImage record {|
     string ARTIFACT_IMAGE_ID;
 |};
 
-public function getOrganization(string orgName) returns json | error {
-    log:printDebug(io:sprintf("Performing data retreival on REGISTRY_ORGANIZATION table, Org name : \'%s\': ", orgName));
-    table<record {}> res = check connection->select(GET_ORG_QUERY, gen:OrgResponse, orgName, loadToMemory = true);
+public function getOrganization(string orgName, string userId) returns json | error {
+    log:printDebug(io:sprintf("Performing data retreival on REGISTRY_ORGANIZATION table by user \'%s\', Org name : \'%s\': ",
+    userId, orgName));
+    table<record {}> res = check connection->select(GET_ORG_QUERY, gen:OrgResponse, orgName, userId, orgName, loadToMemory = true);
     if (res.count() == 1) {
+        log:printDebug(io:sprintf("Building the response payload for getOrganization. user : %s, orgName : %s", userId, orgName));
+        json resPayload = {};
         gen:OrgResponse orgRes = check gen:OrgResponse.convert(res.getNext());
-        json resPayload = check json.convert(orgRes);
-        log:printDebug(io:sprintf("Fetching data for organization \'%s\' from REGISTRY_ORGANIZATION is successful", orgName));
+        resPayload["description"] = encoding:byteArrayToString(orgRes.description);
+        resPayload["summary"] = orgRes.summary;
+        resPayload["websiteUrl"] = orgRes.websiteUrl;
+        resPayload["author"] = orgRes.firstAuthor;
+        resPayload["createdTimestamp"] = orgRes.createdTimestamp;        
+        resPayload["userRole"] = orgRes.userRole;
         res.close();
         return resPayload;
     } else {

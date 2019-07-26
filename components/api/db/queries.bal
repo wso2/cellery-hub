@@ -16,7 +16,8 @@
 //
 // ------------------------------------------------------------------------
 
-public const string GET_ORG_QUERY = "SELECT DESCRIPTION, WEBSITE_URL, FIRST_AUTHOR, CREATED_DATE
+public const string GET_ORG_QUERY = "SELECT DESCRIPTION, SUMMARY, WEBSITE_URL, FIRST_AUTHOR, CREATED_DATE, IFNULL((SELECT USER_ROLE FROM 
+                                    REGISTRY_ORG_USER_MAPPING WHERE ORG_NAME = ? AND USER_UUID = ?), \"\") AS USER_ROLE
                                     FROM REGISTRY_ORGANIZATION WHERE ORG_NAME = ?";
 
 public const string ADD_ORG_QUERY = "INSERT INTO REGISTRY_ORGANIZATION ( ORG_NAME, DESCRIPTION, WEBSITE_URL,

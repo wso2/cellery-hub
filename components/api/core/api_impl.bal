@@ -140,21 +140,31 @@ public function createOrg(http:Request createOrgReq, gen:OrgCreateRequest create
 }
 
 public function getOrg(http:Request getOrgReq, string orgName) returns http:Response {
-    json | error res = db:getOrganization(orgName);
+    string userId = "";
+    if (getOrgReq.hasHeader(constants:AUTHENTICATED_USER)) {
+        userId = getOrgReq.getHeader(constants:AUTHENTICATED_USER);
+        log:printDebug(io:sprintf("Fetching data of organization \'%s\' by authenticated user %s", orgName, userId));
+    } else {
+        log:printDebug(io:sprintf("Fetching data of organization \'%s\' by unauthenticated user", orgName));
+    }
+
+    json | error res = db:getOrganization(orgName, userId);
     if (res is json) {
         if (res != null) {
-            log:printDebug(io:sprintf("Successfully fetched organization \'%s\'", orgName));
+            log:printDebug(io:sprintf("Successfully fetched organization \'%s\' for user \'%s\'", orgName, userId));
             error? err = updatePayloadWithUserInfo(untaint res, "firstAuthor");
             if (err is error) {
-                log:printError("Error occured while adding userInfo to getOrg response", err = err);
+                log:printError(io:sprintf("Error occured while adding authorInfo to getOrg response for organization \'%s\'", orgName),
+                err = err);
                 return buildUnknownErrorResponse();
             } else {
-                log:printDebug("Successfully modified getOrg response with user info");
+                log:printDebug(io:sprintf("Completed the modification of getOrg response for organization \'%s\' with author info",
+                orgName));
                 return buildSuccessResponse(jsonResponse = res);
             }
         } else {
             string errDes = io:sprintf("There is no organization named \'%s\'", orgName);
-            log:printError("Unable to fetch organization" + " : " + errDes);
+            log:printError(io:sprintf("Unable to fetch organization. %s", errDes));
             return buildErrorResponse(http:NOT_FOUND_404, constants:API_ERROR_CODE, "Unable to fetch organization", errDes);
         }
     } else {

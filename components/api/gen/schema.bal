@@ -29,10 +29,12 @@ public type OrgCreateRequest record {
 };
 
 public type OrgResponse record {
-    string description;
+    byte[] description;
+    string summary;
     string websiteUrl;
     string firstAuthor;
     string createdTimestamp;
+    string userRole;
 };
 
 public type ArtifactResponse record {
