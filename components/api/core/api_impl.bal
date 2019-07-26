@@ -574,14 +574,14 @@ gen:ArtifactUpdateRequest updateArtifactBody) returns http:Response {
         log:printDebug(io:sprintf("Entries to be updated in the artifact \'%s/%s:%s\' by user %s, Description : %s", orgName, imageName,
         artifactVersion, userId, updateArtifactBody.description));
 
-        sql:UpdateResult | error? updateOrgRes = db:updateArtifactDescription(updateArtifactBody.description, orgName, imageName,
+        sql:UpdateResult | error? updateArtifactRes = db:updateArtifactDescription(updateArtifactBody.description, orgName, imageName,
         artifactVersion, userId);
-        if (updateOrgRes is sql:UpdateResult) {
-            if (updateOrgRes.updatedRowCount == 1) {
+        if (updateArtifactRes is sql:UpdateResult) {
+            if (updateArtifactRes.updatedRowCount == 1) {
                 log:printDebug(io:sprintf("Description of the artifact \'%s/%s:%s\' is successfully updated. Author : %s", orgName, imageName,
                 artifactVersion, userId));
                 return buildSuccessResponse();
-            } else if (updateOrgRes.updatedRowCount == 0) {
+            } else if (updateArtifactRes.updatedRowCount == 0) {
                 log:printError(io:sprintf("Failed to update artifact \'%s/%s:%s\' for Author %s : No matching records found", orgName, imageName,
                 artifactVersion, userId));
                 return buildErrorResponse(http:NOT_FOUND_404, constants:ENTRY_NOT_FOUND_ERROR_CODE, "Unable to update artifact", "");
@@ -592,7 +592,7 @@ gen:ArtifactUpdateRequest updateArtifactBody) returns http:Response {
             }
         } else {
             log:printError(io:sprintf("Unexpected error occured while updating artifact \'%s/%s:%s\'", orgName, imageName, artifactVersion),
-            err = updateOrgRes);
+            err = updateArtifactRes);
             return buildUnknownErrorResponse();
         }
     } else {
