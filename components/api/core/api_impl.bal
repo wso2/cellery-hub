@@ -559,6 +559,49 @@ public function updateImage(http:Request updateImageReq, string orgName, string 
     }
 }
 
+# Update an existing artifact
+#
+# + updateArtifactBody - received body which contain the description
+# + updateArtifactReq - received request which contains header
+# + orgName - organization name received as a path parameter
+# + imageName - image name received as a path parameter
+# + artifactVersion - version of the artifact received as a path parameter
+# + return - http response (200 if success, 401, 404 or 500 otherwise)
+public function updateArtifact(http:Request updateArtifactReq, string orgName, string imageName, string artifactVersion,
+gen:ArtifactUpdateRequest updateArtifactBody) returns http:Response {
+    if (updateArtifactReq.hasHeader(constants:AUTHENTICATED_USER)) {
+        string userId = updateArtifactReq.getHeader(constants:AUTHENTICATED_USER);
+        log:printDebug(io:sprintf("Entries to be updated in the artifact \'%s/%s:%s\' by user %s, Description : %s", orgName, imageName,
+        artifactVersion, userId, updateArtifactBody.description));
+
+        sql:UpdateResult | error? updateOrgRes = db:updateArtifactDescription(updateArtifactBody.description, orgName, imageName,
+        artifactVersion, userId);
+        if (updateOrgRes is sql:UpdateResult) {
+            if (updateOrgRes.updatedRowCount == 1) {
+                log:printDebug(io:sprintf("Description of the artifact \'%s/%s:%s\' is successfully updated. Author : %s", orgName, imageName,
+                artifactVersion, userId));
+                return buildSuccessResponse();
+            } else if (updateOrgRes.updatedRowCount == 0) {
+                log:printError(io:sprintf("Failed to update artifact \'%s/%s:%s\' for Author %s : No matching records found", orgName, imageName,
+                artifactVersion, userId));
+                return buildErrorResponse(http:NOT_FOUND_404, constants:ENTRY_NOT_FOUND_ERROR_CODE, "Unable to update artifact", "");
+            } else {
+                log:printError(io:sprintf("Failed to update artifact \'%s/%s:%s\' for Author %s : More than one matching records found", orgName,
+                imageName, artifactVersion, userId));
+                return buildUnknownErrorResponse();
+            }
+        } else {
+            log:printError(io:sprintf("Unexpected error occured while updating artifact \'%s/%s:%s\'", orgName, imageName, artifactVersion),
+            err = updateOrgRes);
+            return buildUnknownErrorResponse();
+        }
+    } else {
+        log:printError("Unauthenticated request for updateArtifact: Username is not found");
+        return buildErrorResponse(http:UNAUTHORIZED_401, constants:API_ERROR_CODE, "Unable to update artifact",
+        "Unauthenticated request. Auth token is not provided");
+    }
+}
+
 # Update an existing organization
 #
 # + updateOrganizationReq - received request which contains header
@@ -571,7 +614,7 @@ public function updateOrganization(http:Request updateOrganizationReq, string or
         log:printDebug(io:sprintf("Entries to be updated in the organization \'%s\' by user %s, Description : %s, Summary : %s", orgName, userId,
         updateOrganizationBody.description, updateOrganizationBody.summary));
 
-        sql:UpdateResult | error? updateOrgRes = db:updateOrgDescriptionNSummary(updateOrganizationBody.description, updateOrganizationBody.summary, 
+        sql:UpdateResult | error? updateOrgRes = db:updateOrgDescriptionNSummary(updateOrganizationBody.description, updateOrganizationBody.summary,
         orgName, userId);
         if (updateOrgRes is sql:UpdateResult) {
             if (updateOrgRes.updatedRowCount == 1) {

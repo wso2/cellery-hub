@@ -262,6 +262,27 @@ paths:
           description: "Internal Server Error"
           schema:
             $ref: "#/definitions/ErrorResponse"
+    put:
+      operationId: "updateArtifact"
+      summary: "Update an existing artifact"
+      produces:
+      - "application/json"
+      parameters:
+      - $ref: "#/parameters/orgNamePathParam"
+      - $ref: "#/parameters/imageNamePathParam"
+      - $ref: "#/parameters/artifactVersionPathParam"
+      - $ref: "#/parameters/artifactUpdateBody"
+      responses:
+        200:
+          description: "OK"
+        405:
+          description: "Invalid Input"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+        500:
+          description: "Internal Server Error"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
 
 parameters:
   orgCreateBody:
@@ -285,6 +306,13 @@ parameters:
     required: true
     schema:
       $ref: "#/definitions/OrgUpdateRequest"
+  artifactUpdateBody:
+    name: "artifact"
+    in: "body"
+    description: "Artifact which needs to be updated"
+    required: true
+    schema:
+      $ref: "#/definitions/ArtifactUpdateRequest"
   orgNamePathParam:
     name: "orgName"
     in: "path"
@@ -376,10 +404,11 @@ definitions:
         type: "string"
       summary:
         type: "string"
-      keywords:
-        type: array
-        items:
-          type: "string"
+  ArtifactUpdateRequest:
+    type: "object"
+    properties:
+      description:
+        type: "string"
   OrgResponse:
     type: "object"
     properties:

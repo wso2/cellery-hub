@@ -690,6 +690,46 @@ service CelleryHubAPI on ep {
     }
 
     @openapi:ResourceInfo {
+        summary: "Update an existing artifact",
+        parameters: [
+            {
+                name: "orgName",
+                inInfo: "path",
+                paramType: "string",
+                description: "Name of the organization",
+                required: true,
+                allowEmptyValue: ""
+            },
+            {
+                name: "imageName",
+                inInfo: "path",
+                paramType: "string",
+                description: "Name of the image",
+                required: true,
+                allowEmptyValue: ""
+            },
+            {
+                name: "artifactVersion",
+                inInfo: "path",
+                paramType: "string",
+                description: "Version of the artifact",
+                required: true,
+                allowEmptyValue: ""
+            }
+        ]
+    }
+    @http:ResourceConfig {
+        methods:["PUT"],
+        path:"/artifacts/{orgName}/{imageName}/{artifactVersion}",
+        body:"_updateArtifactBody"
+    }
+    resource function updateArtifact (http:Caller outboundEp, http:Request _updateArtifactReq, string orgName, string imageName, string artifactVersion, 
+    gen:ArtifactUpdateRequest _updateArtifactBody) returns error? {
+        http:Response _updateArtifactRes = updateArtifact(_updateArtifactReq, orgName, imageName, artifactVersion, _updateArtifactBody);
+        error? x = outboundEp->respond(_updateArtifactRes);
+    }
+
+    @openapi:ResourceInfo {
         summary: "Update an existing organization",
         parameters: [
             {

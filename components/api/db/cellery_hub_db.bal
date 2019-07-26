@@ -379,6 +379,13 @@ public function updateOrgDescriptionNSummary(string description, string summary,
     return res;
 }
 
+public function updateArtifactDescription(string description, string orgName, string imageName, string artifactVersion, string userId)
+returns sql:UpdateResult | error? {
+    log:printInfo(io:sprintf("Updating description of the artifact \'%s/%s:%s\'", orgName, imageName, artifactVersion));
+    sql:UpdateResult res = check connection->update(UPDATE_ARTIFACT_DESCRIPTION_QUERY, description, artifactVersion, imageName, orgName, userId);
+    return res;
+}
+
 public function updateImageKeywords(string orgName, string imageName, string[] keywords, string userId) returns error? {
     log:printInfo(io:sprintf("User %s is updating keywords of the image %s/%s", userId, orgName, imageName));
     string imageId = check getArtifactImageID(orgName, imageName);
