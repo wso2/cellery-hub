@@ -99,10 +99,19 @@ public type OrgListResponse record {
     OrgListResponseAtom[] data;
 };
 
+public type OrgListAtom record {
+    string orgName;
+    string summary;
+    byte[] description;
+    int membersCount;
+};
+
 public type OrgListResponseAtom record {
     string orgName;
+    string summary;
     string description;
     int membersCount;
+    int imageCount;
 };
 
 public type OrgListResponseImageCount record {

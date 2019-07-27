@@ -186,7 +186,8 @@ returns table<gen:Count> | error {
 }
 
 public function searchOrganizations(string orgName, int offset, int resultLimit) returns json | error {
-    log:printDebug(io:sprintf("Performing data retreival on REGISTRY_ORGANIZATION table, Org name : \'%s\': ", orgName));
+    log:printDebug(io:sprintf("Performing data retreival on REGISTRY_ORGANIZATION table, Org name : \'%s\', offset : %d, resultLimit : %d",
+    orgName, offset, resultLimit));
     table<record {}> resTotal = check connection->select(SEARCH_ORGS_TOTAL_COUNT, gen:Count, orgName);
     json resTotalJson = check json.convert(resTotal);
     int totalOrgs = check int.convert(resTotalJson[0]["count"]);
@@ -200,16 +201,23 @@ public function searchOrganizations(string orgName, int offset, int resultLimit)
         map<any> imageCountMap = {};
         table<gen:OrgListResponseImageCount> resImgCount = check connection->select(SEARCH_ORGS_QUERY_IMAGE_COUNT,
         gen:OrgListResponseImageCount, orgName, resultLimit, offset);
-        foreach var fd in resImgCount {
-            imageCountMap[fd.orgName] = fd.imageCount;
+        foreach var orgImageCount in resImgCount {
+            imageCountMap[orgImageCount.orgName] = orgImageCount.imageCount;
         }
         resImgCount.close();
-        table<gen:OrgListResponseAtom> resData = check connection->select(SEARCH_ORGS_QUERY, gen:OrgListResponseAtom, orgName,
-        resultLimit, offset, loadToMemory = true);
-        foreach int i in 0 ... resData.count() - 1 {
-            gen:OrgListResponseAtom orgListResponseAtom = check gen:OrgListResponseAtom.convert(resData.getNext());
-            orgListResponse.data[i] = orgListResponseAtom;
-            orgListResponse.data[i]["imageCount"] = <int>imageCountMap[orgListResponseAtom.orgName];
+        table<gen:OrgListAtom> resData = check connection->select(SEARCH_ORGS_QUERY, gen:OrgListAtom, orgName,
+        resultLimit, offset);
+        int counter = 0;
+        foreach var item in resData {
+            gen:OrgListAtom orgListResponseRecord = gen:OrgListAtom.convert(item);
+            orgListResponse.data[counter] = {
+                orgName: orgListResponseRecord.orgName,
+                summary: orgListResponseRecord.summary,
+                description: encoding:byteArrayToString(orgListResponseRecord.description),
+                membersCount: orgListResponseRecord.membersCount,
+                imageCount: <int>imageCountMap[orgListResponseRecord.orgName]
+            };
+            counter += 1;
         }
         resData.close();
     } else {
