@@ -70,6 +70,7 @@ public type Image record {
     string orgName;
     string imageName;
     string summary;
+    byte[] description;
     string firstAuthor;
     string visibility;
     decimal pushCount;
@@ -81,6 +82,7 @@ public type ImageResponse record {
     string orgName;
     string imageName;
     string summary;
+    string description;
     string firstAuthor;
     string visibility;
     decimal pushCount;

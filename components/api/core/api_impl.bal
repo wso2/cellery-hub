@@ -25,6 +25,7 @@ import cellery_hub_api/constants;
 import cellery_hub_api/db;
 import cellery_hub_api/idp;
 import ballerina/sql;
+import ballerina/encoding;
 
 # Get Auth Tokens.
 #
@@ -178,7 +179,7 @@ public function getImageByImageName(http:Request getImageRequest, string orgName
     table<gen:Image> | error imageResults;
     if (getImageRequest.hasHeader(constants:AUTHENTICATED_USER)) {
         string userId = getImageRequest.getHeader(constants:AUTHENTICATED_USER);
-        log:printDebug("get Image request with authenticated User : " + userId);
+        log:printDebug(io:sprintf("get Image request with authenticated User : %s", userId));
         imageResults = db:getUserImage(orgName, imageName, userId);
     } else {
         log:printDebug("get Image request without an authenticated user");
@@ -204,7 +205,6 @@ public function getImageByImageName(http:Request getImageRequest, string orgName
                 log:printDebug("Recieved results for keywords for image size: " + keywordsResult.count());
                 int keyWorkdsCount = 0;
                 while (keywordsResult.hasNext()) {
-                    io:println(keyWorkdsCount);
                     gen:StringRecord keyword = <gen:StringRecord>keywordsResult.getNext();
                     keywords[keyWorkdsCount] = keyword.value;
                     keyWorkdsCount += 1;
@@ -218,6 +218,7 @@ public function getImageByImageName(http:Request getImageRequest, string orgName
                 orgName: image.orgName,
                 imageName: image.imageName,
                 summary: image.summary,
+                description: encoding:byteArrayToString(image.description),
                 firstAuthor: image.firstAuthor,
                 visibility: image.visibility,
                 pushCount: image.pushCount,
