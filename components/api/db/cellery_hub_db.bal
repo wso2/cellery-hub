@@ -243,19 +243,26 @@ returns json | error {
         map<any> imageCountMap = {};
         table<gen:OrgListResponseImageCount> resImgCount = check connection->select(SEARCH_USER_ORGS_QUERY_IMAGE_COUNT,
         gen:OrgListResponseImageCount, apiUserId, orgName, userId, orgName, resultLimit, offset);
-        foreach var fd in resImgCount {
-            imageCountMap[fd.orgName] = fd.imageCount;
+        foreach var orgImageCount in resImgCount {
+            imageCountMap[orgImageCount.orgName] = orgImageCount.imageCount;
         }
         resImgCount.close();
-        table<gen:OrgListResponseAtom> resData = check connection->select(SEARCH_USER_ORGS_QUERY, gen:OrgListResponseAtom, orgName, userId,
-        resultLimit, offset, loadToMemory = true);
-        foreach int i in 0 ... resData.count() - 1 {
-            gen:OrgListResponseAtom orgListResponseAtom = check gen:OrgListResponseAtom.convert(resData.getNext());
-            orgListResponse.data[i] = orgListResponseAtom;
-            if (imageCountMap[orgListResponseAtom.orgName] is ()) {
-                imageCountMap[orgListResponseAtom.orgName] = 0;
+        table<gen:OrgListAtom> resData = check connection->select(SEARCH_USER_ORGS_QUERY, gen:OrgListAtom, orgName, userId,
+        resultLimit, offset);
+        int counter = 0;
+        foreach var item in resData {
+            gen:OrgListAtom orgListResponseRecord = gen:OrgListAtom.convert(item);
+            if (imageCountMap[orgListResponseRecord.orgName] is ()) {
+                    imageCountMap[orgListResponseRecord.orgName] = 0;
             }
-            orgListResponse.data[i]["imageCount"] = <int>imageCountMap[orgListResponseAtom.orgName];
+            orgListResponse.data[counter] = {
+                orgName: orgListResponseRecord.orgName,
+                summary: orgListResponseRecord.summary,
+                description: encoding:byteArrayToString(orgListResponseRecord.description),
+                membersCount: orgListResponseRecord.membersCount,
+                imageCount: <int>imageCountMap[orgListResponseRecord.orgName]
+            };
+            counter += 1;
         }
         resData.close();
     } else {
