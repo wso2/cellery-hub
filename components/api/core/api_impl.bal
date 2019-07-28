@@ -466,15 +466,16 @@ returns http:Response {
     if (listOrgImagesReq.hasHeader(constants:AUTHENTICATED_USER)) {
         string userId = listOrgImagesReq.getHeader(constants:AUTHENTICATED_USER);
         log:printDebug(io:sprintf("List org images request with an authenticated user : %s", userId));
-        orgImagesListResult = db:getUserImagesOfORG(userId, orgName, imageName, orderBy, offset, resultLimit);
+        orgImagesListResult = db:getUserImagesOfOrg(userId, orgName, imageName, orderBy, offset, resultLimit);
     } else {
         log:printDebug("List org images request with an unauthenticated user");
-        orgImagesListResult = db:getPublicImagesOfORG(orgName, imageName, orderBy, offset, resultLimit);
+        orgImagesListResult = db:getPublicImagesOfOrg(orgName, imageName, orderBy, offset, resultLimit);
     }
     if (orgImagesListResult is json) {
+        log:printDebug(io:sprintf("Received orgImages json payload for org name \'%s\' and image name \'%s\' : %s", orgName,
+        imageName, orgImagesListResult));
         return buildSuccessResponse(jsonResponse = orgImagesListResult);
-    }
-    else {
+    } else {
         log:printError(io:sprintf("Error occured while retrieving images with name \'%s\' for organization \'%s\'", imageName, orgName),
         err = orgImagesListResult);
         return buildUnknownErrorResponse();

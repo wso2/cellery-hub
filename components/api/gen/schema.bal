@@ -174,9 +174,19 @@ public type ImagesListResponseAtom record {
     string visibility;
 };
 
+public type OrgImagesListAtom record {
+    string imageName;
+    string summary;
+    byte[] description;
+    decimal pullCount;
+    string updatedTimestamp;
+    string visibility;
+};
+
 public type OrgImagesListResponseAtom record {
     string imageName;
     string summary;
+    string description;
     decimal pullCount;
     string updatedTimestamp;
     string visibility;
