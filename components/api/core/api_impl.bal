@@ -508,7 +508,7 @@ returns http:Response {
         return buildSuccessResponse(jsonResponse = imagesListResult);
     } else {
         log:printError(io:sprintf("Error occured while retrieving images with name \'%s\' for organization \'%s\'", imageName, orgName),
-        err = imagesListResult);
+        err = orgImagesListResult);
         return buildUnknownErrorResponse();
     }
 }
