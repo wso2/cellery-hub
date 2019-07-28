@@ -485,21 +485,21 @@ public function listImages(http:Request listImagesReq, string orgName, string im
 returns http:Response {
     log:printDebug(io:sprintf("Listing images for orgName : %s, imageName : %s, orderBy : %s, offset : %d, limit : %d, ", orgName,
     imageName, orderBy, offset, resultLimit));
-    json | error orgImagesListResult;
+    json | error imagesListResult;
     if (listImagesReq.hasHeader(constants:AUTHENTICATED_USER)) {
         string userId = listImagesReq.getHeader(constants:AUTHENTICATED_USER);
         log:printDebug(io:sprintf("List images request with an authenticated user : %s", userId));
-        orgImagesListResult = db:getUserImages(userId, orgName, imageName, orderBy, offset, resultLimit);
+        imagesListResult = db:getUserImages(orgName, userId, imageName, orderBy, offset, resultLimit);
     } else {
         log:printDebug("List images request with an unauthenticated user");
-        orgImagesListResult = db:getPublicImages(orgName, imageName, orderBy, offset, resultLimit);
+        imagesListResult = db:getPublicImages(orgName, imageName, orderBy, offset, resultLimit);
     }
-    if (orgImagesListResult is json) {
-        return buildSuccessResponse(jsonResponse = orgImagesListResult);
-    }
-    else {
+    if (imagesListResult is json) {
+        log:printDebug(io:sprintf("Received images json payload for org name \'%s\' and image name \'%s\' : %s", orgName, imageName, imagesListResult));
+        return buildSuccessResponse(jsonResponse = imagesListResult);
+    } else {
         log:printError(io:sprintf("Error occured while retrieving images with name \'%s\' for organization \'%s\'", imageName, orgName),
-        err = orgImagesListResult);
+        err = imagesListResult);
         return buildUnknownErrorResponse();
     }
 }

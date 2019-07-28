@@ -44,7 +44,7 @@ public function getOrganization(string orgName, string userId) returns json | er
         resPayload["summary"] = orgRes.summary;
         resPayload["websiteUrl"] = orgRes.websiteUrl;
         resPayload["author"] = orgRes.firstAuthor;
-        resPayload["createdTimestamp"] = orgRes.createdTimestamp;        
+        resPayload["createdTimestamp"] = orgRes.createdTimestamp;
         resPayload["userRole"] = orgRes.userRole;
         res.close();
         return resPayload;
@@ -253,7 +253,7 @@ returns json | error {
         foreach var item in resData {
             gen:OrgListAtom orgListResponseRecord = gen:OrgListAtom.convert(item);
             if (imageCountMap[orgListResponseRecord.orgName] is ()) {
-                    imageCountMap[orgListResponseRecord.orgName] = 0;
+                imageCountMap[orgListResponseRecord.orgName] = 0;
             }
             orgListResponse.data[counter] = {
                 orgName: orgListResponseRecord.orgName,
@@ -330,61 +330,58 @@ returns json | error {
     return check json.convert(orgImagesListResponse);
 }
 
-public function getPublicImages(string orgName, string imageName, string orderBy, int offset, int resultLimit)
+public function getUserImages(string orgName, string userId, string imageName, string orderBy, int offset, int resultLimit)
 returns json | error {
-    log:printDebug(io:sprintf("Performing image retrival from DB for orgName: %s and imageName: %s", orgName, imageName));
-    table<gen:OrgImagesListResponse> resTotal = check connection->select(SEARCH_PUBLIC_IMAGES_TOTAL_COUNT, gen:Count, orgName, imageName);
-    json resTotalJson = check json.convert(resTotal);
-    int totalOrgs = check int.convert(resTotalJson[0]["count"]);
-    resTotal.close();
+    log:printDebug(io:sprintf("Retreiving images for org name \'%s\' and image name \'%s\' with an authenticated user \'%s\'",
+    orgName, imageName, userId));
+    table< record {}> resTotal = check connection->select(SEARCH_IMAGES_FOR_USER_TOTAL_COUNT, gen:Count, orgName, imageName, userId);
+    int totalOrgs = check getTotalRecordsCount(resTotal);
     gen:ImagesListResponse imagesListResponse = {
         count: totalOrgs,
         data: []
     };
     if (totalOrgs > 0) {
-        log:printDebug(io:sprintf("%d images found with the imageName \'%s\' for orgName %s", totalOrgs, imageName, orgName));
-        string searchQuery = SEARCH_PUBLIC_IMAGES_QUERY.replace("$ORDER_BY", orderBy);
-        table<gen:ImagesListResponseAtom> resData = check connection->select(searchQuery, gen:ImagesListResponseAtom,
-        orgName, imageName, resultLimit, offset);
+        log:printDebug(io:sprintf("%d image(s) found with the image name \'%s\' for org name %s", totalOrgs, imageName, orgName));
+        string searchQuery = SEARCH_IMAGES_FOR_USER_QUERY.replace("$ORDER_BY", orderBy);
+        table<gen:ImagesListAtom> resData = check connection->select(searchQuery, gen:ImagesListAtom,
+        orgName, imageName, userId, resultLimit, offset);
         int counter = 0;
         foreach var item in resData {
-            imagesListResponse.data[counter] = gen:ImagesListResponseAtom.convert(item);
+            gen:ImagesListAtom imagesListRecord = gen:ImagesListAtom.convert(item);
+            imagesListResponse.data[counter] = buildListImagesResponse(imagesListRecord, counter);
             counter += 1;
         }
         resData.close();
     } else {
-        log:printDebug(io:sprintf("No images found with orgName \'%s\' and image name \'%s\'", orgName, imageName));
+        log:printDebug(io:sprintf("No images found with the image name \'%s\' and org name \'%s\'", imageName, orgName));
     }
     return check json.convert(imagesListResponse);
 }
 
-public function getUserImages(string userId, string orgName, string imageName, string orderBy, int offset, int resultLimit)
+public function getPublicImages(string orgName, string imageName, string orderBy, int offset, int resultLimit)
 returns json | error {
-    log:printDebug(io:sprintf("Performing image retrival for user %s from DB for orgName: %s, imageName: %s", userId, orgName, imageName));
-    table<gen:OrgImagesListResponse> resTotal = check connection->select(SEARCH_IMAGES_FOR_USER_TOTAL_COUNT, gen:Count,
-    orgName, imageName, userId);
-    json resTotalJson = check json.convert(resTotal);
-    int totalOrgs = check int.convert(resTotalJson[0]["count"]);
-    resTotal.close();
+    log:printDebug(io:sprintf("Retreiving images for org name \'%s\' and image name \'%s\' with an unauthenticated user",
+    orgName, imageName));
+    table< record {}> resTotal = check connection->select(SEARCH_PUBLIC_IMAGES_TOTAL_COUNT, gen:Count, orgName, imageName);
+    int totalOrgs = check getTotalRecordsCount(resTotal);
     gen:ImagesListResponse imagesListResponse = {
         count: totalOrgs,
         data: []
     };
-    if (totalOrgs > 0) {
-        log:printDebug(io:sprintf("%d images found with the imageName \'%s\' and orgName %s for user %s", totalOrgs, imageName,
-        orgName, userId));
-        string searchQuery = SEARCH_IMAGES_FOR_USER_QUERY.replace("$ORDER_BY", orderBy);
-        table<gen:ImagesListResponseAtom> resData = check connection->select(searchQuery, gen:ImagesListResponseAtom,
-        orgName, imageName, userId, resultLimit, offset);
+    if totalOrgs > 0 {
+        log:printDebug(io:sprintf("%d image(s) found with the image name \'%s\' for org name %s", totalOrgs, imageName, orgName));
+        string searchQuery = SEARCH_PUBLIC_IMAGES_QUERY.replace("$ORDER_BY", orderBy);
+        table<gen:ImagesListAtom> resData = check connection->select(searchQuery, gen:ImagesListAtom,
+        orgName, imageName, resultLimit, offset);
         int counter = 0;
         foreach var item in resData {
-            imagesListResponse.data[counter] = gen:ImagesListResponseAtom.convert(item);
+            gen:ImagesListAtom imagesListRecord = gen:ImagesListAtom.convert(item);
+            imagesListResponse.data[counter] = buildListImagesResponse(imagesListRecord, counter);
             counter += 1;
         }
         resData.close();
     } else {
-        log:printDebug(io:sprintf("No images found with orgName \'%s\' and image name \'%s\' for userId %s", orgName,
-        imageName, userId));
+        log:printDebug(io:sprintf("No images found with the image name \'%s\' and org name \'%s\'", imageName, orgName));
     }
     return check json.convert(imagesListResponse);
 }
@@ -509,4 +506,26 @@ returns json | error {
         imageName, userId));
     }
     return check json.convert(imagesListResponse);
+}
+
+function getTotalRecordsCount(table< record {}> tableRecord) returns int | error {
+    log:printDebug("Converting the total in table record type into integer value");
+    json tableJson = check json.convert(tableRecord);
+    int total = check int.convert(tableJson[0]["count"]);
+    tableRecord.close();
+    return total;
+}
+
+function buildListImagesResponse(gen:ImagesListAtom imagesListRecord, int index) returns gen:ImagesListResponseAtom {
+    log:printDebug(io:sprintf("Building response record for imagesListRecord %d", index));
+    gen:ImagesListResponseAtom imagesListResponseAtom = {
+        orgName: imagesListRecord.orgName,
+        imageName: imagesListRecord.imageName,
+        summary: imagesListRecord.summary,
+        description: encoding:byteArrayToString(imagesListRecord.description),
+        pullCount: imagesListRecord.pullCount,
+        updatedTimestamp: imagesListRecord.updatedTimestamp,
+        visibility: imagesListRecord.visibility
+    };
+    return imagesListResponseAtom;
 }

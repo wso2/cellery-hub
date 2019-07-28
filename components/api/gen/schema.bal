@@ -154,10 +154,21 @@ public type OrgImagesListResponse record {
     OrgImagesListResponseAtom[] data;
 };
 
+public type ImagesListAtom record {
+    string orgName;
+    string imageName;
+    string summary;
+    byte[] description;
+    decimal pullCount;
+    string updatedTimestamp;
+    string visibility;
+};
+
 public type ImagesListResponseAtom record {
     string orgName;
     string imageName;
     string summary;
+    string description;
     decimal pullCount;
     string updatedTimestamp;
     string visibility;
@@ -182,6 +193,6 @@ public type OrgUpdateRequest record {
     string summary;
 };
 
-public type ArtifactUpdateRequest record { 
+public type ArtifactUpdateRequest record {
     string description;
 };
