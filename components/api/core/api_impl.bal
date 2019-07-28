@@ -509,7 +509,7 @@ returns http:Response {
         return buildSuccessResponse(jsonResponse = imagesListResult);
     } else {
         log:printError(io:sprintf("Error occured while retrieving images with name \'%s\' for organization \'%s\'", imageName, orgName),
-        err = orgImagesListResult);
+        err = imagesListResult);
         return buildUnknownErrorResponse();
     }
 }
@@ -685,9 +685,10 @@ int resultLimit) returns http:Response {
         imagesListForUserResult = db:getImagesForUserIdWithoutAuthenticatedUser(userId, orgName, imageName, orderBy, offset, resultLimit);
     }
     if (imagesListForUserResult is json) {
+        log:printDebug(io:sprintf("Received user images json payload for user \'%s\', org name \'%s\', image name \'%s\' : %s", userId, orgName,
+        imageName, imagesListForUserResult));
         return buildSuccessResponse(jsonResponse = imagesListForUserResult);
-    }
-    else {
+    } else {
         log:printError(io:sprintf("Error occured while retrieving images with name \'%s\' for organization \'%s\'", imageName, orgName),
         err = imagesListForUserResult);
         return buildUnknownErrorResponse();

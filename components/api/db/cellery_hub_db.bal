@@ -151,32 +151,6 @@ public function getUserArtifact(string userId, string orgName, string imageName,
     return buildJsonPayloadForGetArtifact(res, orgName, imageName, artifactVersion);
 }
 
-function buildJsonPayloadForGetArtifact(table< record {}> res, string orgName, string imageName, string artifactVersion) returns json | error {
-    if (res.count() == 1) {
-        json resPayload = {};
-        gen:ArtifactResponse artRes = check gen:ArtifactResponse.convert(res.getNext());
-        string metadataString = encoding:byteArrayToString(artRes.metadata);
-        io:StringReader sr = new(metadataString, encoding = "UTF-8");
-        json metadataJson = check sr.readJson();
-        resPayload["summary"] = artRes.summary;
-        resPayload["pullCount"] = artRes.pullCount;
-        resPayload["lastAuthor"] = artRes.lastAuthor;
-        resPayload["updatedTimestamp"] = artRes.updatedTimestamp;
-        resPayload["metadata"] = metadataJson;
-        return resPayload;
-    } else if (res.count() == 0) {
-        log:printDebug(io:sprintf("The requested artifact \'%s/%s:%s\' was not found in REGISTRY_ORGANIZATION",
-        orgName, imageName, artifactVersion));
-        res.close();
-        return null;
-    } else {
-        string errMsg = io:sprintf("Found more than one result for artifact GET: Number of results : %s", res.count());
-        log:printDebug(errMsg);
-        error er = error(errMsg);
-        return er;
-    }
-}
-
 public function getMemberOrgsUsers(string userId, string orgName, int offset, int resultLimit)
 returns table<gen:User> | error {
     log:printDebug(io:sprintf("Performing data retrieval of users for organization: %s, user: %s , with offset %d,
@@ -459,43 +433,33 @@ public function updateImageKeywords(string orgName, string imageName, string[] k
     }
 }
 
-function getArtifactImageID(string orgName, string imageName) returns string | error {
-    log:printDebug(io:sprintf("Retrieving Artifact Image Id of image %s/%s", orgName, imageName));
-    table<record {}> imageIdRes = check connection->select(GET_ARTIFACT_IMAGE_ID, RegistryArtifactImage, imageName, orgName);
-    json imageIdRecord = check json.convert(imageIdRes);
-    string imageId = check string.convert(imageIdRecord[0]["ARTIFACT_IMAGE_ID"]);
-    log:printDebug(io:sprintf("Artifact Image Id of %s/%s is %s ", orgName, imageName, imageId));
-    return imageId;
-}
-
 public function getImagesForUserIdWithAuthenticatedUser(string userId, string orgName, string imageName, string orderBy, int offset, int resultLimit,
 string apiUserId)
 returns json | error {
     log:printDebug(io:sprintf("Performing image retrival for user %s from DB for orgName: %s, imageName: %s by user : %s", userId, orgName,
     imageName, apiUserId));
-    table<gen:OrgImagesListResponse> resTotal = check connection->select(SEARCH_USER_AUTHORED_IMAGES_TOTAL_COUNT_FOR_AUTHENTICATED_USER, gen:Count,
+    table<record {}> resTotal = check connection->select(SEARCH_USER_AUTHORED_IMAGES_TOTAL_COUNT_FOR_AUTHENTICATED_USER, gen:Count,
     userId, orgName, imageName, apiUserId);
-    json resTotalJson = check json.convert(resTotal);
-    int totalOrgs = check int.convert(resTotalJson[0]["count"]);
-    resTotal.close();
+    int totalOrgs = check getTotalRecordsCount(resTotal);
     gen:ImagesListResponse imagesListResponse = {
         count: totalOrgs,
         data: []
     };
     if (totalOrgs > 0) {
-        log:printDebug(io:sprintf("%d image(s) found with the imageName \'%s\' and orgName %s for user %s", totalOrgs, imageName,
+        log:printDebug(io:sprintf("%d image(s) found with the image name \'%s\' and org name %s for user %s", totalOrgs, imageName,
         orgName, userId));
         string searchQuery = SEARCH_USER_AUTHORED_IMAGES_QUERY_FOR_AUTHENTICATED_USER.replace("$ORDER_BY", orderBy);
-        table<gen:ImagesListResponseAtom> resData = check connection->select(searchQuery, gen:ImagesListResponseAtom, userId, orgName, imageName,
+        table<gen:ImagesListAtom> resData = check connection->select(searchQuery, gen:ImagesListAtom, userId, orgName, imageName,
         apiUserId, resultLimit, offset);
         int counter = 0;
         foreach var item in resData {
-            imagesListResponse.data[counter] = gen:ImagesListResponseAtom.convert(item);
+            gen:ImagesListAtom imagesListRecord = gen:ImagesListAtom.convert(item);
+            imagesListResponse.data[counter] = buildListImagesResponse(imagesListRecord, counter);
             counter += 1;
         }
         resData.close();
     } else {
-        log:printDebug(io:sprintf("No images found with orgName \'%s\' and image name \'%s\' for userId %s", orgName,
+        log:printDebug(io:sprintf("No images found with org name \'%s\' and image name \'%s\' for userId %s", orgName,
         imageName, userId));
     }
     return check json.convert(imagesListResponse);
@@ -505,11 +469,9 @@ public function getImagesForUserIdWithoutAuthenticatedUser(string userId, string
 returns json | error {
     log:printDebug(io:sprintf("Performing image retrival for user %s from DB for orgName: %s, imageName: %s by unauthenticated user", userId, orgName,
     imageName));
-    table<gen:OrgImagesListResponse> resTotal = check connection->select(SEARCH_USER_AUTHORED_IMAGES_TOTAL_COUNT_FOR_UNAUTHENTICATED_USER, gen:Count,
+    table<record {}> resTotal = check connection->select(SEARCH_USER_AUTHORED_IMAGES_TOTAL_COUNT_FOR_UNAUTHENTICATED_USER, gen:Count,
     userId, orgName, imageName);
-    json resTotalJson = check json.convert(resTotal);
-    int totalOrgs = check int.convert(resTotalJson[0]["count"]);
-    resTotal.close();
+    int totalOrgs = check getTotalRecordsCount(resTotal);
     gen:ImagesListResponse imagesListResponse = {
         count: totalOrgs,
         data: []
@@ -518,11 +480,12 @@ returns json | error {
         log:printDebug(io:sprintf("%d image(s) found with the imageName \'%s\' and orgName %s for user %s", totalOrgs, imageName,
         orgName, userId));
         string searchQuery = SEARCH_USER_AUTHORED_IMAGES_QUERY_FOR_UNAUTHENTICATED_USER.replace("$ORDER_BY", orderBy);
-        table<gen:ImagesListResponseAtom> resData = check connection->select(searchQuery, gen:ImagesListResponseAtom, userId, orgName, imageName,
+        table<gen:ImagesListAtom> resData = check connection->select(searchQuery, gen:ImagesListAtom, userId, orgName, imageName,
         resultLimit, offset);
         int counter = 0;
         foreach var item in resData {
-            imagesListResponse.data[counter] = gen:ImagesListResponseAtom.convert(item);
+            gen:ImagesListAtom imagesListRecord = gen:ImagesListAtom.convert(item);
+            imagesListResponse.data[counter] = buildListImagesResponse(imagesListRecord, counter);
             counter += 1;
         }
         resData.close();
@@ -531,6 +494,41 @@ returns json | error {
         imageName, userId));
     }
     return check json.convert(imagesListResponse);
+}
+
+function buildJsonPayloadForGetArtifact(table< record {}> res, string orgName, string imageName, string artifactVersion) returns json | error {
+    if (res.count() == 1) {
+        json resPayload = {};
+        gen:ArtifactResponse artRes = check gen:ArtifactResponse.convert(res.getNext());
+        string metadataString = encoding:byteArrayToString(artRes.metadata);
+        io:StringReader sr = new(metadataString, encoding = "UTF-8");
+        json metadataJson = check sr.readJson();
+        resPayload["summary"] = artRes.summary;
+        resPayload["pullCount"] = artRes.pullCount;
+        resPayload["lastAuthor"] = artRes.lastAuthor;
+        resPayload["updatedTimestamp"] = artRes.updatedTimestamp;
+        resPayload["metadata"] = metadataJson;
+        return resPayload;
+    } else if (res.count() == 0) {
+        log:printDebug(io:sprintf("The requested artifact \'%s/%s:%s\' was not found in REGISTRY_ORGANIZATION",
+        orgName, imageName, artifactVersion));
+        res.close();
+        return null;
+    } else {
+        string errMsg = io:sprintf("Found more than one result for artifact GET: Number of results : %s", res.count());
+        log:printDebug(errMsg);
+        error er = error(errMsg);
+        return er;
+    }
+}
+
+function getArtifactImageID(string orgName, string imageName) returns string | error {
+    log:printDebug(io:sprintf("Retrieving Artifact Image Id of image %s/%s", orgName, imageName));
+    table<record {}> imageIdRes = check connection->select(GET_ARTIFACT_IMAGE_ID, RegistryArtifactImage, imageName, orgName);
+    json imageIdRecord = check json.convert(imageIdRes);
+    string imageId = check string.convert(imageIdRecord[0]["ARTIFACT_IMAGE_ID"]);
+    log:printDebug(io:sprintf("Artifact Image Id of %s/%s is %s ", orgName, imageName, imageId));
+    return imageId;
 }
 
 function getTotalRecordsCount(table< record {}> tableRecord) returns int | error {
