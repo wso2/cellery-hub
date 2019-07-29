@@ -66,12 +66,21 @@ public function getTokens(http:Request getTokensReq) returns http:Response {
 # + listOrgsReq - Received query parameters
 # + return - http response which cater to the request
 public function listOrgs(http:Request listOrgsReq, string orgName, int offset, int resultLimit) returns http:Response {
-    json | error res = db:searchOrganizations(orgName, offset, resultLimit);
-    if (res is json) {
-        log:printDebug(io:sprintf("Received json payload for org name \'%s\'", orgName));
-        return buildSuccessResponse(jsonResponse = res);
+    log:printDebug(io:sprintf("Listing organizations for orgName : %s with offset : %d, limit : %d, ", orgName, offset, resultLimit));
+    json | error orgsRes;
+    if (listOrgsReq.hasHeader(constants:AUTHENTICATED_USER)) {
+        string userId = listOrgsReq.getHeader(constants:AUTHENTICATED_USER);
+        log:printDebug(io:sprintf("list organizations request with an authenticated User : %s", userId));
+        orgsRes = db:searchOrganizationsWithAuthenticatedUser(orgName, userId, offset, resultLimit);
     } else {
-        log:printError("Unable to perform search on organizations", err = res);
+        log:printDebug("list organizations request with an unauthenticated User");
+        orgsRes = db:searchOrganizationsWithoutAuthenticatedUser(orgName, offset, resultLimit);
+    }
+    if (orgsRes is json) {
+        log:printDebug(io:sprintf("Received json payload for org name \'%s\' : %s", orgName, orgsRes));
+        return buildSuccessResponse(jsonResponse = orgsRes);
+    } else {
+        log:printError("Unable to perform search on organizations", err = orgsRes);
         return buildUnknownErrorResponse();
     }
 }
