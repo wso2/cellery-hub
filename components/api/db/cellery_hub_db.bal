@@ -234,9 +234,7 @@ returns json | error {
     log:printDebug(io:sprintf("Performing data retreival on REGISTRY_ORGANIZATION table for userId : %s, Org name : \'%s\': ",
     userId, orgName));
     table<record {}> resTotal = check connection->select(SEARCH_USER_ORGS_TOTAL_COUNT, gen:Count, orgName, userId);
-    json resTotalJson = check json.convert(resTotal);
-    int totalOrgs = check int.convert(resTotalJson[0]["count"]);
-    resTotal.close();
+    int totalOrgs = check getTotalRecordsCount(resTotal);
     gen:OrgListResponse orgListResponse = {
         count: totalOrgs,
         data: []
@@ -254,17 +252,11 @@ returns json | error {
         resultLimit, offset);
         int counter = 0;
         foreach var item in resData {
-            gen:OrgListAtom orgListResponseRecord = gen:OrgListAtom.convert(item);
-            if (imageCountMap[orgListResponseRecord.orgName] is ()) {
-                imageCountMap[orgListResponseRecord.orgName] = 0;
+            gen:OrgListAtom orgListRecord = gen:OrgListAtom.convert(item);
+            if (imageCountMap[orgListRecord.orgName] is ()) {
+                imageCountMap[orgListRecord.orgName] = 0;
             }
-            orgListResponse.data[counter] = {
-                orgName: orgListResponseRecord.orgName,
-                summary: orgListResponseRecord.summary,
-                description: encoding:byteArrayToString(orgListResponseRecord.description),
-                membersCount: orgListResponseRecord.membersCount,
-                imageCount: <int>imageCountMap[orgListResponseRecord.orgName]
-            };
+            orgListResponse.data[counter] = buildListOrgsResponse(orgListRecord, imageCountMap, counter);
             counter += 1;
         }
         resData.close();
@@ -531,4 +523,16 @@ function buildListImagesResponse(gen:ImagesListAtom imagesListRecord, int index)
         visibility: imagesListRecord.visibility
     };
     return imagesListResponseAtom;
+}
+
+function buildListOrgsResponse(gen:OrgListAtom orgListRecord, map<any> imageCountMap, int index) returns gen:OrgListResponseAtom {
+    log:printDebug(io:sprintf("Building response record for orgListRecord %d", index));
+    gen:OrgListResponseAtom orgListResponseAtom = {
+        orgName: orgListRecord.orgName,
+        summary: orgListRecord.summary,
+        description: encoding:byteArrayToString(orgListRecord.description),
+        membersCount: orgListRecord.membersCount,
+        imageCount: <int>imageCountMap[orgListRecord.orgName]
+    };
+    return orgListResponseAtom;
 }

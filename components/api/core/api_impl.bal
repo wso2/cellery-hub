@@ -427,7 +427,7 @@ returns http:Response {
         apiUserId, userId, orgName));
         json | error res = db:searchUserOrganizations(userId, apiUserId, orgName, offset, resultLimit);
         if (res is json) {
-            log:printDebug(io:sprintf("Received json payload for userId %s and org name \'%s\'", userId, orgName));
+            log:printDebug(io:sprintf("Received json payload for userId %s and org name \'%s\' : %s", userId, orgName, res));
             return buildSuccessResponse(jsonResponse = res);
         } else {
             log:printError("Unable to perform search on user\'s organizations", err = res);
