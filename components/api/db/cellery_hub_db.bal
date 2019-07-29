@@ -113,20 +113,20 @@ public function getPublicImage(string orgName, string imageName) returns table<g
 }
 
 public function getArtifactsOfUserImage(string orgName, string imageName, string userId, string artifactVersion, int offset, int resultLimit)
-returns table<gen:ArtifactListResponse> | error {
+returns table<gen:ArtifactList> | error {
     log:printDebug(io:sprintf("Performing artifact retrival from DB for org: %s, image: %s , version: %s for user: %s", orgName,
     imageName, artifactVersion, userId));
-    table<gen:ArtifactListResponse> res = check connection->select(GET_ARTIFACTS_OF_IMAGE_FOR_USER, gen:ArtifactListResponse,
+    table<gen:ArtifactList> res = check connection->select(GET_ARTIFACTS_OF_IMAGE_FOR_USER, gen:ArtifactList,
     orgName, imageName, artifactVersion, userId, orgName, imageName, artifactVersion,
-    resultLimit, offset,loadToMemory = true);
+    resultLimit, offset, loadToMemory = true);
     return res;
 }
 
 public function getArtifactsOfPublicImage(string orgName, string imageName, string artifactVersion, int offset, int resultLimit)
-returns table<gen:ArtifactListResponse> | error {
+returns table<gen:ArtifactList> | error {
     log:printDebug(io:sprintf("Performing artifact retrival from DB for org: %s, image: %s , version: %s for", orgName,
     imageName, artifactVersion));
-    table<gen:ArtifactListResponse> res = check connection->select(GET_ARTIFACTS_OF_PUBLIC_IMAGE, gen:ArtifactListResponse, orgName, imageName,
+    table<gen:ArtifactList> res = check connection->select(GET_ARTIFACTS_OF_PUBLIC_IMAGE, gen:ArtifactList, orgName, imageName,
     artifactVersion, resultLimit, offset, loadToMemory = true);
     return res;
 }
@@ -319,7 +319,7 @@ returns json | error {
         int counter = 0;
         foreach var item in resData {
             gen:OrgImagesListAtom orgImagesListRecord = gen:OrgImagesListAtom.convert(item);
-            orgImagesListResponse.data[counter] = buildOrgImagesResponse(orgImagesListRecord, counter+1);
+            orgImagesListResponse.data[counter] = buildOrgImagesResponse(orgImagesListRecord, counter + 1);
             counter += 1;
         }
         resData.close();
@@ -496,6 +496,13 @@ returns json | error {
     return check json.convert(imagesListResponse);
 }
 
+public function getArtifactListLength(string imageId, string artifactVersion) returns int | error {
+    log:printDebug(io:sprintf("Retriving artifact count for image ID : %s and image version %s", imageId, artifactVersion));
+    table<gen:Count> res = check connection->select(GET_ARTIFACT_COUNT, gen:Count, imageId, artifactVersion, loadToMemory = true);
+    int length = check getTotalRecordsCount(res);
+    return length;
+}
+
 function buildJsonPayloadForGetArtifact(table< record {}> res, string orgName, string imageName, string artifactVersion) returns json | error {
     if (res.count() == 1) {
         json resPayload = {};
@@ -565,7 +572,7 @@ function buildListOrgsResponse(gen:OrgListAtom orgListRecord, map<any> imageCoun
     return orgListResponseAtom;
 }
 
-function buildOrgImagesResponse(gen:OrgImagesListAtom orgImagesListRecord, int index) returns gen:OrgImagesListResponseAtom{
+function buildOrgImagesResponse(gen:OrgImagesListAtom orgImagesListRecord, int index) returns gen:OrgImagesListResponseAtom {
     log:printDebug(io:sprintf("Building response record for orgImagesListRecord %d", index));
     gen:OrgImagesListResponseAtom orgImagesListResponseAtom = {
         imageName: orgImagesListRecord.imageName,

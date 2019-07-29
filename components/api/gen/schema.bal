@@ -50,10 +50,20 @@ public type Count record {
     int count;
 };
 
+public type ArtifactList record {
+    string artifactImageId;
+    string artifactId;
+    byte[] description;
+    int pullCount;
+    string lastAuthor;
+    string updatedTimestamp;
+    string artifactVersion;
+};
+
 public type ArtifactListResponse record {
     string artifactImageId;
     string artifactId;
-    string summary;
+    string description;
     int pullCount;
     string lastAuthor;
     string updatedTimestamp;

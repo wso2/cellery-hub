@@ -260,27 +260,28 @@ public function getImageByImageName(http:Request getImageRequest, string orgName
 # + return - Return Value Description
 public function getArtifactsOfImage(http:Request getImageRequest, string orgName, string imageName, string artifactVersion,
 int offset, int resultLimit) returns http:Response {
+    log:printDebug(io:sprintf("Listing artifacts for organization \'%s\' imageName : \'%s\', version: \'%s\', offset: %d, limit: %d",
+    orgName, imageName, artifactVersion, offset, resultLimit));
 
-    log:printDebug("Listing artifacts for organization \'" + orgName + "\' imageName : " + imageName + ", version: " + artifactVersion
-    + ", offset: " + offset + ", limit: " + resultLimit);
-
-    table<gen:ArtifactListResponse> | error artifactListResults;
+    table<gen:ArtifactList> | error artifactListResults;
 
     if (getImageRequest.hasHeader(constants:AUTHENTICATED_USER)) {
         string userId = getImageRequest.getHeader(constants:AUTHENTICATED_USER);
-        log:printDebug("List artifacts of image request with authenticated User : " + userId);
+        log:printDebug(io:sprintf("List artifacts of image request with authenticated User  : %s", userId));
         artifactListResults = db:getArtifactsOfUserImage(orgName, imageName, userId, artifactVersion, offset, resultLimit);
     } else {
         log:printDebug("List artifacts of image request without an authenticated user");
         artifactListResults = db:getArtifactsOfPublicImage(orgName, imageName, artifactVersion, offset, resultLimit);
     }
 
-    if (artifactListResults is table<gen:ArtifactListResponse>) {
-        log:printDebug("Number of results found for list image ======== : " + artifactListResults.count());
+    if (artifactListResults is table<gen:ArtifactList>) {
+        log:printDebug(io:sprintf("Number of results found for list image : %d", artifactListResults.count()));
         gen:ArtifactListResponse[] responseArray = [];
         int counter = 0;
+        int listLength = 0;
+        string artifactImageId = "";
         gen:ArtifactListArrayResponse response = {
-            count: 0,
+            count: counter,
             data: responseArray
         };
 
@@ -288,28 +289,49 @@ int offset, int resultLimit) returns http:Response {
             log:printError("No image found with given image name and organization");
         } else {
             log:printError(io:sprintf("Found %d result(s) for artifact list", artifactListResults.count()));
-            string artifactImageId = "";
-            while (artifactListResults.hasNext()) {
-                gen:ArtifactListResponse result = <gen:ArtifactListResponse> artifactListResults.getNext();
-                responseArray[counter] = result;
+
+            foreach var item in artifactListResults {
+                gen:ArtifactList result = gen:ArtifactList.convert(item);
+                if (artifactImageId == "") {
+                    artifactImageId = result.artifactImageId;
+                }
+                response.data[counter] = {
+                    artifactImageId:result.artifactImageId,
+                    artifactId: result.artifactId,
+                    description: encoding:byteArrayToString(result.description),
+                    pullCount:result.pullCount,
+                    lastAuthor:result.lastAuthor,
+                    updatedTimestamp:result.updatedTimestamp,
+                    artifactVersion:result.artifactVersion
+                };
                 counter += 1;
             }
         }
 
-        response.count = artifactListResults.count();
-        response.data = responseArray;
+        if counter > 0 {
+            int | error countResult = db:getArtifactListLength(artifactImageId, artifactVersion);
+            if (countResult is int) {
+                listLength = countResult;
+            } else {
+                log:printError("Error while counting number of artifacts for image " + imageName, err = countResult);
+                return buildUnknownErrorResponse();
+            }
+
+        }
+
+        response.count = listLength;
         artifactListResults.close();
         json | error resPayload =  json.convert(response);
         if (resPayload is json) {
-            log:printInfo(resPayload.toString());
+            log:printDebug(io:sprintf("Response payload for list image artifacts request : %s", resPayload.toString()));
             return buildSuccessResponse(jsonResponse = resPayload);
         } else {
-            log:printError("Error while converting payload to json" + imageName, err = resPayload);
+            log:printError("Error occured while converting list image artifacts payload to json" + imageName, err = resPayload);
             return buildUnknownErrorResponse();
         }
 
     } else {
-        log:printError("Error while retriving image" + imageName, err = artifactListResults);
+        log:printError("Error occured while retriving image for list image artifacts request" + imageName, err = artifactListResults);
         return buildUnknownErrorResponse();
     }
 }
