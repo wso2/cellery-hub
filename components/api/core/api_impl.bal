@@ -68,17 +68,14 @@ public function getTokens(http:Request getTokensReq) returns http:Response {
 public function listOrgs(http:Request listOrgsReq, string orgName, int offset, int resultLimit) returns http:Response {
     log:printDebug(io:sprintf("Listing organizations for orgName : %s with offset : %d, limit : %d, ", orgName, offset, resultLimit));
     json | error orgsRes;
-    string userId = "";
-    boolean isAuthenticatedUser = false;
     if (listOrgsReq.hasHeader(constants:AUTHENTICATED_USER)) {
-        userId = listOrgsReq.getHeader(constants:AUTHENTICATED_USER);
+        string userId = listOrgsReq.getHeader(constants:AUTHENTICATED_USER);
         log:printDebug(io:sprintf("list organizations request with an authenticated User : %s", userId));
-        isAuthenticatedUser = true;
+        orgsRes = db:searchOrganizationsWithAuthenticatedUser(orgName, userId, offset, resultLimit);
     } else {
         log:printDebug("list organizations request with an unauthenticated User");
+        orgsRes = db:searchOrganizationsWithoutAuthenticatedUser(orgName, offset, resultLimit);
     }
-
-    orgsRes = db:searchOrganizations(orgName, userId, offset, resultLimit, isAuthenticatedUser);
     if (orgsRes is json) {
         log:printDebug(io:sprintf("Received json payload for org name \'%s\' : %s", orgName, orgsRes));
         return buildSuccessResponse(jsonResponse = orgsRes);

@@ -193,30 +193,21 @@ returns table<gen:Count> | error {
     return res;
 }
 
-public function searchOrganizations(string orgName, string userId, int offset, int resultLimit, boolean isAuthenticatedUser) returns json | error {
+public function searchOrganizationsWithAuthenticatedUser(string orgName, string userId, int offset, int resultLimit) returns json | error {
     log:printDebug(io:sprintf("Performing data retreival on REGISTRY_ORGANIZATION table, Org name : \'%s\', offset : %d, resultLimit : %d",
     orgName, offset, resultLimit));
     table<record {}> resTotal = check connection->select(SEARCH_ORGS_TOTAL_COUNT, gen:Count, orgName);
-    json resTotalJson = check json.convert(resTotal);
-    int totalOrgs = check int.convert(resTotalJson[0]["count"]);
-    resTotal.close();
+    int totalOrgs = check getTotalRecordsCount(resTotal);
     gen:OrgListResponse orgListResponse = {
         count: totalOrgs,
         data: []
     };
     if (totalOrgs > 0) {
-        log:printDebug(io:sprintf("%d organization(s) found with the name \'%s\'", totalOrgs, orgName));
+        log:printDebug(io:sprintf("%d organization(s) found with the org name \'%s\'", totalOrgs, orgName));
         map<any> imageCountMap = {};
-        table<gen:OrgListResponseImageCount> resImgCount;
-        if isAuthenticatedUser {
-            log:printDebug(io:sprintf("Retreiving image count for organization(s) \'%s\' with an authenticated user \'%s\'", orgName, userId));
-            resImgCount = check connection->select(SEARCH_ORGS_QUERY_IMAGE_COUNT_FOR_AUTHENTICATED_USER,
-            gen:OrgListResponseImageCount, orgName, userId, resultLimit, offset);
-        } else {
-            log:printDebug(io:sprintf("Retreiving image count for organization(s) \'%s\' with an unauthenticated user", orgName));
-            resImgCount = check connection->select(SEARCH_ORGS_QUERY_IMAGE_COUNT_FOR_UNAUTHENTICATED_USER,
-            gen:OrgListResponseImageCount, orgName, resultLimit, offset);
-        }
+        log:printDebug(io:sprintf("Retreiving image count for organization(s) \'%s\' with an authenticated user \'%s\'", orgName, userId));
+        table<gen:OrgListResponseImageCount> resImgCount = check connection->select(SEARCH_ORGS_QUERY_IMAGE_COUNT_FOR_AUTHENTICATED_USER,
+        gen:OrgListResponseImageCount, orgName, userId, resultLimit, offset);
         foreach var orgImageCount in resImgCount {
             imageCountMap[orgImageCount.orgName] = orgImageCount.imageCount;
         }
@@ -226,14 +217,43 @@ public function searchOrganizations(string orgName, string userId, int offset, i
         resultLimit, offset);
         int counter = 0;
         foreach var item in resData {
-            gen:OrgListAtom orgListResponseRecord = gen:OrgListAtom.convert(item);
-            orgListResponse.data[counter] = {
-                orgName: orgListResponseRecord.orgName,
-                summary: orgListResponseRecord.summary,
-                description: encoding:byteArrayToString(orgListResponseRecord.description),
-                membersCount: orgListResponseRecord.membersCount,
-                imageCount: <int>imageCountMap[orgListResponseRecord.orgName]
-            };
+            gen:OrgListAtom orgListRecord = gen:OrgListAtom.convert(item);
+            orgListResponse.data[counter] = buildListOrgsResponse(orgListRecord, imageCountMap, counter+1);
+            counter += 1;
+        }
+        resData.close();
+    } else {
+        log:printDebug(io:sprintf("No organization found with the name \'%s\'", orgName));
+    }
+    return check json.convert(orgListResponse);
+}
+
+public function searchOrganizationsWithoutAuthenticatedUser(string orgName, int offset, int resultLimit) returns json | error {
+    log:printDebug(io:sprintf("Performing data retreival on REGISTRY_ORGANIZATION table, Org name : \'%s\', offset : %d, resultLimit : %d",
+    orgName, offset, resultLimit));
+    table<record {}> resTotal = check connection->select(SEARCH_ORGS_TOTAL_COUNT, gen:Count, orgName);
+    int totalOrgs = check getTotalRecordsCount(resTotal);
+    gen:OrgListResponse orgListResponse = {
+        count: totalOrgs,
+        data: []
+    };
+    if (totalOrgs > 0) {
+        log:printDebug(io:sprintf("%d organization(s) found with the name \'%s\'", totalOrgs, orgName));
+        map<any> imageCountMap = {};
+        log:printDebug(io:sprintf("Retreiving image count for organization(s) \'%s\' with an unauthenticated user", orgName));
+        table<gen:OrgListResponseImageCount> resImgCount = check connection->select(SEARCH_ORGS_QUERY_IMAGE_COUNT_FOR_UNAUTHENTICATED_USER,
+        gen:OrgListResponseImageCount, orgName, resultLimit, offset);
+        foreach var orgImageCount in resImgCount {
+            imageCountMap[orgImageCount.orgName] = orgImageCount.imageCount;
+        }
+        resImgCount.close();
+        log:printDebug(io:sprintf("Retreiving summary, description and members count for organization(s) \'%s\'", orgName));
+        table<gen:OrgListAtom> resData = check connection->select(SEARCH_ORGS_QUERY, gen:OrgListAtom, orgName,
+        resultLimit, offset);
+        int counter = 0;
+        foreach var item in resData {
+            gen:OrgListAtom orgListRecord = gen:OrgListAtom.convert(item);
+            orgListResponse.data[counter] = buildListOrgsResponse(orgListRecord, imageCountMap, counter+1);
             counter += 1;
         }
         resData.close();
@@ -270,7 +290,7 @@ returns json | error {
             if (imageCountMap[orgListRecord.orgName] is ()) {
                 imageCountMap[orgListRecord.orgName] = 0;
             }
-            orgListResponse.data[counter] = buildListOrgsResponse(orgListRecord, imageCountMap, counter);
+            orgListResponse.data[counter] = buildListOrgsResponse(orgListRecord, imageCountMap, counter+1);
             counter += 1;
         }
         resData.close();
@@ -357,7 +377,7 @@ returns json | error {
         int counter = 0;
         foreach var item in resData {
             gen:ImagesListAtom imagesListRecord = gen:ImagesListAtom.convert(item);
-            imagesListResponse.data[counter] = buildListImagesResponse(imagesListRecord, counter);
+            imagesListResponse.data[counter] = buildListImagesResponse(imagesListRecord, counter+1);
             counter += 1;
         }
         resData.close();
@@ -385,7 +405,7 @@ returns json | error {
         int counter = 0;
         foreach var item in resData {
             gen:ImagesListAtom imagesListRecord = gen:ImagesListAtom.convert(item);
-            imagesListResponse.data[counter] = buildListImagesResponse(imagesListRecord, counter);
+            imagesListResponse.data[counter] = buildListImagesResponse(imagesListRecord, counter+1);
             counter += 1;
         }
         resData.close();
