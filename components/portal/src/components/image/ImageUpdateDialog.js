@@ -55,51 +55,51 @@ class ImageUpdateDialog extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            imgSummary: props.summary,
-            imageDescription: props.description,
-            imageKeywords: props.keywords
+            summary: props.summary,
+            description: props.description,
+            keywords: props.keywords
         };
     }
 
     handleSummaryInputChange = (event) => {
         this.setState({
-            imgSummary: event.currentTarget.value
+            summary: event.currentTarget.value
         });
     };
 
     handleDescriptionInputChange = (event) => {
         this.setState({
-            imageDescription: event.currentTarget.value
+            description: event.currentTarget.value
         });
     };
 
     handleAddKeywords = (chip) => {
-        const {imageKeywords} = this.state;
+        const {keywords} = this.state;
         this.setState({
-            imageKeywords: [...imageKeywords, chip]
+            keywords: [...keywords, chip]
         });
     };
 
     handleDeleteKeywords = (deletedChip) => {
-        const {imageKeywords} = this.state;
+        const {keywords} = this.state;
         this.setState({
-            imageKeywords: imageKeywords.filter((c) => c !== deletedChip)
+            keywords: keywords.filter((c) => c !== deletedChip)
         });
     };
 
     handleUpdateImage = () => {
         const self = this;
         const {globalState, image} = self.props;
-        const {imgSummary, imageDescription, imageKeywords} = self.state;
+        const {summary, description, keywords} = self.state;
         NotificationUtils.showLoadingOverlay(`Updating image ${image}`, globalState);
         HttpUtils.callHubAPI(
             {
                 url: `/images/${image}`,
                 method: "PUT",
                 data: {
-                    summary: imgSummary,
-                    description: imageDescription,
-                    keywords: imageKeywords
+                    summary: summary,
+                    description: description,
+                    keywords: keywords
                 }
             },
             globalState
@@ -124,21 +124,22 @@ class ImageUpdateDialog extends React.Component {
 
     handleClose = () => {
         const {onClose} = this.props;
-        this.setState({
-            imgSummary: "",
-            imageDescription: "",
-            imageKeywords: []
+        const {summary, description, keywords} = this.state;
+        onClose({
+            summary: summary,
+            description: description,
+            keywords: keywords
         });
-        onClose();
     };
 
     render() {
         const {classes, open, image} = this.props;
-        const {imgSummary, imageDescription, imageKeywords} = this.state;
+        const {summary, description, keywords} = this.state;
 
         return (
             <div>
-                <Dialog open={open} onClose={this.handleClose} aria-labelledby={"form-dialog-title"} fullWidth>
+                <Dialog open={open} onClose={this.handleClose} aria-labelledby={"form-dialog-title"} fullWidth
+                >
                     <DialogTitle id={"form-dialog-title"}>Update Image Details</DialogTitle>
                     <DialogContent>
                         <FormControl fullWidth className={classes.formControl}>
@@ -147,18 +148,18 @@ class ImageUpdateDialog extends React.Component {
                         </FormControl>
                         <FormControl fullWidth className={classes.formControl}>
                             <InputLabel htmlFor={"summary"}>Summary</InputLabel>
-                            <Input id={"summary"} value={imgSummary} type={"text"} autoFocus multiline={true}
-                                inputProps={{maxLength: 60}} onChange={this.handleSummaryInputChange}/>
-                            <FormHelperText>Limited to 60 characters</FormHelperText>
+                            <Input id={"summary"} value={summary} type={"text"} autoFocus multiline={true}
+                                inputProps={{maxLength: 100}} onChange={this.handleSummaryInputChange}/>
+                            <FormHelperText>Limited to 100 characters</FormHelperText>
                         </FormControl>
                         <FormControl fullWidth className={classes.formControl}>
                             <InputLabel htmlFor={"description"}>Description</InputLabel>
-                            <Input id={"description"} value={imageDescription} type={"text"} multiline={true}
+                            <Input id={"description"} value={description} type={"text"} multiline={true}
                                 onChange={this.handleDescriptionInputChange}/>
                             <FormHelperText>Markdown supported</FormHelperText>
                         </FormControl>
                         <FormControl fullWidth className={classes.formControl}>
-                            <ChipInput value={imageKeywords} fullWidth label={"keywords"}
+                            <ChipInput value={keywords} fullWidth label={"keywords"}
                                 onAdd={(chip) => this.handleAddKeywords(chip)}
                                 onDelete={(deletedChip) => this.handleDeleteKeywords(deletedChip)}/>
                             <FormHelperText>Type and press enter to add keywords</FormHelperText>

@@ -313,7 +313,16 @@ class Org extends React.Component {
                                     </Grid>
                                     <OrgUpdateDialog open={isEditDialogOpen} org={orgName}
                                         description={orgData.description} summary={orgData.summary}
-                                        onClose={this.handleEditDialogClose}/>
+                                        onClose={(newData) => {
+                                            this.handleEditDialogClose();
+                                            this.setState((prevState) => ({
+                                                orgData: {
+                                                    ...prevState.orgData,
+                                                    summary: newData.summary,
+                                                    description: newData.description
+                                                }
+                                            }));
+                                        }}/>
                                     <OrgDeleteDialog open={isDeleteDialogOpen} org={orgName}
                                         onClose={this.handleDeleteDialogClose}/>
                                 </div>
