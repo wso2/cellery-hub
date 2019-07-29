@@ -165,7 +165,7 @@ public function getOrg(http:Request getOrgReq, string orgName) returns http:Resp
             }
         } else {
             string errDes = io:sprintf("There is no organization named \'%s\'", orgName);
-            log:printError(io:sprintf("Unable to fetch organization. %s", errDes));
+            log:printError(io:sprintf("Unable to fetch organization. \'%s\'", errDes));
             return buildErrorResponse(http:NOT_FOUND_404, constants:API_ERROR_CODE, "Unable to fetch organization", errDes);
         }
     } else {

@@ -35,24 +35,27 @@ type RegistryArtifactImage record {|
 public function getOrganization(string orgName, string userId) returns json | error {
     log:printDebug(io:sprintf("Performing data retreival on REGISTRY_ORGANIZATION table by user \'%s\', Org name : \'%s\': ",
     userId, orgName));
-    table<record {}> res = check connection->select(GET_ORG_QUERY, gen:OrgResponse, orgName, userId, orgName, loadToMemory = true);
-    if (res.count() == 1) {
-        log:printDebug(io:sprintf("Building the response payload for getOrganization. user : %s, orgName : %s", userId, orgName));
-        json resPayload = {};
-        gen:OrgResponse orgRes = check gen:OrgResponse.convert(res.getNext());
-        resPayload["description"] = encoding:byteArrayToString(orgRes.description);
-        resPayload["summary"] = orgRes.summary;
-        resPayload["websiteUrl"] = orgRes.websiteUrl;
-        resPayload["author"] = orgRes.firstAuthor;
-        resPayload["createdTimestamp"] = orgRes.createdTimestamp;
-        resPayload["userRole"] = orgRes.userRole;
-        res.close();
-        return resPayload;
+    table<record {}> res = check connection->select(GET_ORG_QUERY, gen:OrgResponse, orgName, userId, orgName);
+    int counter = 0;
+    gen:OrgResponse orgRes;
+    foreach var item in res {
+        orgRes = check gen:OrgResponse.convert(item);
+        counter += 1;
+    }   
+    json resPayload = null;  
+    if counter == 1 {
+        log:printDebug(io:sprintf("Building the response payload for getOrganization. user : %s, orgName : %s", userId, orgName));               
+        resPayload.description = encoding:byteArrayToString(orgRes.description);
+        resPayload.summary = orgRes.summary;
+        resPayload.websiteUrl = orgRes.websiteUrl;
+        resPayload.author = orgRes.firstAuthor;
+        resPayload.createdTimestamp = orgRes.createdTimestamp;
+        resPayload.userRole = orgRes.userRole;
     } else {
-        log:printDebug(io:sprintf("The requested organization \'%s\' was not found in REGISTRY_ORGANIZATION", orgName));
-        res.close();
-        return null;
+        log:printDebug(io:sprintf("Failed to retrieve organization data for org name \'%s\'", orgName));        
     }
+    res.close();
+    return resPayload;
 }
 
 public function getOrganizationAvailability(string orgName) returns boolean | error {
