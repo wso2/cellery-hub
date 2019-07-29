@@ -38,7 +38,7 @@ public type OrgResponse record {
 };
 
 public type ArtifactResponse record {
-    string summary;
+    byte[] description;
     int pullCount;
     string lastAuthor;
     string updatedTimestamp;

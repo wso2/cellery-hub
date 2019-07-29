@@ -510,11 +510,11 @@ function buildJsonPayloadForGetArtifact(table< record {}> res, string orgName, s
         string metadataString = encoding:byteArrayToString(artRes.metadata);
         io:StringReader sr = new(metadataString, encoding = "UTF-8");
         json metadataJson = check sr.readJson();
-        resPayload["summary"] = artRes.summary;
-        resPayload["pullCount"] = artRes.pullCount;
-        resPayload["lastAuthor"] = artRes.lastAuthor;
-        resPayload["updatedTimestamp"] = artRes.updatedTimestamp;
-        resPayload["metadata"] = metadataJson;
+        resPayload.description = encoding:byteArrayToString(artRes.description);
+        resPayload.pullCount = artRes.pullCount;
+        resPayload.lastAuthor = artRes.lastAuthor;
+        resPayload.updatedTimestamp = artRes.updatedTimestamp;
+        resPayload.metadata = metadataJson;
         return resPayload;
     } else if (res.count() == 0) {
         log:printDebug(io:sprintf("The requested artifact \'%s/%s:%s\' was not found in REGISTRY_ORGANIZATION",
