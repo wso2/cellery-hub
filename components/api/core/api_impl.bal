@@ -25,6 +25,7 @@ import cellery_hub_api/constants;
 import cellery_hub_api/db;
 import cellery_hub_api/idp;
 import ballerina/sql;
+import ballerina/encoding;
 
 # Get Auth Tokens.
 #
@@ -140,21 +141,31 @@ public function createOrg(http:Request createOrgReq, gen:OrgCreateRequest create
 }
 
 public function getOrg(http:Request getOrgReq, string orgName) returns http:Response {
-    json | error res = db:getOrganization(orgName);
+    string userId = "";
+    if (getOrgReq.hasHeader(constants:AUTHENTICATED_USER)) {
+        userId = getOrgReq.getHeader(constants:AUTHENTICATED_USER);
+        log:printDebug(io:sprintf("Fetching data of organization \'%s\' by authenticated user %s", orgName, userId));
+    } else {
+        log:printDebug(io:sprintf("Fetching data of organization \'%s\' by unauthenticated user", orgName));
+    }
+
+    json | error res = db:getOrganization(orgName, userId);
     if (res is json) {
         if (res != null) {
-            log:printDebug(io:sprintf("Successfully fetched organization \'%s\'", orgName));
+            log:printDebug(io:sprintf("Successfully fetched organization \'%s\' for user \'%s\'", orgName, userId));
             error? err = updatePayloadWithUserInfo(untaint res, "firstAuthor");
             if (err is error) {
-                log:printError("Error occured while adding userInfo to getOrg response", err = err);
+                log:printError(io:sprintf("Error occured while adding authorInfo to getOrg response for organization \'%s\'", orgName),
+                err = err);
                 return buildUnknownErrorResponse();
             } else {
-                log:printDebug("Successfully modified getOrg response with user info");
+                log:printDebug(io:sprintf("Completed the modification of getOrg response for organization \'%s\' with author info",
+                orgName));
                 return buildSuccessResponse(jsonResponse = res);
             }
         } else {
             string errDes = io:sprintf("There is no organization named \'%s\'", orgName);
-            log:printError("Unable to fetch organization" + " : " + errDes);
+            log:printError(io:sprintf("Unable to fetch organization. \'%s\'", errDes));
             return buildErrorResponse(http:NOT_FOUND_404, constants:API_ERROR_CODE, "Unable to fetch organization", errDes);
         }
     } else {
@@ -168,7 +179,7 @@ public function getImageByImageName(http:Request getImageRequest, string orgName
     table<gen:Image> | error imageResults;
     if (getImageRequest.hasHeader(constants:AUTHENTICATED_USER)) {
         string userId = getImageRequest.getHeader(constants:AUTHENTICATED_USER);
-        log:printDebug("get Image request with authenticated User : " + userId);
+        log:printDebug(io:sprintf("get Image request with authenticated User : %s", userId));
         imageResults = db:getUserImage(orgName, imageName, userId);
     } else {
         log:printDebug("get Image request without an authenticated user");
@@ -194,7 +205,6 @@ public function getImageByImageName(http:Request getImageRequest, string orgName
                 log:printDebug("Recieved results for keywords for image size: " + keywordsResult.count());
                 int keyWorkdsCount = 0;
                 while (keywordsResult.hasNext()) {
-                    io:println(keyWorkdsCount);
                     gen:StringRecord keyword = <gen:StringRecord>keywordsResult.getNext();
                     keywords[keyWorkdsCount] = keyword.value;
                     keyWorkdsCount += 1;
@@ -208,6 +218,7 @@ public function getImageByImageName(http:Request getImageRequest, string orgName
                 orgName: image.orgName,
                 imageName: image.imageName,
                 summary: image.summary,
+                description: encoding:byteArrayToString(image.description),
                 firstAuthor: image.firstAuthor,
                 visibility: image.visibility,
                 pushCount: image.pushCount,
@@ -377,7 +388,7 @@ returns http:Response {
             }
             gen:UserListResponse userInfoListResponse = {
                 count: userCount,
-                users: users
+                data: users
             };
             json | error resPayload =  json.convert(userInfoListResponse);
             if (resPayload is json) {
@@ -416,7 +427,7 @@ returns http:Response {
         apiUserId, userId, orgName));
         json | error res = db:searchUserOrganizations(userId, apiUserId, orgName, offset, resultLimit);
         if (res is json) {
-            log:printDebug(io:sprintf("Received json payload for userId %s and org name \'%s\'", userId, orgName));
+            log:printDebug(io:sprintf("Received json payload for userId %s and org name \'%s\' : %s", userId, orgName, res));
             return buildSuccessResponse(jsonResponse = res);
         } else {
             log:printError("Unable to perform search on user\'s organizations", err = res);
@@ -474,21 +485,21 @@ public function listImages(http:Request listImagesReq, string orgName, string im
 returns http:Response {
     log:printDebug(io:sprintf("Listing images for orgName : %s, imageName : %s, orderBy : %s, offset : %d, limit : %d, ", orgName,
     imageName, orderBy, offset, resultLimit));
-    json | error orgImagesListResult;
+    json | error imagesListResult;
     if (listImagesReq.hasHeader(constants:AUTHENTICATED_USER)) {
         string userId = listImagesReq.getHeader(constants:AUTHENTICATED_USER);
         log:printDebug(io:sprintf("List images request with an authenticated user : %s", userId));
-        orgImagesListResult = db:getUserImages(userId, orgName, imageName, orderBy, offset, resultLimit);
+        imagesListResult = db:getUserImages(orgName, userId, imageName, orderBy, offset, resultLimit);
     } else {
         log:printDebug("List images request with an unauthenticated user");
-        orgImagesListResult = db:getPublicImages(orgName, imageName, orderBy, offset, resultLimit);
+        imagesListResult = db:getPublicImages(orgName, imageName, orderBy, offset, resultLimit);
     }
-    if (orgImagesListResult is json) {
-        return buildSuccessResponse(jsonResponse = orgImagesListResult);
-    }
-    else {
+    if (imagesListResult is json) {
+        log:printDebug(io:sprintf("Received images json payload for org name \'%s\' and image name \'%s\' : %s", orgName, imageName, imagesListResult));
+        return buildSuccessResponse(jsonResponse = imagesListResult);
+    } else {
         log:printError(io:sprintf("Error occured while retrieving images with name \'%s\' for organization \'%s\'", imageName, orgName),
-        err = orgImagesListResult);
+        err = imagesListResult);
         return buildUnknownErrorResponse();
     }
 }
@@ -574,14 +585,14 @@ gen:ArtifactUpdateRequest updateArtifactBody) returns http:Response {
         log:printDebug(io:sprintf("Entries to be updated in the artifact \'%s/%s:%s\' by user %s, Description : %s", orgName, imageName,
         artifactVersion, userId, updateArtifactBody.description));
 
-        sql:UpdateResult | error? updateOrgRes = db:updateArtifactDescription(updateArtifactBody.description, orgName, imageName,
+        sql:UpdateResult | error? updateArtifactRes = db:updateArtifactDescription(updateArtifactBody.description, orgName, imageName,
         artifactVersion, userId);
-        if (updateOrgRes is sql:UpdateResult) {
-            if (updateOrgRes.updatedRowCount == 1) {
+        if (updateArtifactRes is sql:UpdateResult) {
+            if (updateArtifactRes.updatedRowCount == 1) {
                 log:printDebug(io:sprintf("Description of the artifact \'%s/%s:%s\' is successfully updated. Author : %s", orgName, imageName,
                 artifactVersion, userId));
                 return buildSuccessResponse();
-            } else if (updateOrgRes.updatedRowCount == 0) {
+            } else if (updateArtifactRes.updatedRowCount == 0) {
                 log:printError(io:sprintf("Failed to update artifact \'%s/%s:%s\' for Author %s : No matching records found", orgName, imageName,
                 artifactVersion, userId));
                 return buildErrorResponse(http:NOT_FOUND_404, constants:ENTRY_NOT_FOUND_ERROR_CODE, "Unable to update artifact", "");
@@ -592,7 +603,7 @@ gen:ArtifactUpdateRequest updateArtifactBody) returns http:Response {
             }
         } else {
             log:printError(io:sprintf("Unexpected error occured while updating artifact \'%s/%s:%s\'", orgName, imageName, artifactVersion),
-            err = updateOrgRes);
+            err = updateArtifactRes);
             return buildUnknownErrorResponse();
         }
     } else {

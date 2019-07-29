@@ -29,10 +29,12 @@ public type OrgCreateRequest record {
 };
 
 public type OrgResponse record {
-    string description;
+    byte[] description;
+    string summary;
     string websiteUrl;
     string firstAuthor;
     string createdTimestamp;
+    string userRole;
 };
 
 public type ArtifactResponse record {
@@ -68,6 +70,7 @@ public type Image record {
     string orgName;
     string imageName;
     string summary;
+    byte[] description;
     string firstAuthor;
     string visibility;
     decimal pushCount;
@@ -79,6 +82,7 @@ public type ImageResponse record {
     string orgName;
     string imageName;
     string summary;
+    string description;
     string firstAuthor;
     string visibility;
     decimal pushCount;
@@ -95,10 +99,19 @@ public type OrgListResponse record {
     OrgListResponseAtom[] data;
 };
 
+public type OrgListAtom record {
+    string orgName;
+    string summary;
+    byte[] description;
+    int membersCount;
+};
+
 public type OrgListResponseAtom record {
     string orgName;
+    string summary;
     string description;
     int membersCount;
+    int imageCount;
 };
 
 public type OrgListResponseImageCount record {
@@ -128,7 +141,7 @@ public type UserResponse record {
 
 public type UserListResponse record {
     int count;
-    UserResponse[] users;
+    UserResponse[] data;
 };
 
 public type ImagesListResponse record {
@@ -141,10 +154,21 @@ public type OrgImagesListResponse record {
     OrgImagesListResponseAtom[] data;
 };
 
+public type ImagesListAtom record {
+    string orgName;
+    string imageName;
+    string summary;
+    byte[] description;
+    decimal pullCount;
+    string updatedTimestamp;
+    string visibility;
+};
+
 public type ImagesListResponseAtom record {
     string orgName;
     string imageName;
     string summary;
+    string description;
     decimal pullCount;
     string updatedTimestamp;
     string visibility;
@@ -169,6 +193,6 @@ public type OrgUpdateRequest record {
     string summary;
 };
 
-public type ArtifactUpdateRequest record { 
+public type ArtifactUpdateRequest record {
     string description;
 };
