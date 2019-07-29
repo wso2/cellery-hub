@@ -51,8 +51,13 @@ public function getOrganization(string orgName, string userId) returns json | er
         resPayload.author = orgRes.firstAuthor;
         resPayload.createdTimestamp = orgRes.createdTimestamp;
         resPayload.userRole = orgRes.userRole;
+    } else if (counter == 0) {
+        log:printDebug(io:sprintf("Failed to retrieve organization data. No organization found with the org name \'%s\'", orgName));        
     } else {
-        log:printDebug(io:sprintf("Failed to retrieve organization data for org name \'%s\'", orgName));        
+        string errMsg = io:sprintf("Error in retrieving organization data. More than one record found for org name \'%s\'", orgName);
+        log:printError(errMsg);
+        error er = error(errMsg);
+        return er;
     }
     res.close();
     return resPayload;
