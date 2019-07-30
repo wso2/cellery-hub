@@ -232,7 +232,8 @@ public function getImageByImageName(http:Request getImageRequest, string orgName
                 visibility: image.visibility,
                 pushCount: image.pushCount,
                 pullCount: image.pullCount,
-                keywords: keywords
+                keywords: keywords,
+                userRole: image.userRole
             };
             json | error resPayload =  json.convert(imageResponse);
             if (resPayload is json) {

@@ -24,10 +24,6 @@ import cellery_hub_api/constants;
 import ballerina/io;
 import ballerina/encoding;
 
-type RegistryOrgUserMapping record {|
-    string USER_ROLE;
-|};
-
 type RegistryArtifactImage record {|
     string ARTIFACT_IMAGE_ID;
 |};
@@ -100,7 +96,7 @@ public function getOrganizationCount(string userId) returns int | error {
 }
 public function getUserImage(string orgName, string imageName, string userId) returns table<gen:Image> | error {
     log:printDebug("Retriving image :" + imageName + " in organization : " + orgName + "for user: " + userId);
-    table<gen:Image> res = check connection->select(GET_IMAGE_FOR_USER_FROM_IMAGE_NAME, gen:Image,
+    table<gen:Image> res = check connection->select(GET_IMAGE_FOR_USER_FROM_IMAGE_NAME, gen:Image, orgName, userId,
     orgName, imageName, userId, orgName, imageName, loadToMemory = true);
     return res;
 }
@@ -576,7 +572,8 @@ function buildListImagesResponse(gen:ImagesListAtom imagesListRecord) returns ge
         description: encoding:byteArrayToString(imagesListRecord.description),
         pullCount: imagesListRecord.pullCount,
         updatedTimestamp: imagesListRecord.updatedTimestamp,
-        visibility: imagesListRecord.visibility
+        visibility: imagesListRecord.visibility,
+        userRole: imagesListRecord.userRole
     };
     return imagesListResponseAtom;
 }

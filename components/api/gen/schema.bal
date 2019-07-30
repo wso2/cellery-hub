@@ -87,6 +87,7 @@ public type Image record {
     string visibility;
     decimal pushCount;
     decimal pullCount;
+    string userRole;
 };
 
 public type ImageResponse record {
