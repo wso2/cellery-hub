@@ -283,6 +283,26 @@ paths:
           description: "Internal Server Error"
           schema:
             $ref: "#/definitions/ErrorResponse"
+    delete:
+      operationId: "deleteArtifact"
+      summary: "Delete an existing artifact"
+      produces:
+      - "application/json"
+      parameters:
+      - $ref: "#/parameters/orgNamePathParam"
+      - $ref: "#/parameters/imageNamePathParam"
+      - $ref: "#/parameters/artifactVersionPathParam"
+      responses:
+        200:
+          description: "OK"
+        405:
+          description: "Invalid Input"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+        500:
+          description: "Internal Server Error"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
 
 parameters:
   orgCreateBody:

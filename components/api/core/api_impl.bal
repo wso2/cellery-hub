@@ -820,3 +820,12 @@ int resultLimit) returns http:Response {
         return buildUnknownErrorResponse();
     }
 }
+
+public function deleteArtifact (http:Request deleteArtifactReq, string orgName, string imageName, string artifactVersion) returns http:Response {
+    log:printDebug(io:sprintf("Deleting artifact \'%s/%s:%s\'", orgName, imageName, artifactVersion));
+    http:Response deleteArtifactRes = new;
+    string deleteArtifactPayload = "Sample deleteArtifact Response";
+    deleteArtifactRes.setTextPayload(deleteArtifactPayload);
+
+	return deleteArtifactRes;
+}
