@@ -54,27 +54,27 @@ class VersionUpdateDialog extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            imageVersionDescription: props.description
+            description: props.description
         };
     }
 
     handleDescriptionInputChange = (event) => {
         this.setState({
-            imageVersionDescription: event.currentTarget.value
+            description: event.currentTarget.value
         });
     };
 
     handleUpdateImageVersion = () => {
         const self = this;
         const {globalState, image, version} = self.props;
-        const {imageVersionDescription} = self.state;
+        const {description} = self.state;
         NotificationUtils.showLoadingOverlay(`Updating image version ${image}:${version}`, globalState);
         HttpUtils.callHubAPI(
             {
                 url: `/artifacts/${image}/${version}`,
                 method: "PUT",
                 data: {
-                    description: imageVersionDescription
+                    description: description
                 }
             },
             globalState
@@ -99,15 +99,15 @@ class VersionUpdateDialog extends React.Component {
 
     handleClose = () => {
         const {onClose} = this.props;
-        this.setState({
-            imageVersionDescription: ""
+        const {description} = this.state;
+        onClose({
+            description: description
         });
-        onClose();
     };
 
     render() {
         const {classes, open, image, version} = this.props;
-        const {imageVersionDescription} = this.state;
+        const {description} = this.state;
 
         return (
             <div>
@@ -120,8 +120,8 @@ class VersionUpdateDialog extends React.Component {
                         </FormControl>
                         <FormControl fullWidth className={classes.formControl}>
                             <InputLabel htmlFor={"description"}>Description</InputLabel>
-                            <Input id={"description"} value={imageVersionDescription} type={"text"} multiline={true}
-                                onChange={this.handleDescriptionInputChange}/>
+                            <Input id={"description"} value={description} type={"text"} multiline={true}
+                                onChange={this.handleDescriptionInputChange} autoFocus/>
                             <FormHelperText>Markdown supported</FormHelperText>
                         </FormControl>
                     </DialogContent>

@@ -83,8 +83,11 @@ const styles = (theme) => ({
     },
     summary: {
         display: "block",
-        color: "#464646",
-        paddingBottom: theme.spacing(2)
+        fontSize: 14,
+        marginTop: theme.spacing(3 / 2),
+        marginLeft: theme.spacing(1 / 2),
+        paddingBottom: theme.spacing(2),
+        color: "#333333"
     },
     stats: {
         display: "flex"
@@ -436,8 +439,8 @@ class Image extends React.Component {
                                                         }
                                                     </div>
                                                     <div>
-                                                        <Typography variant={"body1"} color={"inherit"}>
-                                                            {imageData.summary}
+                                                        <Typography variant={"body1"} color={"inherit"}
+                                                            className={classes.summary}>{imageData.summary}
                                                         </Typography>
                                                     </div>
                                                 </Grid>
@@ -525,7 +528,18 @@ class Image extends React.Component {
                                     </Grid>
                                     <ImageUpdateDialog open={isEditDialogOpen} image={`${orgName}/${imageName}`}
                                         summary={imageData.summary} description={imageData.description}
-                                        keywords={imageData.keywords} onClose={this.handleEditDialogClose}/>
+                                        keywords={imageData.keywords} orgName={orgName}
+                                        onClose={(newData) => {
+                                            this.handleEditDialogClose();
+                                            this.setState((prevState) => ({
+                                                imageData: {
+                                                    ...prevState.imageData,
+                                                    summary: newData.summary,
+                                                    description: newData.description,
+                                                    keywords: newData.keywords
+                                                }
+                                            }));
+                                        }}/>
                                     <ImageDeleteDialog open={isDeleteDialogOpen} image={`${orgName}/${imageName}`}
                                         onClose={this.handleDeleteDialogClose}/>
                                 </div>

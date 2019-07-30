@@ -54,35 +54,35 @@ class ImageUpdateDialog extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            orgSummary: props.summary,
-            orgDescription: props.description
+            summary: props.summary,
+            description: props.description
         };
     }
 
     handleSummaryInputChange = (event) => {
         this.setState({
-            orgSummary: event.currentTarget.value
+            summary: event.currentTarget.value
         });
     };
 
     handleDescriptionInputChange = (event) => {
         this.setState({
-            orgDescription: event.currentTarget.value
+            description: event.currentTarget.value
         });
     };
 
     handleUpdateOrg = () => {
         const self = this;
         const {globalState, org} = self.props;
-        const {orgSummary, orgDescription} = self.state;
+        const {summary, description} = self.state;
         NotificationUtils.showLoadingOverlay(`Updating organization ${org}`, globalState);
         HttpUtils.callHubAPI(
             {
                 url: `/orgs/${org}`,
                 method: "PUT",
                 data: {
-                    summary: orgSummary,
-                    description: orgDescription
+                    summary: summary,
+                    description: description
                 }
             },
             globalState
@@ -107,16 +107,16 @@ class ImageUpdateDialog extends React.Component {
 
     handleClose = () => {
         const {onClose} = this.props;
-        this.setState({
-            orgSummary: "",
-            orgDescription: ""
+        const {description, summary} = this.state;
+        onClose({
+            summary: summary,
+            description: description
         });
-        onClose();
     };
 
     render() {
         const {classes, open, org} = this.props;
-        const {orgSummary, orgDescription} = this.state;
+        const {summary, description} = this.state;
 
         return (
             <div>
@@ -129,13 +129,13 @@ class ImageUpdateDialog extends React.Component {
                         </FormControl>
                         <FormControl fullWidth className={classes.formControl}>
                             <InputLabel htmlFor={"summary"}>Summary</InputLabel>
-                            <Input id={"summary"} value={orgSummary} type={"text"} autoFocus multiline={true}
+                            <Input id={"summary"} value={summary} type={"text"} autoFocus multiline={true}
                                 inputProps={{maxLength: 60}} onChange={this.handleSummaryInputChange}/>
                             <FormHelperText>Limited to 60 characters</FormHelperText>
                         </FormControl>
                         <FormControl fullWidth className={classes.formControl}>
                             <InputLabel htmlFor={"description"}>About</InputLabel>
-                            <Input id={"description"} value={orgDescription} type={"text"} multiline={true}
+                            <Input id={"description"} value={description} type={"text"} multiline={true}
                                 onChange={this.handleDescriptionInputChange}/>
                             <FormHelperText>Markdown supported</FormHelperText>
                         </FormControl>
