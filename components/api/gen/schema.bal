@@ -37,7 +37,8 @@ public type OrgResponse record {
     string userRole;
 };
 
-public type ArtifactResponse record {
+// Uses for get a specific artifact
+public type Artifact record {
     byte[] description;
     int pullCount;
     string lastAuthor;
@@ -50,7 +51,8 @@ public type Count record {
     int count;
 };
 
-public type ArtifactList record {
+// Uses for list down artifacts
+public type ArtifactDatum record {
     string artifactImageId;
     string artifactId;
     byte[] description;
@@ -60,7 +62,7 @@ public type ArtifactList record {
     string artifactVersion;
 };
 
-public type ArtifactListResponse record {
+public type ArtifactDatumResponse record {
     string artifactImageId;
     string artifactId;
     string description;
@@ -72,7 +74,7 @@ public type ArtifactListResponse record {
 
 public type ArtifactListArrayResponse record {
     int count;
-    ArtifactListResponse[] data;
+    ArtifactDatumResponse[] data;
 };
 
 public type Image record {
