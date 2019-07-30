@@ -154,8 +154,8 @@ public function getImageKeywords(string imageId) returns table<gen:StringRecord>
 
 public function getUserArtifact(string userId, string orgName, string imageName, string artifactVersion) returns json | error {
     log:printDebug(io:sprintf("Performing data retrieval for articat \'%s/%s:%s\'", orgName, imageName, artifactVersion));
-    table<gen:Artifact> res = check connection->select(GET_ARTIFACT_FOR_USER_FROM_IMG_NAME_N_VERSION, gen:Artifact, orgName, imageName,
-    artifactVersion, userId, orgName, imageName, artifactVersion, loadToMemory = true);
+    table<gen:Artifact> res = check connection->select(GET_ARTIFACT_FOR_USER_FROM_IMG_NAME_N_VERSION, gen:Artifact, orgName,
+    userId, orgName, imageName, artifactVersion, userId, orgName, imageName, artifactVersion, loadToMemory = true);
     if (res.count() == 1) {
         log:printDebug(io:sprintf("Found the artifact \'%s/%s:%s\'", orgName, imageName, artifactVersion));
         return buildJsonPayloadForGetArtifact(res, orgName, imageName, artifactVersion);
@@ -532,7 +532,7 @@ public function getArtifactListLength(string imageId, string artifactVersion) re
     return length;
 }
 
-function buildJsonPayloadForGetArtifact(table< record {}> res, string orgName, string imageName, string artifactVersion) returns json | error {
+function buildJsonPayloadForGetArtifact(table<gen:Artifact> res, string orgName, string imageName, string artifactVersion) returns json | error {
     log:printDebug(io:sprintf("Building json payload for artifact \'%s/%s:%s\'", orgName, imageName, artifactVersion));
     json resPayload = {};
     gen:Artifact artRes = check gen:Artifact.convert(res.getNext());
@@ -544,6 +544,7 @@ function buildJsonPayloadForGetArtifact(table< record {}> res, string orgName, s
     resPayload.lastAuthor = artRes.lastAuthor;
     resPayload.updatedTimestamp = artRes.updatedTimestamp;
     resPayload.metadata = metadataJson;
+    resPayload.userRole = artRes.userRole;
     return resPayload;
 }
 

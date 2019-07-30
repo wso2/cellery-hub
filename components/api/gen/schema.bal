@@ -44,6 +44,7 @@ public type Artifact record {
     string lastAuthor;
     string updatedTimestamp;
     byte[] metadata;
+    string userRole;
 };
 
 
