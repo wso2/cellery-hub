@@ -862,10 +862,47 @@ public function deleteArtifact (http:Request deleteArtifactReq, string orgName, 
 # + imageName - image name of the artifact
 # + return - http resonce (200 if success, 401, 404 or 500 otherwise)
 public function deleteImage (http:Request deleteImageReq, string orgName, string imageName) returns http:Response {
-    // stub code - fill as necessary
-    http:Response deleteImageRes = new;
-    string deleteImagePayload = "Sample deleteImage Response";
-    deleteImageRes.setTextPayload(deleteImagePayload);
-
-	return deleteImageRes;
+    if (deleteImageReq.hasHeader(constants:AUTHENTICATED_USER)) {
+        string userId = deleteImageReq.getHeader(constants:AUTHENTICATED_USER);
+        log:printInfo(io:sprintf("User \'%s\' is attempting to delete the image \'%s/%s\'", userId, orgName, imageName));
+        http:Response resp;
+        transaction {
+            var transactionId = transactions:getCurrentTransactionId();
+            log:printDebug(io:sprintf("Started transaction \'%s\' for deleting the image \'%s/%s\'", transactionId, orgName, imageName));
+            int | error? deletedRowCount = db:deleteImageFromDb(userId, orgName, imageName);
+            if (deletedRowCount is int) {
+                if (deletedRowCount == 1) {
+                    log:printInfo(io:sprintf("Successfully deleted the image \'%s/%s\' by user \'%s\'", orgName, imageName, userId));
+                    resp = buildSuccessResponse();           
+                } else if (deletedRowCount == 0) {
+                    log:printError(io:sprintf("Failed to delete the image \'%s/%s\'. No matching records found", orgName, imageName));
+                    resp = buildErrorResponse(http:NOT_FOUND_404, constants:API_ERROR_CODE, "Unable to delete artifact", "No matching records found");
+                    abort;
+                } else {
+                    log:printError(io:sprintf("Failed to delete the image \'%s/%s\'. More than one matching records found", orgName,
+                    imageName));
+                    resp = buildUnknownErrorResponse();
+                    abort;
+                }
+            } else {
+                log:printError(io:sprintf("Unable to delete the image \'%s/%s\' : %s", orgName, imageName, deletedRowCount));
+                resp = buildUnknownErrorResponse();
+                abort;
+            }
+        } onretry {
+            log:printDebug(io:sprintf("Retrying deleting image \'%s/%s\' for transaction %s", orgName, imageName,
+            transactions:getCurrentTransactionId()));
+        } committed {
+            log:printDebug(io:sprintf("Deleting image \'%s/%s\' successful for transaction %s", orgName, imageName,
+            transactions:getCurrentTransactionId()));
+        } aborted {
+            log:printError(io:sprintf("Deleting image \'%s/%s\' aborted for transaction %s", orgName, imageName,
+            transactions:getCurrentTransactionId()));
+        }
+        return resp;
+    } else {
+        log:printError("Unauthenticated request for delete image: Username is not found");
+        return buildErrorResponse(http:UNAUTHORIZED_401, constants:API_ERROR_CODE, "Unable to delete image",
+        "Unauthenticated request. Auth token is not provided");
+    }
 }

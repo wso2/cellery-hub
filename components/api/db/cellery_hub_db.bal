@@ -529,14 +529,27 @@ returns json | error {
 }
 
 public function deleteArtifactFromDb(string userId, string orgName, string imageName, string artifactVersion) returns int | error? {
-    log:printDebug(io:sprintf("Deleting artifact \'%s/%s:%s\', user : \'%s\'", orgName, imageName, artifactVersion, userId));
+    log:printDebug(io:sprintf("Deleting the artifact \'%s/%s:%s\', user : \'%s\'", orgName, imageName, artifactVersion, userId));
     sql:UpdateResult | error res = connection->update(DELETE_ARTIFACT_QUERY, imageName, userId, orgName, artifactVersion);
     if res is sql:UpdateResult {
-        log:printDebug(io:sprintf("Updated %d rows to delete the artifact \'%s/%s:%s\'", res.updatedRowCount, orgName,
+        log:printDebug(io:sprintf("Updated %d rows to delete the artifact \'%s/%s:%s\', user : %s", res.updatedRowCount, orgName,
         imageName, artifactVersion, userId));
         return res.updatedRowCount;
     } else {
         log:printError(io:sprintf("Error in deleting the artifact \'%s/%s:%s\'", orgName, imageName, artifactVersion));
+        return res;
+    }        
+}
+
+public function deleteImageFromDb(string userId, string orgName, string imageName) returns int | error? {
+    log:printDebug(io:sprintf("Deleting the image \'%s/%s\', user : \'%s\'", orgName, imageName, userId));
+    sql:UpdateResult | error res = connection->update(DELETE_IMAGE_QUERY, imageName, userId, orgName);
+    if res is sql:UpdateResult {
+        log:printDebug(io:sprintf("Updated %d rows in REGISTRY_ARTIFACT_IMAGE table to delete the image \'%s/%s\', user : %s", 
+        res.updatedRowCount, orgName, imageName, userId));
+        return res.updatedRowCount;
+    } else {
+        log:printError(io:sprintf("Error in deleting the image \'%s/%s\'", orgName, imageName));
         return res;
     }        
 }
@@ -568,11 +581,11 @@ function buildJsonPayloadForGetArtifact(table<gen:Artifact> res, string orgName,
 }
 
 function getArtifactImageID(string orgName, string imageName) returns string | error {
-    log:printDebug(io:sprintf("Retrieving Artifact Image Id of image %s/%s", orgName, imageName));
+    log:printDebug(io:sprintf("Retrieving Artifact Image Id of image \'%s/%s\'", orgName, imageName));
     table<record {}> imageIdRes = check connection->select(GET_ARTIFACT_IMAGE_ID, RegistryArtifactImage, imageName, orgName);
     json imageIdRecord = check json.convert(imageIdRes);
     string imageId = check string.convert(imageIdRecord[0]["ARTIFACT_IMAGE_ID"]);
-    log:printDebug(io:sprintf("Artifact Image Id of %s/%s is %s ", orgName, imageName, imageId));
+    log:printDebug(io:sprintf("Artifact Image Id of \'%s/%s\' is %s ", orgName, imageName, imageId));
     return imageId;
 }
 
