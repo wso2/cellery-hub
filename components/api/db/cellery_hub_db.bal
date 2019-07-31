@@ -143,7 +143,7 @@ public function getPublicArtifact(string orgName, string imageName, string artif
         log:printDebug(errMsg);
         error er = error(errMsg);
         return er;
-    }    
+    }
 }
 
 public function getImageKeywords(string imageId) returns table<gen:StringRecord> | error {
@@ -168,7 +168,7 @@ public function getUserArtifact(string userId, string orgName, string imageName,
         log:printDebug(errMsg);
         error er = error(errMsg);
         return er;
-    }   
+    }
 }
 
 public function getMemberOrgsUsers(string userId, string orgName, int offset, int resultLimit)
@@ -573,8 +573,7 @@ function buildListImagesResponse(gen:ImagesListAtom imagesListRecord) returns ge
         description: encoding:byteArrayToString(imagesListRecord.description),
         pullCount: imagesListRecord.pullCount,
         updatedTimestamp: imagesListRecord.updatedTimestamp,
-        visibility: imagesListRecord.visibility,
-        userRole: imagesListRecord.userRole
+        visibility: imagesListRecord.visibility
     };
     return imagesListResponseAtom;
 }
