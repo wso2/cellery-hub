@@ -821,11 +821,39 @@ int resultLimit) returns http:Response {
     }
 }
 
+# Delete an artifact
+#
+# + deleteArtifactReq - received request which contains header
+# + orgName - organization name that the artifact is belong to
+# + imageName - image name of the artifact
+# + artifactVersion - version of the artifact
+# + return - http resonce (200 if success, 401, 404 or 500 otherwise)
 public function deleteArtifact (http:Request deleteArtifactReq, string orgName, string imageName, string artifactVersion) returns http:Response {
-    log:printDebug(io:sprintf("Deleting artifact \'%s/%s:%s\'", orgName, imageName, artifactVersion));
-    http:Response deleteArtifactRes = new;
-    string deleteArtifactPayload = "Sample deleteArtifact Response";
-    deleteArtifactRes.setTextPayload(deleteArtifactPayload);
+    if (deleteArtifactReq.hasHeader(constants:AUTHENTICATED_USER)) {
+        string userId = deleteArtifactReq.getHeader(constants:AUTHENTICATED_USER);
+        log:printInfo(io:sprintf("User \'%s\' is attempting to delete the artifact \'%s/%s:%s\'", userId, orgName, imageName, artifactVersion));
 
-	return deleteArtifactRes;
+        int | error? deletedRowCount = db:deleteArtifactFromDb(userId, orgName, imageName, artifactVersion);
+
+        if (deletedRowCount is int) {
+            if (deletedRowCount == 1) {
+                log:printInfo(io:sprintf("Successfully deleted the artifact \'%s/%s:%s\' by user \'%s\'", orgName, imageName, artifactVersion, userId));
+                return buildSuccessResponse();
+            } else if (deletedRowCount == 0) {
+                log:printDebug(io:sprintf("Failed to delete the artifact \'%s/%s:%s\'. No matching records found", orgName, imageName, artifactVersion));
+                return buildErrorResponse(http:NOT_FOUND_404, constants:API_ERROR_CODE, "Unable to delete artifact", "No matching records found");
+            } else {
+                log:printDebug(io:sprintf("Failed to delete the artifact \'%s/%s:%s\'. More than one matching records found", orgName,
+                imageName, artifactVersion));
+                return buildUnknownErrorResponse();
+            }
+        } else {
+            log:printError(io:sprintf("Unable to delete the artifact \'%s/%s:%s\' : %s", orgName, imageName, artifactVersion, deletedRowCount));
+            return buildUnknownErrorResponse();
+        }
+    } else {
+        log:printError("Unauthenticated request for delete artifact: Username is not found");
+        return buildErrorResponse(http:UNAUTHORIZED_401, constants:API_ERROR_CODE, "Unable to delete artifact",
+        "Unauthenticated request. Auth token is not provided");
+    }
 }

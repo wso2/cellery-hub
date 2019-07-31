@@ -528,6 +528,19 @@ returns json | error {
     return check json.convert(imagesListResponse);
 }
 
+public function deleteArtifactFromDb(string userId, string orgName, string imageName, string artifactVersion) returns int | error? {
+    log:printDebug(io:sprintf("Deleting artifact \'%s/%s:%s\', user : \'%s\'", orgName, imageName, artifactVersion, userId));
+    sql:UpdateResult | error res = connection->update(DELETE_ARTIFACT_QUERY, imageName, userId, orgName, artifactVersion);
+    if res is sql:UpdateResult {
+        log:printDebug(io:sprintf("Updated %d rows to delete the artifact \'%s/%s:%s\'", res.updatedRowCount, orgName,
+        imageName, artifactVersion, userId));
+        return res.updatedRowCount;
+    } else {
+        log:printError(io:sprintf("Error in deleting the artifact \'%s/%s:%s\'", orgName, imageName, artifactVersion));
+        return res;
+    }        
+}
+
 public function getArtifactListLength(string imageId, string artifactVersion) returns int | error {
     log:printDebug(io:sprintf("Retriving artifact count for image ID : %s and image version %s", imageId, artifactVersion));
     table<gen:Count> res = check connection->select(GET_ARTIFACT_COUNT, gen:Count, imageId, artifactVersion, loadToMemory = true);
