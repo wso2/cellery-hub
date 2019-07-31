@@ -16,7 +16,7 @@
 //
 // ------------------------------------------------------------------------
 
-public function buildErrorResponse (int statusCode, int code, string message, string description) returns http:Response {
+public function buildErrorResponse(int statusCode, int code, string message, string description) returns http:Response {
     http:Response res = new;
     gen:ErrorResponse errPassed = {
         code: code,
@@ -30,10 +30,10 @@ public function buildErrorResponse (int statusCode, int code, string message, st
     } else {
         res = buildUnknownErrorResponse();
     }
-    return res; 
+    return res;
 }
 
-function buildUnknownErrorResponse () returns http:Response {
+function buildUnknownErrorResponse() returns http:Response {
     http:Response res = new;
     json errDefault = {
         code: constants:API_ERROR_CODE,
@@ -42,7 +42,7 @@ function buildUnknownErrorResponse () returns http:Response {
     };
     res.setPayload(errDefault);
     res.statusCode = http:INTERNAL_SERVER_ERROR_500;
-    return res; 
+    return res;
 }
 
 function buildSuccessResponse(json jsonResponse = null) returns http:Response {
