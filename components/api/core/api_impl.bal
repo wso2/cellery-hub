@@ -341,7 +341,6 @@ public function getImageByImageName(http:Request getImageRequest, string orgName
             } else {
                 log:printError("Error while retriving image keywords" + imageName, err = resPayload);
             }
-
         }
     } else {
         log:printError("Error while retriving image" + imageName, err = imageResults);
@@ -433,7 +432,6 @@ int offset, int resultLimit) returns http:Response {
             log:printError("Error occured while converting list image artifacts payload to json" + imageName, err = resPayload);
             return buildUnknownErrorResponse();
         }
-
     } else {
         log:printError("Error occured while retriving image for list image artifacts request" + imageName, err = artifactDatumResults);
         return buildUnknownErrorResponse();
@@ -534,7 +532,6 @@ returns http:Response {
                 return buildUnknownErrorResponse();
             }
         } else {
-
             log:printError(io:sprintf("Error occured while retriving users from DB for organization %s : user %s",
             orgName, userId));
             return buildUnknownErrorResponse();
@@ -856,4 +853,19 @@ public function deleteArtifact (http:Request deleteArtifactReq, string orgName, 
         return buildErrorResponse(http:UNAUTHORIZED_401, constants:API_ERROR_CODE, "Unable to delete artifact",
         "Unauthenticated request. Auth token is not provided");
     }
+}
+
+# Delete an image
+#
+# + deleteImageReq - received request which contains header
+# + orgName - organization name that the artifact is belong to
+# + imageName - image name of the artifact
+# + return - http resonce (200 if success, 401, 404 or 500 otherwise)
+public function deleteImage (http:Request deleteImageReq, string orgName, string imageName) returns http:Response {
+    // stub code - fill as necessary
+    http:Response deleteImageRes = new;
+    string deleteImagePayload = "Sample deleteImage Response";
+    deleteImageRes.setTextPayload(deleteImagePayload);
+
+	return deleteImageRes;
 }

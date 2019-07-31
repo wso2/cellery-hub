@@ -213,6 +213,26 @@ paths:
           description: "Internal Server Error"
           schema:
             $ref: "#/definitions/ErrorResponse"
+    delete:
+      operationId: "deleteImage"
+      summary: "Delete an image"
+      produces:
+      - "application/json"
+      parameters:
+      - $ref: "#/parameters/orgNamePathParam"
+      - $ref: "#/parameters/imageNamePathParam"
+      - $ref: "#/parameters/imageUpdateBody"
+      responses:
+        200:
+          description: "OK"
+        405:
+          description: "Invalid Input"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+        500:
+          description: "Internal Server Error"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
   /images/users/{userId}:
     get:
       operationId: "listUserImages"

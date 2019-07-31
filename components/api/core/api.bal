@@ -917,4 +917,34 @@ service CelleryHubAPI on ep {
         http:Response _deleteArtifactRes = deleteArtifact(_deleteArtifactReq, orgName, imageName, artifactVersion);
         error? x = outboundEp->respond(_deleteArtifactRes);
     }
+
+    @openapi:ResourceInfo {
+        summary: "Delete an image",
+        parameters: [
+            {
+                name: "orgName",
+                inInfo: "path",
+                paramType: "string",
+                description: "Name of the organization",
+                required: true,
+                allowEmptyValue: ""
+            },
+            {
+                name: "imageName",
+                inInfo: "path",
+                paramType: "string",
+                description: "Name of the image",
+                required: true,
+                allowEmptyValue: ""
+            }
+        ]
+    }
+    @http:ResourceConfig {
+        methods:["DELETE"],
+        path:"/images/{orgName}/{imageName}"
+    }
+    resource function deleteImage (http:Caller outboundEp, http:Request _deleteImageReq, string orgName, string imageName) returns error? {
+        http:Response _deleteImageRes = deleteImage(_deleteImageReq, orgName, imageName);
+        error? x = outboundEp->respond(_deleteImageRes);
+    }
 }
