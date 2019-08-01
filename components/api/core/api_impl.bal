@@ -92,8 +92,8 @@ public function listOrgs(http:Request listOrgsReq, string orgName, int offset, i
 # + return - http response which cater to the request
 public function createOrg(http:Request createOrgReq, gen:OrgCreateRequest createOrgsBody) returns http:Response {
     if (createOrgReq.hasHeader(constants:AUTHENTICATED_USER)) {
-        boolean | error orgNameAvailability = db:getOrganizationAvailability(createOrgsBody.orgName);
-        if (orgNameAvailability is boolean && orgNameAvailability) {
+        boolean | error isOrgAvailable = db:getOrganizationAvailability(createOrgsBody.orgName);
+        if (isOrgAvailable is boolean && !isOrgAvailable) {
             boolean | error isMatch = createOrgsBody.orgName.matches("^[a-z0-9]+(-[a-z0-9]+)*$");
             if (isMatch is boolean) {
                 if (isMatch) {
@@ -134,12 +134,12 @@ public function createOrg(http:Request createOrgReq, gen:OrgCreateRequest create
             } else {
                 log:printError("Unable to create organization", err = isMatch);
             }
-        } else if (orgNameAvailability is boolean && !orgNameAvailability) {
+        } else if (isOrgAvailable is boolean && isOrgAvailable) {
             log:printError(io:sprintf("Organization creation failed : orgName \'%s\' is already taken", createOrgsBody.orgName));
             return buildErrorResponse(http:CONFLICT_409, constants:ENTRY_ALREADY_EXISTING_ERROR_CODE, "Unable to create organization",
             "Organization name is already taken");
-        } else if (orgNameAvailability is error) {
-            log:printError("Error occured while checking the orgName availability", err = orgNameAvailability);
+        } else if (isOrgAvailable is error) {
+            log:printError("Error occured while checking the orgName availability", err = isOrgAvailable);
         }
         return buildUnknownErrorResponse();
     } else {

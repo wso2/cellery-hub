@@ -64,17 +64,17 @@ public function getOrganization(string orgName, string userId) returns json | er
 }
 
 public function getOrganizationAvailability(string orgName) returns boolean | error {
-    log:printDebug(io:sprintf("Checking orgName avialability on REGISTRY_ORGANIZATION table for Org name : \'%s\': ", orgName));
-    table<record {}> res = check connection->select(GET_ORG_QUERY, gen:OrgResponse, orgName, loadToMemory = true);
+    log:printDebug(io:sprintf("Checking whether the org name \'%s\' is available in REGISTRY_ORGANIZATION table", orgName));
+    table<gen:Count> res = check connection->select(GET_ORG_AVAILABILITY_QUERY, gen:Count, orgName, loadToMemory =true);
+    boolean isOrgAvailable = false;
     if (res.count() == 0) {
-        log:printDebug(io:sprintf("Organization name \'%s\' is not exists in REGISTRY_ORGANIZATION", orgName));
-        res.close();
-        return true;
+        log:printDebug(io:sprintf("Organization \'%s\' does not exists in REGISTRY_ORGANIZATION table", orgName));
     } else {
-        log:printDebug(io:sprintf("Organization \'%s\' is already existing in REGISTRY_ORGANIZATION", orgName));
-        res.close();
-        return false;
+        log:printDebug(io:sprintf("Organization \'%s\' is already existing in REGISTRY_ORGANIZATION table", orgName));
+        isOrgAvailable = true;
     }
+    res.close();
+    return isOrgAvailable;
 }
 
 public function insertOrganization(string author, gen:OrgCreateRequest createOrgsBody) returns error? {
