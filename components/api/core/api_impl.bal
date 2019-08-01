@@ -906,3 +906,17 @@ public function deleteImage (http:Request deleteImageReq, string orgName, string
         "Unauthenticated request. Auth token is not provided");
     }
 }
+
+# Delete an organization
+#
+# + deleteOrganizationReq - received request which contains header
+# + orgName - organization name that expected to delete
+# + return - http resonce (200 if success, 401, 404 or 500 otherwise)
+public function deleteOrganization (http:Request deleteOrganizationReq, string orgName) returns http:Response {
+    // stub code - fill as necessary
+    http:Response deleteOrganizationRes = new;
+    string deleteOrganizationPayload = "Sample deleteOrganization Response";
+    deleteOrganizationRes.setTextPayload(deleteOrganizationPayload);
+
+	return deleteOrganizationRes;
+}
