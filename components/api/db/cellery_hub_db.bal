@@ -554,6 +554,19 @@ public function deleteImageFromDb(string userId, string orgName, string imageNam
     }        
 }
 
+public function deleteOrganizationFromDb(string userId, string orgName) returns int | error? {
+    log:printDebug(io:sprintf("Deleting the organization \'%s\', user : \'%s\'", orgName, userId));
+    sql:UpdateResult | error res = connection->update(DELETE_ORGANIZATION_QUERY, userId, orgName);
+    if res is sql:UpdateResult {
+        log:printDebug(io:sprintf("Updated %d rows in REGISTRY_ORGANIZATION table to delete the organization \'%s\', user : %s", 
+        res.updatedRowCount, orgName, userId));
+        return res.updatedRowCount;
+    } else {
+        log:printError(io:sprintf("Error in deleting the organization \'%s\'", orgName));
+        return res;
+    }        
+}
+
 public function getArtifactListLength(string imageId, string artifactVersion) returns int | error {
     log:printDebug(io:sprintf("Retriving artifact count for image ID : %s and image version %s", imageId, artifactVersion));
     table<gen:Count> res = check connection->select(GET_ARTIFACT_COUNT, gen:Count, imageId, artifactVersion, loadToMemory = true);

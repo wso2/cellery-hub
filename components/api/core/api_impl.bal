@@ -876,7 +876,7 @@ public function deleteImage (http:Request deleteImageReq, string orgName, string
                     resp = buildSuccessResponse();           
                 } else if (deletedRowCount == 0) {
                     log:printError(io:sprintf("Failed to delete the image \'%s/%s\'. No matching records found", orgName, imageName));
-                    resp = buildErrorResponse(http:NOT_FOUND_404, constants:API_ERROR_CODE, "Unable to delete artifact", "No matching records found");
+                    resp = buildErrorResponse(http:NOT_FOUND_404, constants:API_ERROR_CODE, "Unable to delete image", "No matching records found");
                     abort;
                 } else {
                     log:printError(io:sprintf("Failed to delete the image \'%s/%s\'. More than one matching records found", orgName,
@@ -913,10 +913,46 @@ public function deleteImage (http:Request deleteImageReq, string orgName, string
 # + orgName - organization name that expected to delete
 # + return - http resonce (200 if success, 401, 404 or 500 otherwise)
 public function deleteOrganization (http:Request deleteOrganizationReq, string orgName) returns http:Response {
-    // stub code - fill as necessary
-    http:Response deleteOrganizationRes = new;
-    string deleteOrganizationPayload = "Sample deleteOrganization Response";
-    deleteOrganizationRes.setTextPayload(deleteOrganizationPayload);
-
-	return deleteOrganizationRes;
+    if (deleteOrganizationReq.hasHeader(constants:AUTHENTICATED_USER)) {
+        string userId = deleteOrganizationReq.getHeader(constants:AUTHENTICATED_USER);
+        log:printInfo(io:sprintf("User \'%s\' is attempting to delete the organization \'%s\'", userId, orgName));
+        http:Response resp;
+        transaction {
+            var transactionId = transactions:getCurrentTransactionId();
+            log:printDebug(io:sprintf("Started transaction \'%s\' for deleting the organization \'%s\'", transactionId, orgName));
+            int | error? deletedRowCount = db:deleteOrganizationFromDb(userId, orgName);
+            if (deletedRowCount is int) {
+                if (deletedRowCount == 1) {
+                    log:printInfo(io:sprintf("Successfully deleted the organization \'%s\' by user \'%s\'", orgName, userId));
+                    resp = buildSuccessResponse();           
+                } else if (deletedRowCount == 0) {
+                    log:printError(io:sprintf("Failed to delete the organization \'%s\'. No matching records found", orgName));
+                    resp = buildErrorResponse(http:NOT_FOUND_404, constants:API_ERROR_CODE, "Unable to delete organization", "No matching records found");
+                    abort;
+                } else {
+                    log:printError(io:sprintf("Failed to delete the organization \'%s\'. More than one matching records found", orgName));
+                    resp = buildUnknownErrorResponse();
+                    abort;
+                }
+            } else {
+                log:printError(io:sprintf("Unable to delete the organization \'%s\' : %s", orgName, deletedRowCount));
+                resp = buildUnknownErrorResponse();
+                abort;
+            }
+        } onretry {
+            log:printDebug(io:sprintf("Retrying deleting organization \'%s\' for transaction %s", orgName,
+            transactions:getCurrentTransactionId()));
+        } committed {
+            log:printDebug(io:sprintf("Deleting organization \'%s\' successful for transaction %s", orgName,
+            transactions:getCurrentTransactionId()));
+        } aborted {
+            log:printError(io:sprintf("Deleting organization \'%s\' aborted for transaction %s", orgName,
+            transactions:getCurrentTransactionId()));
+        }
+        return resp;
+    } else {
+        log:printError("Unauthenticated request for delete organization: Username is not found");
+        return buildErrorResponse(http:UNAUTHORIZED_401, constants:API_ERROR_CODE, "Unable to delete organization",
+        "Unauthenticated request. Auth token is not provided");
+    }
 }
