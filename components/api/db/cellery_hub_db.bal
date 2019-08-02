@@ -47,7 +47,7 @@ public function getOrganization(string orgName, string userId) returns json | er
         }
         resPayload.summary = orgRes.summary;
         resPayload.websiteUrl = orgRes.websiteUrl;
-        resPayload.author = orgRes.firstAuthor;
+        resPayload.firstAuthor = orgRes.firstAuthor;
         resPayload.createdTimestamp = orgRes.createdTimestamp;
         resPayload.userRole = orgRes.userRole;
     } else if (counter == 0) {
