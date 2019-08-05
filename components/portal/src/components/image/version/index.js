@@ -325,7 +325,7 @@ class ImageVersion extends React.Component {
     };
 
     render = () => {
-        const {classes, history, location, match, globalState} = this.props;
+        const {classes, history, location, match} = this.props;
         const {isPullCopiedTooltipOpen, isRunCopiedTooltipOpen, isLoading, isVersionNotFound, versionData,
             morePopoverElement, isEditDialogOpen, isDeleteDialogOpen} = this.state;
         const isMorePopoverOpen = Boolean(morePopoverElement);
@@ -363,7 +363,8 @@ class ImageVersion extends React.Component {
                             </Typography>
                         </div>
                         {
-                            globalState.get(StateHolder.USER).roles.includes(Constants.Permission.PUSH)
+                            (versionData.userRole === Constants.Permission.PUSH
+                                || versionData.userRole === Constants.Permission.ADMIN)
                                 ? (
                                     <React.Fragment>
                                         <IconButton color={"inherit"} aria-label={"More"}
@@ -382,8 +383,7 @@ class ImageVersion extends React.Component {
                                                 <EditOutlined className={classes.menuIcon}/> Edit
                                             </MenuItem>
                                             {
-                                                globalState.get(StateHolder.USER).roles
-                                                    .includes(Constants.Permission.ADMIN)
+                                                (versionData.userRole === Constants.Permission.ADMIN)
                                                     ? (
                                                         <React.Fragment>
                                                             <Divider/>
@@ -516,8 +516,8 @@ class ImageVersion extends React.Component {
                                             </div>
                                         </Grid>
                                     </Grid>
-                                    <VersionUpdateDialog open={isEditDialogOpen} image={`${orgName}/${imageName}`}
-                                        version={version} description={versionData.description} orgName={orgName}
+                                    <VersionUpdateDialog open={isEditDialogOpen} image={imageName}
+                                        version={version} description={versionData.description} org={orgName}
                                         onClose={(newData) => {
                                             this.handleEditDialogClose();
                                             this.setState((prevState) => ({
@@ -527,7 +527,7 @@ class ImageVersion extends React.Component {
                                                 }
                                             }));
                                         }}/>
-                                    <VersionDeleteDialog open={isDeleteDialogOpen} image={`${orgName}/${imageName}`}
+                                    <VersionDeleteDialog open={isDeleteDialogOpen} image={imageName} org={orgName}
                                         version={version} onClose={this.handleDeleteDialogClose}/>
                                 </div>
                             )

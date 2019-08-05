@@ -44,11 +44,11 @@ class ImageDeleteDialog extends React.Component {
 
     handleDeleteImage = () => {
         const self = this;
-        const {globalState, image} = self.props;
-        NotificationUtils.showLoadingOverlay(`Deleting image ${image}`, globalState);
+        const {globalState, image, org} = self.props;
+        NotificationUtils.showLoadingOverlay(`Deleting image ${org}/${image}`, globalState);
         HttpUtils.callHubAPI(
             {
-                url: `/images/${image}`,
+                url: `/images/${org}/${image}}`,
                 method: "DELETE"
             },
             globalState
@@ -61,10 +61,10 @@ class ImageDeleteDialog extends React.Component {
                 if (err.getMessage()) {
                     errorMessage = err.getMessage();
                 } else {
-                    errorMessage = `Failed to delete image - ${image}`;
+                    errorMessage = `Failed to delete image - ${org}/${image}`;
                 }
             } else {
-                errorMessage = `Failed to delete image - ${image}`;
+                errorMessage = `Failed to delete image - ${org}/${image}`;
             }
             NotificationUtils.hideLoadingOverlay(globalState);
             NotificationUtils.showNotification(errorMessage, NotificationUtils.Levels.ERROR, globalState);
@@ -77,13 +77,13 @@ class ImageDeleteDialog extends React.Component {
     };
 
     render() {
-        const {classes, open, image} = this.props;
+        const {classes, open, image, org} = this.props;
 
         return (
             <div>
                 <Dialog open={open} onClose={this.handleClose} aria-labelledby={"form-dialog-title"} fullWidth>
                     <DialogTitle id={"alert-dialog-title"}>
-                        Do you really want to delete image - {image}?
+                        Do you really want to delete image - ${org}/${image}?
                     </DialogTitle>
                     <DialogContent>
                         <DialogContentText id={"alert-dialog-description"}>
@@ -108,7 +108,8 @@ ImageDeleteDialog.propTypes = {
     globalState: PropTypes.instanceOf(StateHolder).isRequired,
     open: PropTypes.bool.isRequired,
     onClose: PropTypes.func.isRequired,
-    image: PropTypes.string.isRequired
+    image: PropTypes.string.isRequired,
+    org: PropTypes.string.isRequired
 };
 
 export default withStyles(styles)(withGlobalState(ImageDeleteDialog));
