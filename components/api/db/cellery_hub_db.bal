@@ -41,10 +41,13 @@ public function getOrganization(string orgName, string userId) returns json | er
     json resPayload = null;
     if counter == 1 {
         log:printDebug(io:sprintf("Building the response payload for getOrganization. user : %s, orgName : %s", userId, orgName));
-        resPayload.description = encoding:byteArrayToString(orgRes.description);
+        resPayload.description = "";
+        if (!(orgRes.description is ())) {
+            resPayload.description = encoding:byteArrayToString(<byte[]>orgRes.description);
+        }
         resPayload.summary = orgRes.summary;
         resPayload.websiteUrl = orgRes.websiteUrl;
-        resPayload.author = orgRes.firstAuthor;
+        resPayload.firstAuthor = orgRes.firstAuthor;
         resPayload.createdTimestamp = orgRes.createdTimestamp;
         resPayload.userRole = orgRes.userRole;
     } else if (counter == 0) {
@@ -539,7 +542,10 @@ function buildJsonPayloadForGetArtifact(table<gen:Artifact> res, string orgName,
     string metadataString = encoding:byteArrayToString(artRes.metadata);
     io:StringReader sr = new(metadataString, encoding = "UTF-8");
     json metadataJson = check sr.readJson();
-    resPayload.description = encoding:byteArrayToString(artRes.description);
+    resPayload.description = "";
+    if (!((artRes.description) is ())) {
+        resPayload.description = encoding:byteArrayToString(<byte[]>artRes.description);
+    }
     resPayload.pullCount = artRes.pullCount;
     resPayload.lastAuthor = artRes.lastAuthor;
     resPayload.updatedTimestamp = artRes.updatedTimestamp;
@@ -566,11 +572,15 @@ function getTotalRecordsCount(table<gen:Count> tableRecord) returns int | error 
 }
 
 function buildListImagesResponse(gen:ImagesListAtom imagesListRecord) returns gen:ImagesListResponseAtom {
+    string description = "";
+    if (!(imagesListRecord.description is ())) {
+        description = encoding:byteArrayToString(<byte[]>imagesListRecord.description);
+    }
     gen:ImagesListResponseAtom imagesListResponseAtom = {
         orgName: imagesListRecord.orgName,
         imageName: imagesListRecord.imageName,
         summary: imagesListRecord.summary,
-        description: encoding:byteArrayToString(imagesListRecord.description),
+        description: description,
         pullCount: imagesListRecord.pullCount,
         updatedTimestamp: imagesListRecord.updatedTimestamp,
         visibility: imagesListRecord.visibility
@@ -579,10 +589,14 @@ function buildListImagesResponse(gen:ImagesListAtom imagesListRecord) returns ge
 }
 
 function buildListOrgsResponse(gen:OrgListAtom orgListRecord, map<any> imageCountMap) returns gen:OrgListResponseAtom {
+    string description = "";
+    if (!(orgListRecord.description is ())) {
+        description = encoding:byteArrayToString(<byte[]>orgListRecord.description);
+    }
     gen:OrgListResponseAtom orgListResponseAtom = {
         orgName: orgListRecord.orgName,
         summary: orgListRecord.summary,
-        description: encoding:byteArrayToString(orgListRecord.description),
+        description: description,
         membersCount: orgListRecord.membersCount,
         imageCount: <int>imageCountMap[orgListRecord.orgName]
     };
@@ -590,10 +604,14 @@ function buildListOrgsResponse(gen:OrgListAtom orgListRecord, map<any> imageCoun
 }
 
 function buildOrgImagesResponse(gen:OrgImagesListAtom orgImagesListRecord) returns gen:OrgImagesListResponseAtom {
+    string description = "";
+    if (!(orgImagesListRecord.description is ())) {
+        description = encoding:byteArrayToString(<byte[]>orgImagesListRecord.description);
+    }
     gen:OrgImagesListResponseAtom orgImagesListResponseAtom = {
         imageName: orgImagesListRecord.imageName,
         summary: orgImagesListRecord.summary,
-        description: encoding:byteArrayToString(orgImagesListRecord.description),
+        description: description,
         pullCount: orgImagesListRecord.pullCount,
         updatedTimestamp: orgImagesListRecord.updatedTimestamp,
         visibility: orgImagesListRecord.visibility

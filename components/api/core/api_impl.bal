@@ -222,12 +222,16 @@ public function getImageByImageName(http:Request getImageRequest, string orgName
             } else {
                 log:printError("Error while converting payload to json. Labels will be empty : image ID :" + imageName, err = keywordsResult);
             }
+            string description = "";
+            if (!(image.description is ())) {
+                description = encoding:byteArrayToString(<byte[]>image.description);
+            }
             gen:ImageResponse imageResponse = {
                 imageId: image.imageId,
                 orgName: image.orgName,
                 imageName: image.imageName,
                 summary: image.summary,
-                description: encoding:byteArrayToString(image.description),
+                description: description,
                 firstAuthor: image.firstAuthor,
                 visibility: image.visibility,
                 pushCount: image.pushCount,
@@ -296,10 +300,14 @@ int offset, int resultLimit) returns http:Response {
                 if (artifactImageId == "") {
                     artifactImageId = result.artifactImageId;
                 }
+                string description = "";
+                if (!(result.description is ())) {
+                    description = encoding:byteArrayToString(<byte[]>result.description);
+                }
                 response.data[counter] = {
                     artifactImageId:result.artifactImageId,
                     artifactId: result.artifactId,
-                    description: encoding:byteArrayToString(result.description),
+                    description: description,
                     pullCount:result.pullCount,
                     lastAuthor:result.lastAuthor,
                     updatedTimestamp:result.updatedTimestamp,

@@ -29,7 +29,7 @@ public type OrgCreateRequest record {
 };
 
 public type OrgResponse record {
-    byte[] description;
+    byte[]? description;
     string summary;
     string websiteUrl;
     string firstAuthor;
@@ -39,7 +39,7 @@ public type OrgResponse record {
 
 // Uses for get a specific artifact
 public type Artifact record {
-    byte[] description;
+    byte[]? description;
     int pullCount;
     string lastAuthor;
     string updatedTimestamp;
@@ -56,7 +56,7 @@ public type Count record {
 public type ArtifactDatum record {
     string artifactImageId;
     string artifactId;
-    byte[] description;
+    byte[]? description;
     int pullCount;
     string lastAuthor;
     string updatedTimestamp;
@@ -83,7 +83,7 @@ public type Image record {
     string orgName;
     string imageName;
     string summary;
-    byte[] description;
+    byte[]? description;
     string firstAuthor;
     string visibility;
     decimal pushCount;
@@ -116,7 +116,7 @@ public type OrgListResponse record {
 public type OrgListAtom record {
     string orgName;
     string summary;
-    byte[] description;
+    byte[]? description;
     int membersCount;
 };
 
@@ -172,7 +172,7 @@ public type ImagesListAtom record {
     string orgName;
     string imageName;
     string summary;
-    byte[] description;
+    byte[]? description;
     decimal pullCount;
     string updatedTimestamp;
     string visibility;
@@ -191,7 +191,7 @@ public type ImagesListResponseAtom record {
 public type OrgImagesListAtom record {
     string imageName;
     string summary;
-    byte[] description;
+    byte[]? description;
     decimal pullCount;
     string updatedTimestamp;
     string visibility;
