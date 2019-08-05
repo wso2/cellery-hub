@@ -197,7 +197,7 @@ class Org extends React.Component {
     };
 
     render() {
-        const {classes, history, location, match, globalState} = this.props;
+        const {classes, history, location, match} = this.props;
         const {isLoading, isOrgNotFound, orgData, morePopoverElement, isEditDialogOpen,
             isDeleteDialogOpen} = this.state;
         const isMorePopoverOpen = Boolean(morePopoverElement);
@@ -233,7 +233,7 @@ class Org extends React.Component {
                             </Typography>
                         </div>
                         {
-                            globalState.get(StateHolder.USER).roles.includes(Constants.Permission.ADMIN)
+                            (orgData.userRole === Constants.Permission.ADMIN)
                                 ? (
                                     <React.Fragment>
                                         <IconButton color={"inherit"} aria-label={"More"}

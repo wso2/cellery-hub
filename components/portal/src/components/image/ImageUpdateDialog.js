@@ -89,12 +89,12 @@ class ImageUpdateDialog extends React.Component {
 
     handleUpdateImage = () => {
         const self = this;
-        const {globalState, image} = self.props;
+        const {globalState, image, org} = self.props;
         const {summary, description, keywords} = self.state;
-        NotificationUtils.showLoadingOverlay(`Updating image ${image}`, globalState);
+        NotificationUtils.showLoadingOverlay(`Updating image ${org}/${image}`, globalState);
         HttpUtils.callHubAPI(
             {
-                url: `/images/${image}`,
+                url: `/images/${org}/${image}`,
                 method: "PUT",
                 data: {
                     summary: summary,
@@ -112,10 +112,10 @@ class ImageUpdateDialog extends React.Component {
                 if (err.getMessage()) {
                     errorMessage = err.getMessage();
                 } else {
-                    errorMessage = `Failed to update image - ${image}`;
+                    errorMessage = `Failed to update image - ${org}/${image}`;
                 }
             } else {
-                errorMessage = `Failed to update image - ${image}`;
+                errorMessage = `Failed to update image - ${org}/${image}`;
             }
             NotificationUtils.hideLoadingOverlay(globalState);
             NotificationUtils.showNotification(errorMessage, NotificationUtils.Levels.ERROR, globalState);
@@ -133,18 +133,17 @@ class ImageUpdateDialog extends React.Component {
     };
 
     render() {
-        const {classes, open, image} = this.props;
+        const {classes, open, image, org} = this.props;
         const {summary, description, keywords} = this.state;
 
         return (
             <div>
-                <Dialog open={open} onClose={this.handleClose} aria-labelledby={"form-dialog-title"} fullWidth
-                >
+                <Dialog open={open} onClose={this.handleClose} aria-labelledby={"form-dialog-title"} fullWidth>
                     <DialogTitle id={"form-dialog-title"}>Update Image Details</DialogTitle>
                     <DialogContent>
                         <FormControl fullWidth className={classes.formControl}>
                             <InputLabel htmlFor={"name"}>Image</InputLabel>
-                            <Input id={"name"} value={image} type={"text"} disabled={"true"}/>
+                            <Input id={"name"} value={`${org}/${image}`} type={"text"} disabled={"true"}/>
                         </FormControl>
                         <FormControl fullWidth className={classes.formControl}>
                             <InputLabel htmlFor={"summary"}>Summary</InputLabel>
@@ -184,6 +183,7 @@ ImageUpdateDialog.propTypes = {
     open: PropTypes.bool.isRequired,
     onClose: PropTypes.func.isRequired,
     image: PropTypes.string.isRequired,
+    org: PropTypes.string.isRequired,
     summary: PropTypes.string.isRequired,
     description: PropTypes.string.isRequired,
     keywords: PropTypes.arrayOf(PropTypes.string).isRequired

@@ -44,11 +44,11 @@ class VersionDeleteDialog extends React.Component {
 
     handleDeleteVersion = () => {
         const self = this;
-        const {globalState, image, version} = self.props;
-        NotificationUtils.showLoadingOverlay(`Deleting image ${image}`, globalState);
+        const {globalState, org, image, version} = self.props;
+        NotificationUtils.showLoadingOverlay(`Deleting image ${org}/${image}`, globalState);
         HttpUtils.callHubAPI(
             {
-                url: `/images/${image}/${version}`,
+                url: `/artifacts/${org}/${image}/${version}`,
                 method: "DELETE"
             },
             globalState
@@ -61,10 +61,10 @@ class VersionDeleteDialog extends React.Component {
                 if (err.getMessage()) {
                     errorMessage = err.getMessage();
                 } else {
-                    errorMessage = `Failed to delete image - ${image}`;
+                    errorMessage = `Failed to delete image - ${org}/${image}`;
                 }
             } else {
-                errorMessage = `Failed to delete image - ${image}`;
+                errorMessage = `Failed to delete image - ${org}/${image}`;
             }
             NotificationUtils.hideLoadingOverlay(globalState);
             NotificationUtils.showNotification(errorMessage, NotificationUtils.Levels.ERROR, globalState);
@@ -77,13 +77,13 @@ class VersionDeleteDialog extends React.Component {
     };
 
     render() {
-        const {classes, open, image, version} = this.props;
+        const {classes, open, org, image, version} = this.props;
 
         return (
             <div>
                 <Dialog open={open} onClose={this.handleClose} aria-labelledby={"form-dialog-title"} fullWidth>
                     <DialogTitle id={"alert-dialog-title"}>
-                        Do you really want to delete image version - {image}:{version}?
+                        Do you really want to delete image version - {org}/{image}:{version}?
                     </DialogTitle>
                     <DialogContent>
                         <DialogContentText id={"alert-dialog-description"}>
@@ -108,6 +108,7 @@ VersionDeleteDialog.propTypes = {
     globalState: PropTypes.instanceOf(StateHolder).isRequired,
     open: PropTypes.bool.isRequired,
     onClose: PropTypes.func.isRequired,
+    org: PropTypes.string.isRequired,
     image: PropTypes.string.isRequired,
     version: PropTypes.string.isRequired
 };

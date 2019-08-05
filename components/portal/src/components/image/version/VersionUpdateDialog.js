@@ -66,12 +66,12 @@ class VersionUpdateDialog extends React.Component {
 
     handleUpdateImageVersion = () => {
         const self = this;
-        const {globalState, image, version} = self.props;
+        const {globalState, org, image, version} = self.props;
         const {description} = self.state;
-        NotificationUtils.showLoadingOverlay(`Updating image version ${image}:${version}`, globalState);
+        NotificationUtils.showLoadingOverlay(`Updating image version ${org}/${image}:${version}`, globalState);
         HttpUtils.callHubAPI(
             {
-                url: `/artifacts/${image}/${version}`,
+                url: `/artifacts/${org}/${image}/${version}`,
                 method: "PUT",
                 data: {
                     description: description
@@ -87,10 +87,10 @@ class VersionUpdateDialog extends React.Component {
                 if (err.getMessage()) {
                     errorMessage = err.getMessage();
                 } else {
-                    errorMessage = `Failed to update image version - ${image}:${version}`;
+                    errorMessage = `Failed to update image version - ${org}/${image}:${version}`;
                 }
             } else {
-                errorMessage = `Failed to update image version - ${image}:${version}`;
+                errorMessage = `Failed to update image version - ${org}/${image}:${version}`;
             }
             NotificationUtils.hideLoadingOverlay(globalState);
             NotificationUtils.showNotification(errorMessage, NotificationUtils.Levels.ERROR, globalState);
@@ -106,7 +106,7 @@ class VersionUpdateDialog extends React.Component {
     };
 
     render() {
-        const {classes, open, image, version} = this.props;
+        const {classes, open, org, image, version} = this.props;
         const {description} = this.state;
 
         return (
@@ -116,7 +116,7 @@ class VersionUpdateDialog extends React.Component {
                     <DialogContent>
                         <FormControl fullWidth className={classes.formControl}>
                             <InputLabel htmlFor={"name"}>Image Version</InputLabel>
-                            <Input id={"name"} value={`${image}:${version}`} type={"text"} disabled={"true"}/>
+                            <Input id={"name"} value={`${org}/${image}:${version}`} type={"text"} disabled={"true"}/>
                         </FormControl>
                         <FormControl fullWidth className={classes.formControl}>
                             <InputLabel htmlFor={"description"}>Description</InputLabel>
@@ -143,6 +143,7 @@ VersionUpdateDialog.propTypes = {
     globalState: PropTypes.instanceOf(StateHolder).isRequired,
     open: PropTypes.bool.isRequired,
     onClose: PropTypes.func.isRequired,
+    org: PropTypes.string.isRequired,
     image: PropTypes.string.isRequired,
     version: PropTypes.string.isRequired,
     description: PropTypes.string.isRequired

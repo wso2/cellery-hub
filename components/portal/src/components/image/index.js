@@ -316,7 +316,7 @@ class Image extends React.Component {
 
 
     render = () => {
-        const {classes, location, match, history, globalState} = this.props;
+        const {classes, location, match, history} = this.props;
         const {isPullCopiedTooltipOpen, isRunCopiedTooltipOpen, isLoading, isImageNotFound, imageData,
             morePopoverElement, isEditDialogOpen, isDeleteDialogOpen} = this.state;
         const isMorePopoverOpen = Boolean(morePopoverElement);
@@ -353,7 +353,8 @@ class Image extends React.Component {
                             </Typography>
                         </div>
                         {
-                            globalState.get(StateHolder.USER).roles.includes(Constants.Permission.PUSH)
+                            (imageData.userRole === Constants.Permission.PUSH
+                                || imageData.userRole === Constants.Permission.ADMIN)
                                 ? (
                                     <React.Fragment>
                                         <IconButton color={"inherit"} aria-label={"More"}
@@ -372,8 +373,7 @@ class Image extends React.Component {
                                                 <EditOutlined className={classes.menuIcon}/> Edit
                                             </MenuItem>
                                             {
-                                                globalState.get(StateHolder.USER).roles
-                                                    .includes(Constants.Permission.ADMIN)
+                                                (imageData.userRole === Constants.Permission.ADMIN)
                                                     ? (
                                                         <React.Fragment>
                                                             <Divider/>
@@ -526,9 +526,9 @@ class Image extends React.Component {
 
                                         </Grid>
                                     </Grid>
-                                    <ImageUpdateDialog open={isEditDialogOpen} image={`${orgName}/${imageName}`}
+                                    <ImageUpdateDialog open={isEditDialogOpen} image={imageName}
                                         summary={imageData.summary} description={imageData.description}
-                                        keywords={imageData.keywords} orgName={orgName}
+                                        keywords={imageData.keywords} org={orgName}
                                         onClose={(newData) => {
                                             this.handleEditDialogClose();
                                             this.setState((prevState) => ({
@@ -540,7 +540,7 @@ class Image extends React.Component {
                                                 }
                                             }));
                                         }}/>
-                                    <ImageDeleteDialog open={isDeleteDialogOpen} image={`${orgName}/${imageName}`}
+                                    <ImageDeleteDialog open={isDeleteDialogOpen} image={imageName} org={orgName}
                                         onClose={this.handleDeleteDialogClose}/>
                                 </div>
                             )
