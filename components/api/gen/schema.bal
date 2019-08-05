@@ -44,6 +44,7 @@ public type Artifact record {
     string lastAuthor;
     string updatedTimestamp;
     byte[] metadata;
+    string userRole;
 };
 
 
@@ -87,6 +88,7 @@ public type Image record {
     string visibility;
     decimal pushCount;
     decimal pullCount;
+    string userRole;
 };
 
 public type ImageResponse record {

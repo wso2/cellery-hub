@@ -24,10 +24,6 @@ import cellery_hub_api/constants;
 import ballerina/io;
 import ballerina/encoding;
 
-type RegistryOrgUserMapping record {|
-    string USER_ROLE;
-|};
-
 type RegistryArtifactImage record {|
     string ARTIFACT_IMAGE_ID;
 |};
@@ -100,7 +96,7 @@ public function getOrganizationCount(string userId) returns int | error {
 }
 public function getUserImage(string orgName, string imageName, string userId) returns table<gen:Image> | error {
     log:printDebug("Retriving image :" + imageName + " in organization : " + orgName + "for user: " + userId);
-    table<gen:Image> res = check connection->select(GET_IMAGE_FOR_USER_FROM_IMAGE_NAME, gen:Image,
+    table<gen:Image> res = check connection->select(GET_IMAGE_FOR_USER_FROM_IMAGE_NAME, gen:Image, orgName, userId,
     orgName, imageName, userId, orgName, imageName, loadToMemory = true);
     return res;
 }
@@ -147,7 +143,7 @@ public function getPublicArtifact(string orgName, string imageName, string artif
         log:printDebug(errMsg);
         error er = error(errMsg);
         return er;
-    }    
+    }
 }
 
 public function getImageKeywords(string imageId) returns table<gen:StringRecord> | error {
@@ -158,8 +154,8 @@ public function getImageKeywords(string imageId) returns table<gen:StringRecord>
 
 public function getUserArtifact(string userId, string orgName, string imageName, string artifactVersion) returns json | error {
     log:printDebug(io:sprintf("Performing data retrieval for articat \'%s/%s:%s\'", orgName, imageName, artifactVersion));
-    table<gen:Artifact> res = check connection->select(GET_ARTIFACT_FOR_USER_FROM_IMG_NAME_N_VERSION, gen:Artifact, orgName, imageName,
-    artifactVersion, userId, orgName, imageName, artifactVersion, loadToMemory = true);
+    table<gen:Artifact> res = check connection->select(GET_ARTIFACT_FOR_USER_FROM_IMG_NAME_N_VERSION, gen:Artifact, orgName,
+    userId, orgName, imageName, artifactVersion, userId, orgName, imageName, artifactVersion, loadToMemory = true);
     if (res.count() == 1) {
         log:printDebug(io:sprintf("Found the artifact \'%s/%s:%s\'", orgName, imageName, artifactVersion));
         return buildJsonPayloadForGetArtifact(res, orgName, imageName, artifactVersion);
@@ -172,7 +168,7 @@ public function getUserArtifact(string userId, string orgName, string imageName,
         log:printDebug(errMsg);
         error er = error(errMsg);
         return er;
-    }   
+    }
 }
 
 public function getMemberOrgsUsers(string userId, string orgName, int offset, int resultLimit)
@@ -536,7 +532,7 @@ public function getArtifactListLength(string imageId, string artifactVersion) re
     return length;
 }
 
-function buildJsonPayloadForGetArtifact(table< record {}> res, string orgName, string imageName, string artifactVersion) returns json | error {
+function buildJsonPayloadForGetArtifact(table<gen:Artifact> res, string orgName, string imageName, string artifactVersion) returns json | error {
     log:printDebug(io:sprintf("Building json payload for artifact \'%s/%s:%s\'", orgName, imageName, artifactVersion));
     json resPayload = {};
     gen:Artifact artRes = check gen:Artifact.convert(res.getNext());
@@ -548,6 +544,7 @@ function buildJsonPayloadForGetArtifact(table< record {}> res, string orgName, s
     resPayload.lastAuthor = artRes.lastAuthor;
     resPayload.updatedTimestamp = artRes.updatedTimestamp;
     resPayload.metadata = metadataJson;
+    resPayload.userRole = artRes.userRole;
     return resPayload;
 }
 
