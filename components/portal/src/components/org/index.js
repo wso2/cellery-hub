@@ -233,7 +233,7 @@ class Org extends React.Component {
                             </Typography>
                         </div>
                         {
-                            (orgData.userRole === Constants.Permission.ADMIN)
+                            (orgData && orgData.userRole === Constants.Permission.ADMIN)
                                 ? (
                                     <React.Fragment>
                                         <IconButton color={"inherit"} aria-label={"More"}
