@@ -363,8 +363,8 @@ class ImageVersion extends React.Component {
                             </Typography>
                         </div>
                         {
-                            (versionData.userRole === Constants.Permission.PUSH
-                                || versionData.userRole === Constants.Permission.ADMIN)
+                            (versionData && (versionData.userRole === Constants.Permission.PUSH
+                                || versionData.userRole === Constants.Permission.ADMIN))
                                 ? (
                                     <React.Fragment>
                                         <IconButton color={"inherit"} aria-label={"More"}

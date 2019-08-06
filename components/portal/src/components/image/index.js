@@ -353,8 +353,8 @@ class Image extends React.Component {
                             </Typography>
                         </div>
                         {
-                            (imageData.userRole === Constants.Permission.PUSH
-                                || imageData.userRole === Constants.Permission.ADMIN)
+                            (imageData && (imageData.userRole === Constants.Permission.PUSH
+                                || imageData.userRole === Constants.Permission.ADMIN))
                                 ? (
                                     <React.Fragment>
                                         <IconButton color={"inherit"} aria-label={"More"}
