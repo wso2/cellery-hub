@@ -197,7 +197,7 @@ class MyProfile extends React.Component {
 
     render() {
         const {classes} = this.props;
-        const {user, isTokenCopiedTooltipOpen} = this.state;
+        const {user, isTokenCopiedTooltipOpen, token} = this.state;
 
         return (
             <React.Fragment>
@@ -250,7 +250,7 @@ class MyProfile extends React.Component {
                                                 <div className={classes.copyContainer}>
                                                     {/* TODO: Get long lived token to input value*/}
                                                     <InputBase multiline className={classes.copyInput} readOnly
-                                                        value={this.state.token}
+                                                        value={token}
                                                         inputProps={{"aria-label": "naked", spellCheck: "false"}}
                                                         inputRef={this.tokenRef} />
                                                     <Tooltip title={"Copied!"} disableFocusListener={false}
