@@ -23,13 +23,14 @@ import ballerina/log;
 import celllery_hub/constants;
 import celllery_hub/gen;
 
-public function getTokens(string authCode, string callbackUrl) returns (gen:TokensResponse|error) {
+public function getTokens(string authCode, string callbackUrl) returns (gen:TokensResponse | error) {
     http:Request tokenReq = new;
     var reqBody = io:sprintf("grant_type=authorization_code&code=%s&redirect_uri=%s", authCode, callbackUrl);
     tokenReq.setTextPayload(reqBody, contentType = constants:APPLICATION_URL_ENCODED_CONTENT_TYPE);
     // TODO There is a bug on ballerina that when there are more than one global client endpoints,
     // we have to reinitialize the endpoint. Need to remove this after the bug on this in ballerina is fixed
-    http:Client oidcProviderClientEP = getOidcProviderClientEP();
+    http:Client oidcProviderClientEP = getOidcProviderClientEP(config:getAsString("idp.oidc.clientid"),
+    config:getAsString("idp.oidc.clientsecret"));
     var response = check oidcProviderClientEP->post(config:getAsString("idp.token.endpoint"), tokenReq);
 
     var responsePayload = check response.getJsonPayload();
@@ -44,6 +45,34 @@ public function getTokens(string authCode, string callbackUrl) returns (gen:Toke
         gen:TokensResponse tokens = {
             accessToken: <string>responsePayload.access_token,
             idToken: <string>responsePayload.id_token
+        };
+        log:printDebug("Successfully retrieved tokens from IdP");
+        return tokens;
+    }
+}
+
+public function exchangeJWTWithToken(string jwt) returns (gen:TokensResponse | error) {
+    http:Request tokenReq = new;
+    var reqBody = io:sprintf("grant_type=urn:ietf:params:oauth:grant-type:jwt-bearer&assertion=%s&scope=openid", jwt);
+    tokenReq.setTextPayload(reqBody, contentType = constants:APPLICATION_URL_ENCODED_CONTENT_TYPE);
+    // TODO There is a bug on ballerina that when there are more than one global client endpoints,
+    // we have to reinitialize the endpoint. Need to remove this after the bug on this in ballerina is fixed
+    http:Client oidcProviderClientEP = getOidcProviderClientEP(config:getAsString("idp.jwt.bearer.grant.clientid"),
+    config:getAsString("idp.jwt.bearer.grant.clientsecret"));
+    var response = check oidcProviderClientEP->post(config:getAsString("idp.token.endpoint"), tokenReq);
+
+    var responsePayload = check response.getJsonPayload();
+    if (responsePayload["error"] != null) {
+        error err = error(io:sprintf("Failed to call IdP token endpoint with error \"%s\" due to \"%s\"", <string>responsePayload["error"],
+            <string>responsePayload.error_description));
+        return err;
+    } else if (response.statusCode >= 400) {
+        error err = error(io:sprintf("Failed to call IdP token endpoint with status code ", response.statusCode));
+        return err;
+    } else {
+        gen:TokensResponse tokens = {
+            accessToken: <string>responsePayload.access_token,
+            idToken: ""
         };
         log:printDebug("Successfully retrieved tokens from IdP");
         return tokens;

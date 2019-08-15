@@ -19,7 +19,7 @@
 import ballerina/config;
 import ballerina/http;
 
-function getOidcProviderClientEP() returns http:Client {
+function getOidcProviderClientEP(string clientId, string clientSecret) returns http:Client {
     http:Client oidcProviderClientEP = new(config:getAsString("idp.endpoint"), config = {
         secureSocket: {
             trustStore: {
@@ -31,8 +31,8 @@ function getOidcProviderClientEP() returns http:Client {
         auth: {
             scheme: http:BASIC_AUTH,
             config: {
-                username: config:getAsString("idp.oidc.clientid"),
-                password: config:getAsString("idp.oidc.clientsecret")
+                username: clientId,
+                password: clientSecret
             }
         }
     });

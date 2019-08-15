@@ -194,11 +194,18 @@ service CelleryHubAPI on ep {
         ]
     }
     @http:ResourceConfig {
-        methods: ["GET"],
+        methods: ["GET", "POST"],
         path: "/auth/token"
     }
     resource function getTokens(http:Caller outboundEp, http:Request _getTokensReq) returns error? {
-        http:Response _getTokensRes = getTokens(_getTokensReq);
+        http:Response _getTokensRes;
+        if ("get".equalsIgnoreCase(_getTokensReq.method)) {
+          log:printDebug("Recieved a get request to token endpoint. Interpretting it as auth code reqeust");
+          _getTokensRes = getTokens(_getTokensReq);
+        } else {
+          log:printDebug("Recieved a post request to token endpoint. Assuming token exchange request");
+          _getTokensRes = exchangeTokensWithJWTGrant(_getTokensReq);
+        }
         error? x = outboundEp->respond(_getTokensRes);
     }
 
