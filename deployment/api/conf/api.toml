@@ -8,6 +8,10 @@ truststorepass="ballerina"
 clientid="celleryhubapplication"
 clientsecret="celleryhubapplication"
 
+[idp.jwt.bearer.grant]
+clientid="celleryclilonglivedapp"
+clientsecret="qwertyumMZ3aapbLdXCTGYgIRSMa"
+
 [portal]
 publicurl="https://hub.cellery.io:9000"
 

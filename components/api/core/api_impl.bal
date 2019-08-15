@@ -61,6 +61,42 @@ public function getTokens(http:Request getTokensReq) returns http:Response {
     }
 }
 
+# Get Auth Tokens using JWT grant type.
+#
+# + getTokensReq - JWT Parameter Description
+# + return - Return Value Description
+public function exchangeTokensWithJWTGrant(http:Request getTokensReq) returns http:Response {
+
+    json | error body = getTokensReq.getJsonPayload();
+    if (body is error) {
+        log:printError("Did not recieve a body in token exchange reqeust", err = body);
+        return buildUnknownErrorResponse();
+    } else {
+        string | error jwt = string.convert(body["jwt"]);
+        if (jwt is error) {
+            log:printError("Error while extracting jwt from request body", err = jwt);
+            return buildUnknownErrorResponse();
+        } else {
+            log:printDebug(jwt);
+            log:printError("JWT token extracted : " + jwt);
+            var tokens = idp:exchangeJWTWithToken(jwt);
+            if (tokens is gen:TokensResponse) {
+                var jsonPayload = json.convert(tokens);
+                if (jsonPayload is json) {
+                    return buildSuccessResponse(jsonResponse = jsonPayload);
+                } else {
+                    log:printError("Failed to convert tokens response to JSON", err = jsonPayload);
+                    return buildUnknownErrorResponse();
+                }
+            } else {
+                log:printError("Failed to exchange tokens from the IdP", err = tokens);
+                return buildUnknownErrorResponse();
+            }
+
+        }
+    }
+}
+
 # Search based on organization name
 #
 # + listOrgsReq - Received query parameters
@@ -305,13 +341,13 @@ int offset, int resultLimit) returns http:Response {
                     description = encoding:byteArrayToString(<byte[]>result.description);
                 }
                 response.data[counter] = {
-                    artifactImageId:result.artifactImageId,
+                    artifactImageId: result.artifactImageId,
                     artifactId: result.artifactId,
                     description: description,
-                    pullCount:result.pullCount,
-                    lastAuthor:result.lastAuthor,
-                    updatedTimestamp:result.updatedTimestamp,
-                    artifactVersion:result.artifactVersion
+                    pullCount: result.pullCount,
+                    lastAuthor: result.lastAuthor,
+                    updatedTimestamp: result.updatedTimestamp,
+                    artifactVersion: result.artifactVersion
                 };
                 counter += 1;
             }
