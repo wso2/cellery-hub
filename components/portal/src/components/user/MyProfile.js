@@ -21,9 +21,11 @@ import Divider from "@material-ui/core/Divider";
 import FileCopy from "@material-ui/icons/FileCopyOutlined";
 import Grid from "@material-ui/core/Grid";
 import HelpOutline from "@material-ui/icons/HelpOutline";
+import HttpUtils from "../../utils/api/httpUtils";
 import IconButton from "@material-ui/core/IconButton/IconButton";
 import InputBase from "@material-ui/core/InputBase";
 import NotFound from "../common/error/NotFound";
+import NotificationUtils from "../../utils/common/notificationUtils";
 import React from "react";
 import StateHolder from "../common/state/stateHolder";
 import Tooltip from "@material-ui/core/Tooltip/Tooltip";
@@ -144,7 +146,8 @@ class MyProfile extends React.Component {
         super(props);
         this.state = {
             user: props.globalState.get(StateHolder.USER),
-            isTokenCopiedTooltipOpen: false
+            isTokenCopiedTooltipOpen: false,
+            token: ""
         };
 
         this.tokenRef = React.createRef();
@@ -164,6 +167,31 @@ class MyProfile extends React.Component {
     pullCmdCopiedTooltipClose = () => {
         this.setState({
             isTokenCopiedTooltipOpen: false
+        });
+    };
+
+    componentDidMount = () => {
+        const {globalState} = this.props;
+        const self = this;
+        NotificationUtils.showLoadingOverlay("Fetching token", globalState);
+        HttpUtils.callHubAPI(
+            {
+                url: "/auth/token",
+                method: "POST",
+                data: {
+                    jwt: globalState.get(StateHolder.USER).tokens.idToken
+                }
+            },
+            globalState
+        ).then((data) => {
+            self.setState({
+                token: data.accessToken
+            });
+            NotificationUtils.hideLoadingOverlay(globalState);
+        }).catch(() => {
+            NotificationUtils.hideLoadingOverlay(globalState);
+            NotificationUtils.showNotification("Error while retrieving token.",
+                NotificationUtils.Levels.ERROR, globalState);
         });
     };
 
@@ -222,7 +250,7 @@ class MyProfile extends React.Component {
                                                 <div className={classes.copyContainer}>
                                                     {/* TODO: Get long lived token to input value*/}
                                                     <InputBase multiline className={classes.copyInput} readOnly
-                                                        value={user.tokens.accessToken}
+                                                        value={this.state.token}
                                                         inputProps={{"aria-label": "naked", spellCheck: "false"}}
                                                         inputRef={this.tokenRef} />
                                                     <Tooltip title={"Copied!"} disableFocusListener={false}

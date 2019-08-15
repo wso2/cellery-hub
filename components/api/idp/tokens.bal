@@ -17,6 +17,7 @@
 // ------------------------------------------------------------------------
 
 import ballerina/config;
+import ballerina/encoding;
 import ballerina/http;
 import ballerina/io;
 import ballerina/log;
@@ -51,7 +52,7 @@ public function getTokens(string authCode, string callbackUrl) returns (gen:Toke
     }
 }
 
-public function exchangeJWTWithToken(string jwt) returns (gen:TokensResponse | error) {
+public function exchangeJWTWithToken(string jwt, string userId) returns (gen:TokensResponse | error) {
     http:Request tokenReq = new;
     var reqBody = io:sprintf("grant_type=urn:ietf:params:oauth:grant-type:jwt-bearer&assertion=%s&scope=openid", jwt);
     tokenReq.setTextPayload(reqBody, contentType = constants:APPLICATION_URL_ENCODED_CONTENT_TYPE);
@@ -70,6 +71,14 @@ public function exchangeJWTWithToken(string jwt) returns (gen:TokensResponse | e
         error err = error(io:sprintf("Failed to call IdP token endpoint with status code ", response.statusCode));
         return err;
     } else {
+        string idToken = <string>responsePayload.id_token;
+        string subject = check extractSubject(idToken);
+        if(!userId.equalsIgnoreCase(subject)) {
+             error err = error(io:sprintf("Authenticated user does not match with the subject of the retrieved token : " + userId,
+              401));
+             return err;
+        }
+        log:printInfo("Subject derieved from ID Token:" + subject);
         gen:TokensResponse tokens = {
             accessToken: <string>responsePayload.access_token,
             idToken: ""
@@ -77,4 +86,16 @@ public function exchangeJWTWithToken(string jwt) returns (gen:TokensResponse | e
         log:printDebug("Successfully retrieved tokens from IdP");
         return tokens;
     }
+}
+
+public function extractSubject(string jwt) returns error  | string{
+    log:printDebug("Decoding jwt token body :" + jwt);
+    string[] split_string = jwt.split("\\."); // Split the string
+    string base64EncodedBody = split_string[1]; // Payload part
+    byte[] bodyBytes = check encoding:decodeBase64(base64EncodedBody);
+    string body = encoding:byteArrayToString(bodyBytes, encoding = "utf-8");
+    log:printDebug("Decoded jwt token body :" + body);
+    io:StringReader sr = new(body, encoding = "UTF-8");
+    json jsonBody = check sr.readJson();
+    return <string>jsonBody.sub;
 }
