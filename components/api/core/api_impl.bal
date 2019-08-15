@@ -67,6 +67,12 @@ public function getTokens(http:Request getTokensReq) returns http:Response {
 # + return - Return Value Description
 public function exchangeTokensWithJWTGrant(http:Request getTokensReq) returns http:Response {
 
+    if (!getTokensReq.hasHeader(constants:AUTHENTICATED_USER)) {
+        return buildErrorResponse(http:UNAUTHORIZED_401, constants:API_ERROR_CODE, 
+        "Unable exchange token since no authenticated user found", "Unauthenticated request. Auth token is not provided");
+    }
+
+    string userId = getTokensReq.getHeader(constants:AUTHENTICATED_USER);
     json | error body = getTokensReq.getJsonPayload();
     if (body is error) {
         log:printError("Did not recieve a body in token exchange reqeust", err = body);
@@ -79,7 +85,7 @@ public function exchangeTokensWithJWTGrant(http:Request getTokensReq) returns ht
         } else {
             log:printDebug(jwt);
             log:printError("JWT token extracted : " + jwt);
-            var tokens = idp:exchangeJWTWithToken(jwt);
+            var tokens = idp:exchangeJWTWithToken(jwt, userId);
             if (tokens is gen:TokensResponse) {
                 var jsonPayload = json.convert(tokens);
                 if (jsonPayload is json) {
