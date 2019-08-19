@@ -24,8 +24,10 @@ import ballerina/transactions;
 import cellery_hub_api/constants;
 import cellery_hub_api/db;
 import cellery_hub_api/idp;
+import cellery_hub_api/docker_registry;
 import ballerina/sql;
 import ballerina/encoding;
+import cellery_hub_api/filter;
 
 # Get Auth Tokens.
 #
@@ -835,6 +837,7 @@ public function deleteArtifact (http:Request deleteArtifactReq, string orgName, 
         if (deletedRowCount is int) {
             if (deletedRowCount == 1) {
                 log:printInfo(io:sprintf("Successfully deleted the artifact \'%s/%s:%s\' by user \'%s\'", orgName, imageName, artifactVersion, userId));
+                deleteArtifactFromRegistry(deleteArtifactReq, orgName, imageName, artifactVersion);
                 return buildSuccessResponse();
             } else if (deletedRowCount == 0) {
                 log:printDebug(io:sprintf("Failed to delete the artifact \'%s/%s:%s\'. No matching records found", orgName, imageName, artifactVersion));
@@ -873,7 +876,7 @@ public function deleteImage (http:Request deleteImageReq, string orgName, string
             if (deletedRowCount is int) {
                 if (deletedRowCount == 1) {
                     log:printInfo(io:sprintf("Successfully deleted the image \'%s/%s\' by user \'%s\'", orgName, imageName, userId));
-                    resp = buildSuccessResponse();           
+                    resp = buildSuccessResponse();
                 } else if (deletedRowCount == 0) {
                     log:printError(io:sprintf("Failed to delete the image \'%s/%s\'. No matching records found", orgName, imageName));
                     resp = buildErrorResponse(http:NOT_FOUND_404, constants:API_ERROR_CODE, "Unable to delete image", "No matching records found");
@@ -924,7 +927,7 @@ public function deleteOrganization (http:Request deleteOrganizationReq, string o
             if (deletedRowCount is int) {
                 if (deletedRowCount == 1) {
                     log:printInfo(io:sprintf("Successfully deleted the organization \'%s\' by user \'%s\'", orgName, userId));
-                    resp = buildSuccessResponse();           
+                    resp = buildSuccessResponse();
                 } else if (deletedRowCount == 0) {
                     log:printError(io:sprintf("Failed to delete the organization \'%s\'. No matching records found", orgName));
                     resp = buildErrorResponse(http:NOT_FOUND_404, constants:API_ERROR_CODE, "Unable to delete organization", "No matching records found");

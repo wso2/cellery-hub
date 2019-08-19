@@ -115,7 +115,7 @@ public type validateRequestFilter object {
     }
 };
 
-function getCookie(string cookiesString) returns string | error {
+public function getCookie(string cookiesString) returns string | error {
     string cookieValue = "";
     string[] cookies = cookiesString.split("\\s*;\\s*");
     foreach string cookie in cookies {
