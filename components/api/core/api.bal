@@ -200,13 +200,30 @@ service CelleryHubAPI on ep {
     resource function getTokens(http:Caller outboundEp, http:Request _getTokensReq) returns error? {
         http:Response _getTokensRes;
         if ("get".equalsIgnoreCase(_getTokensReq.method)) {
-          log:printDebug("Recieved a get request to token endpoint. Interpretting it as auth code reqeust");
-          _getTokensRes = getTokens(_getTokensReq);
+            log:printDebug("Recieved a get request to token endpoint. Interpretting it as auth code reqeust");
+            _getTokensRes = getTokens(_getTokensReq);
         } else {
-          log:printDebug("Recieved a post request to token endpoint. Assuming token exchange request");
-          _getTokensRes = exchangeTokensWithJWTGrant(_getTokensReq);
+            log:printDebug("Recieved a post request to token endpoint. Assuming token exchange request");
+            _getTokensRes = exchangeTokensWithJWTGrant(_getTokensReq);
         }
         error? x = outboundEp->respond(_getTokensRes);
+    }
+
+     @http:ResourceConfig {
+        methods: ["GET", "POST"],
+        path: "/auth/revoke"
+    }
+    resource function revokeToken(http:Caller outboundEp, http:Request _revokeReqeust) returns error? {
+        http:Response _revokeTokensRes;
+    
+        if ("get".equalsIgnoreCase(_revokeReqeust.method)) {
+            log:printDebug("Recieved a get request to revoke endpoint. Logging out");
+            _revokeTokensRes = revokeToken(_revokeReqeust, true);
+        } else {
+            log:printDebug("Recieved a post request to revoke endpoint. Assuming revocation for CLI token");
+            _revokeTokensRes = revokeToken(_revokeReqeust, false);
+        } 
+        error? x = outboundEp->respond(_revokeTokensRes);
     }
 
     @openapi:ResourceInfo {
@@ -699,38 +716,38 @@ service CelleryHubAPI on ep {
     @openapi:ResourceInfo {
         summary: "Update an existing artifact",
         parameters: [
-            {
-                name: "orgName",
-                inInfo: "path",
-                paramType: "string",
-                description: "Name of the organization",
-                required: true,
-                allowEmptyValue: ""
-            },
-            {
-                name: "imageName",
-                inInfo: "path",
-                paramType: "string",
-                description: "Name of the image",
-                required: true,
-                allowEmptyValue: ""
-            },
-            {
-                name: "artifactVersion",
-                inInfo: "path",
-                paramType: "string",
-                description: "Version of the artifact",
-                required: true,
-                allowEmptyValue: ""
-            }
+        {
+            name: "orgName",
+            inInfo: "path",
+            paramType: "string",
+            description: "Name of the organization",
+            required: true,
+            allowEmptyValue: ""
+        },
+        {
+            name: "imageName",
+            inInfo: "path",
+            paramType: "string",
+            description: "Name of the image",
+            required: true,
+            allowEmptyValue: ""
+        },
+        {
+            name: "artifactVersion",
+            inInfo: "path",
+            paramType: "string",
+            description: "Version of the artifact",
+            required: true,
+            allowEmptyValue: ""
+        }
         ]
     }
     @http:ResourceConfig {
-        methods:["PUT"],
-        path:"/artifacts/{orgName}/{imageName}/{artifactVersion}",
-        body:"_updateArtifactBody"
+        methods: ["PUT"],
+        path: "/artifacts/{orgName}/{imageName}/{artifactVersion}",
+        body: "_updateArtifactBody"
     }
-    resource function updateArtifact (http:Caller outboundEp, http:Request _updateArtifactReq, string orgName, string imageName, string artifactVersion, 
+    resource function updateArtifact(http:Caller outboundEp, http:Request _updateArtifactReq, string orgName, string imageName, string artifactVersion,
     gen:ArtifactUpdateRequest _updateArtifactBody) returns error? {
         http:Response _updateArtifactRes = updateArtifact(_updateArtifactReq, orgName, imageName, artifactVersion, _updateArtifactBody);
         error? x = outboundEp->respond(_updateArtifactRes);
@@ -739,22 +756,22 @@ service CelleryHubAPI on ep {
     @openapi:ResourceInfo {
         summary: "Update an existing organization",
         parameters: [
-            {
-                name: "orgName",
-                inInfo: "path",
-                paramType: "string",
-                description: "Name of the organization",
-                required: true,
-                allowEmptyValue: ""
-            }
+        {
+            name: "orgName",
+            inInfo: "path",
+            paramType: "string",
+            description: "Name of the organization",
+            required: true,
+            allowEmptyValue: ""
+        }
         ]
     }
     @http:ResourceConfig {
-        methods:["PUT"],
-        path:"/orgs/{orgName}",
-        body:"_updateOrganizationBody"
+        methods: ["PUT"],
+        path: "/orgs/{orgName}",
+        body: "_updateOrganizationBody"
     }
-    resource function updateOrganization (http:Caller outboundEp, http:Request _updateOrganizationReq, string orgName, 
+    resource function updateOrganization(http:Caller outboundEp, http:Request _updateOrganizationReq, string orgName,
     gen:OrgUpdateRequest _updateOrganizationBody) returns error? {
         http:Response _updateOrganizationRes = updateOrganization(_updateOrganizationReq, orgName, _updateOrganizationBody);
         error? x = outboundEp->respond(_updateOrganizationRes);

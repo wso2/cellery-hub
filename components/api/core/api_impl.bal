@@ -61,6 +61,60 @@ public function getTokens(http:Request getTokensReq) returns http:Response {
     }
 }
 
+# Revoke a token.
+#
+# + revokeTokenReq - getTokensReq Parameter Description
+# + return - Return Value Description
+public function revokeToken(http:Request revokeTokenReq, boolean isPortalToken) returns http:Response {
+
+    if (isPortalToken) {
+        if(revokeTokenReq.hasHeader(constants:CONSTRUCTED_TOKEN)) {
+            var revokeResponse = idp:revokeToken(revokeTokenReq.getHeader(constants:CONSTRUCTED_TOKEN), config:getAsString("idp.oidc.clientid"),
+            config:getAsString("idp.oidc.clientsecret"));
+            if (revokeResponse is error) {
+                log:printError("Error occured while invoking revocation endpoint", err = revokeResponse);
+                    return buildErrorResponse(http:INTERNAL_SERVER_ERROR_500, constants:API_ERROR_CODE, 
+                    "Error occured while invoking revoke endpoint", "Error occured while invoking revoke endpoint");
+            } else {
+                return buildSuccessResponse();
+            }
+        }
+        return buildErrorResponse(http:INTERNAL_SERVER_ERROR_500, constants:API_ERROR_CODE, 
+            "No valid token found in the get request", "Error occured while invoking revoke endpoint");
+    } else if (!revokeTokenReq.hasHeader(constants:AUTHENTICATED_USER)) {
+            return buildErrorResponse(http:UNAUTHORIZED_401, constants:API_ERROR_CODE, 
+            "Valid username is not found", "Either token is invalid or not present"); 
+    } else {
+        json | error body = revokeTokenReq.getJsonPayload();
+        if (body is error) {
+            log:printError("Did not recieve a body in revoke post request", err = body);
+            return buildUnknownErrorResponse();
+        } else {
+            string | error token = string.convert(body.token);
+            if (token is error) {
+                log:printError("Error occured while converting revoke body to token", err = token);
+                return buildUnknownErrorResponse();
+            } else {
+                var validateUsernameResponse = idp:validateUsername(token, revokeTokenReq.getHeader(constants:AUTHENTICATED_USER));
+                if (validateUsernameResponse is error) {
+                    log:printError("Error occured while invoking revocation endpoint", err = validateUsernameResponse);
+                    return buildErrorResponse(http:UNAUTHORIZED_401, constants:API_ERROR_CODE, 
+                    "Error occured while validating username", "Error occured while validating username");
+                }
+                var revokeResponse = idp:revokeToken(token, config:getAsString("idp.jwt.bearer.grant.clientid"),
+                config:getAsString("idp.jwt.bearer.grant.clientsecret"));
+                if (revokeResponse is error) {
+                    log:printError("Error occured while invoking revocation endpoint", err = revokeResponse);
+                    return buildErrorResponse(http:INTERNAL_SERVER_ERROR_500, constants:API_ERROR_CODE, 
+                    "Error occured while invoking revoke endpoint", "Probably due to invalid session");
+                } else {
+                    return buildSuccessResponse();
+                }
+            }
+        }        
+    } 
+}
+
 # Get Auth Tokens using JWT grant type.
 #
 # + getTokensReq - JWT Parameter Description
@@ -83,8 +137,7 @@ public function exchangeTokensWithJWTGrant(http:Request getTokensReq) returns ht
             log:printError("Error while extracting jwt from request body", err = jwt);
             return buildUnknownErrorResponse();
         } else {
-            log:printDebug(jwt);
-            log:printError("JWT token extracted : " + jwt);
+            log:printDebug("JWT token extracted : " + jwt);
             var tokens = idp:exchangeJWTWithToken(jwt, userId);
             if (tokens is gen:TokensResponse) {
                 var jsonPayload = json.convert(tokens);

@@ -19,6 +19,7 @@
 public const string APPLICATION_URL_ENCODED_CONTENT_TYPE = "application/x-www-form-urlencoded";
 
 public const string AUTHENTICATED_USER = "x-cellery-hub-user";
+public const string CONSTRUCTED_TOKEN = "x-cellery-hub-user-token";
 public const string G_CAPTCHA_RESPONSE = "g-recaptcha-response";
 public const string SET_COOKIE_HEADER = "Set-Cookie";
 
