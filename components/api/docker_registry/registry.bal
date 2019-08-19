@@ -21,7 +21,7 @@ import ballerina/http;
 import ballerina/io;
 import ballerina/log;
 
-http:Client dockerRegistryClientEP = new("https://docker-registry-hub:5000", config = {
+http:Client dockerRegistryClientEP = new(config:getAsString("docker.registry.url"), config = {
     secureSocket: {
         trustStore: {
             path: config:getAsString("security.truststore"),
@@ -82,7 +82,7 @@ public function deleteArtifactFromRegistry(string orgName, string imageName, str
 public function getTokenFromDockerAuthForGetManifest(string userName, string token, string registryScope) returns string {
     log:printDebug(io:sprintf("Invoking docker auth API for get token to getManifests"));
     string jwtToken = "";
-    http:Client dockerAuthClientEP = new("https://cellery-hub-hub-docker-auth:5001", config = {
+    http:Client dockerAuthClientEP = new(config:getAsString("docker.auth.url"), config = {
         auth: {
             scheme: http:BASIC_AUTH,
             config: {
@@ -116,22 +116,6 @@ public function getTokenFromDockerAuthForGetManifest(string userName, string tok
 public function getManifestFromDockerRegistry(string userName, string token, string artifactVersion, string bearerToken, string registryScope) returns string {
     log:printDebug(io:sprintf("Calling docker registry API with bearer token to get manifest"));
     string getManifestEndPoint = io:sprintf("/v2/%s/manifests/%s", registryScope.split(":")[1], artifactVersion);
-    http:Client dockerAuthClientEP = new("https://cellery-hub-hub-docker-auth:5001", config = {
-        auth: {
-            scheme: http:BASIC_AUTH,
-            config: {
-                username: userName,
-                password: token
-            }
-        },
-        secureSocket: {
-            trustStore: {
-                path: config:getAsString("security.truststore"),
-                password: config:getAsString("security.truststorepass")
-            },
-            verifyHostname: false
-        }
-    });
     
     string manifestDigest = "";
     http:Request dockerRegistryRequest = new;
@@ -144,7 +128,7 @@ public function getManifestFromDockerRegistry(string userName, string token, str
         log:printDebug(io:sprintf("Manifest payload : %s", manifestPayload));  
         log:printDebug(io:sprintf("Manifest Digest: %s", manifestDigest));         
     } else {
-        log:printError(io:sprintf("Error when calling the dockerAuthClientEP : %s", getManifestResponse.reason()), err = getManifestResponse);
+        log:printError(io:sprintf("Error when calling the docker registry with token for get manifest: %s", getManifestResponse.reason()), err = getManifestResponse);
     }
     return manifestDigest;
 }
@@ -152,22 +136,7 @@ public function getManifestFromDockerRegistry(string userName, string token, str
 public function deleteManifestFromDockerRegistry(string userName, string token, string manifestDigest, string bearerToken, string registryScope) returns int {
     log:printDebug(io:sprintf("Invoking docker auth API for deleteManifest"));
     string deleteEndPoint = io:sprintf("/v2/%s/manifests/%s", registryScope.split(":")[1], manifestDigest);
-    http:Client dockerAuthClientEP = new("https://cellery-hub-hub-docker-auth:5001", config = {
-        auth: {
-            scheme: http:BASIC_AUTH,
-            config: {
-                username: userName,
-                password: token
-            }
-        },
-        secureSocket: {
-            trustStore: {
-                path: config:getAsString("security.truststore"),
-                password: config:getAsString("security.truststorepass")
-            },
-            verifyHostname: false
-        }
-    });
+
     http:Request dockerRegistryRequest = new;
     dockerRegistryRequest.addHeader("Authorization", "Bearer " + bearerToken);
     var deleteManifestResponse = dockerRegistryClientEP->delete(deleteEndPoint, dockerRegistryRequest);
@@ -176,7 +145,7 @@ public function deleteManifestFromDockerRegistry(string userName, string token, 
         int deleteManifestStatusCode = deleteManifestResponse.statusCode;
         return deleteManifestStatusCode;
     } else {
-        log:printError(io:sprintf("Error when calling the dockerAuthClientEP : %s", deleteManifestResponse.reason()), err = deleteManifestResponse);
+        log:printError(io:sprintf("Error when calling the docker registry with token for delete manifest : %s", deleteManifestResponse.reason()), err = deleteManifestResponse);
         return http:INTERNAL_SERVER_ERROR_500;
     }
 }
