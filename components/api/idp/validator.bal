@@ -25,6 +25,7 @@ import ballerina/io;
 public type TokenDetail record {
     string username;
     int expiryTime;
+    int storedTime;
 };
 
 # This is used to validate the token comming in and returning token detail consists of expiry time and username
@@ -51,7 +52,8 @@ public function getTokenDetails(string token) returns (TokenDetail)|error {
         var fullyQualifiedUsername = check string.convert(result.username);
         TokenDetail tokenDetail = {
             username: fullyQualifiedUsername.split("@")[0],
-            expiryTime: check int.convert(result.exp)
+            expiryTime: check int.convert(result.exp),
+            storedTime: time:currentTime().time
         };
         if (isValid) {
             if (tokenDetail.username != "") || (tokenDetail.expiryTime == 0) {

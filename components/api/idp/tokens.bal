@@ -51,6 +51,23 @@ public function getTokens(string authCode, string callbackUrl) returns (gen:Toke
         return tokens;
     }
 }
+public function revokeToken(string accessToken, string clientId, string clientSecret) returns error? {
+    http:Request revocationReq = new;
+    var reqBody = io:sprintf("token=%s&token_type_hint=access_token", accessToken);
+    revocationReq.setTextPayload(reqBody, contentType = constants:APPLICATION_URL_ENCODED_CONTENT_TYPE);
+    // TODO There is a bug on ballerina that when there are more than one global client endpoints,
+    // we have to reinitialize the endpoint. Need to remove this after the bug on this in ballerina is fixed
+    http:Client oidcProviderClientEP = getOidcProviderClientEP(clientId,clientSecret);
+    log:printDebug("Sending revocation reqesut to IDP "); 
+    var response = check oidcProviderClientEP->post(config:getAsString("idp.revocation.endpoint"), revocationReq);
+    if (response.statusCode >= 400) {
+        error err = error(io:sprintf("Failed to call IdP token endpoint with status code ", response.statusCode));
+        return err;
+    } else {
+        log:printDebug("Successfully revoked token. Status code recieved: " + response.statusCode); 
+    }
+}
+
 
 public function exchangeJWTWithToken(string jwt, string userId) returns (gen:TokensResponse | error) {
     http:Request tokenReq = new;
@@ -74,9 +91,9 @@ public function exchangeJWTWithToken(string jwt, string userId) returns (gen:Tok
         string idToken = <string>responsePayload.id_token;
         string subject = check extractSubject(idToken);
         if(!userId.equalsIgnoreCase(subject)) {
-             error err = error(io:sprintf("Authenticated user does not match with the subject of the retrieved token : " + userId,
+            error err = error(io:sprintf("Authenticated user does not match with the subject of the retrieved token : " + userId,
               401));
-             return err;
+            return err;
         }
         log:printInfo("Subject derieved from ID Token:" + subject);
         gen:TokensResponse tokens = {
@@ -98,4 +115,13 @@ public function extractSubject(string jwt) returns error  | string{
     io:StringReader sr = new(body, encoding = "UTF-8");
     json jsonBody = check sr.readJson();
     return <string>jsonBody.sub;
+}
+
+public function validateUsername(string token, string userId) returns error? {
+    TokenDetail tokenDetail = check getTokenDetails(untaint token);
+    if(!userId.equalsIgnoreCase(tokenDetail.username)) {
+        error err = error(io:sprintf("Authenticated user does not match with the subject of the token passed for 
+        revoking: " + userId, 401));
+        return err;
+    }
 }

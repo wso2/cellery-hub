@@ -31,6 +31,7 @@ max.allowd.organization.count=3
 [idp]
 endpoint="https://idp.hub.cellery.io:9443"
 token.endpoint="/oauth2/token"
+revocation.endpoint="/oauth2/revoke"
 introspection.endpoint="/oauth2/introspect"
 scim2.user.endpoint="/scim2/Users"
 username="admin"

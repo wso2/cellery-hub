@@ -26,8 +26,9 @@ import ballerina/cache;
 import cellery_hub_api/idp;
 import cellery_hub_api/constants;
 
+int tokenCacheExpiaryTime = config:getAsInt(constants:CACHE_EXPIRY_VAR);
 cache:Cache cache = new(capacity = config:getAsInt(constants:CACHE_CAPACITY_VAR), 
-                        expiryTimeMillis = config:getAsInt(constants:CACHE_EXPIRY_VAR));
+                        expiryTimeMillis = tokenCacheExpiaryTime);
 
 public type validateRequestFilter object {
     public function filterRequest(http:Caller caller, http:Request request,
@@ -57,9 +58,14 @@ public type validateRequestFilter object {
                     return true;
                 }
             }
+            if(request.rawPath.contains("/auth/revoke") && "get".equalsIgnoreCase(request.method)) {
+                processLogout(request, token);
+                return true;
+            }
             idp:TokenDetail | error tokenDetail = {
                 username: "",
-                expiryTime: 0
+                expiryTime: 0,
+                storedTime: time:currentTime().time
             };
             if (cache.hasKey(token)) {
                 idp:TokenDetail cachedTokenDetail = <idp:TokenDetail>cache.get(token);
@@ -68,9 +74,15 @@ public type validateRequestFilter object {
                     cache.remove(token);
                     return true;
                 } else {
-                    request.setHeader(constants:AUTHENTICATED_USER, cachedTokenDetail.username);
-                    log:printDebug(io:sprintf("Resolved user as %s from the cache", cachedTokenDetail.username));
-                    return true;
+                    log:printDebug(io:sprintf("Configured stored time based cache expiary is: " + tokenCacheExpiaryTime));
+                    if (cachedTokenDetail.storedTime + tokenCacheExpiaryTime < time:currentTime().time) {
+                        log:printDebug("Token cache entry first stored before configured time. Hence validating again with IDP");
+                        tokenDetail = idp:getTokenDetails(untaint token);
+                    } else {
+                        request.setHeader(constants:AUTHENTICATED_USER, cachedTokenDetail.username);
+                        log:printDebug(io:sprintf("Resolved user as %s from the cache", cachedTokenDetail.username));
+                        return true;
+                    }
                 }
             } else {
                 tokenDetail = idp:getTokenDetails(untaint token);
@@ -139,5 +151,17 @@ function isExpired(int timeVal) returns boolean {
         log:printDebug(io:sprintf("The system time is %d and the expiry time is %d",
         timeNow / 1000, timeVal));
         return true;
+    }
+}
+
+function processLogout(http:Request request, string token) {
+
+    log:printDebug(io:sprintf("Checking whether the request is a logout request."));
+    if (token != "") {
+        log:printDebug(io:sprintf("logout request intercepted. Removing token from cache."));
+        request.setHeader(constants:CONSTRUCTED_TOKEN, token);
+        cache.remove(token);
+    } else {
+        log:printDebug(io:sprintf("Does not contain a token in the request"));
     }
 }
