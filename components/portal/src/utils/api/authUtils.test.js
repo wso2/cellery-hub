@@ -48,7 +48,7 @@ describe("AuthUtils", () => {
     });
 
     describe("signOut()", () => {
-        it("should unset the user in the state", () => {
+        it("should unset the user in the state", async () => {
             const stateHolder = new StateHolder();
             localStorage.setItem(StateHolder.USER, JSON.stringify(loggedInUser));
             stateHolder.state[StateHolder.USER] = {
@@ -73,7 +73,7 @@ describe("AuthUtils", () => {
                 const endpoint = `${stateHolder.get(StateHolder.CONFIG).idp.url}${AuthUtils.LOGOUT_ENDPOINT}`;
                 expect(location).toEqual(`${endpoint}${HttpUtils.generateQueryParamString(params)}`);
             });
-            AuthUtils.signOut(stateHolder);
+            await AuthUtils.signOut(stateHolder);
             expect(localStorage.getItem(StateHolder.USER)).toBeNull();
             window.location.assign.mockClear();
         });
