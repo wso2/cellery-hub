@@ -66,13 +66,8 @@ function deleteArtifactFromRegistry (http:Request deleteArtifactReq, string orgN
 
     log:printInfo(io:sprintf("Deleting the artifact \'%s/%s:%s\' from the registry", orgName, imageName, artifactVersion));
 
-    string registryScopeForGetManifest = docker_registry:getDockerManifestDigest(orgName, imageName, artifactVersion);
-    log:printDebug(io:sprintf("Registry scope for getManifest : %s", registryScopeForGetManifest));
+    string manifestDigest = getManifestDigest(orgName, imageName, artifactVersion, "", userId, token);
 
-    string tokenToGetManifestDigest = docker_registry:getTokenFromDockerAuthForGetManifest(userId, token, registryScopeForGetManifest);
-    log:printDebug(io:sprintf("Token to get manifest digest : %s", tokenToGetManifestDigest));
-
-    string manifestDigest = docker_registry:getManifestFromDockerRegistry(orgName, imageName, artifactVersion, tokenToGetManifestDigest);
     log:printDebug(io:sprintf("Manifest digest : %s", manifestDigest));
 
     string registryScopeForDelete = docker_registry:deleteArtifactFromRegistry(orgName, imageName, manifestDigest);
@@ -88,4 +83,35 @@ function deleteArtifactFromRegistry (http:Request deleteArtifactReq, string orgN
     } else {
         log:printError(io:sprintf("Failed to delete artifact \'%s/%s:%s\' from the registry", orgName, imageName, artifactVersion));
     }
+}
+
+function getManifestDigest (string orgName, string imageName, string artifactVersion, string bearerToken, string userId, string token) returns string {
+    string manifestDigest = "";
+
+    var responseForGetManifest = docker_registry:getDockerManifestDigest(orgName, imageName, artifactVersion, bearerToken = bearerToken);
+    if (responseForGetManifest is http:Response) {
+        log:printDebug(io:sprintf("Received status code for getManifestDigest: %d", responseForGetManifest.statusCode));
+        if (responseForGetManifest.statusCode == http:UNAUTHORIZED_401) {
+            var payload = responseForGetManifest.getJsonPayload();
+            if (payload is json) {
+                log:printDebug(io:sprintf("Received payload from docker registry: %s", payload));
+                string requestType = payload["errors"][0]["detail"][0]["Type"].toString();
+                string name = payload["errors"][0]["detail"][0]["Name"].toString();
+                string actions = payload["errors"][0]["detail"][0]["Action"].toString();
+                string registryScopeForGetManifest = io:sprintf("%s:%s:%s", requestType, name, actions);
+
+                log:printDebug(io:sprintf("Registry scope for getManifest : %s", registryScopeForGetManifest));       
+
+                string tokenToGetManifestDigest = docker_registry:getTokenFromDockerAuthForGetManifest(userId, token, registryScopeForGetManifest);
+                log:printDebug(io:sprintf("Token to get manifest digest : %s", tokenToGetManifestDigest));        
+
+                return getManifestDigest (orgName, imageName, artifactVersion, tokenToGetManifestDigest, userId, token); 
+            }
+        } else if (responseForGetManifest.statusCode == http:OK_200) {
+            manifestDigest = responseForGetManifest.getHeader("Docker-Content-Digest");
+            log:printDebug(io:sprintf("Manifest Digest: %s", manifestDigest));
+            return manifestDigest;
+        }
+    }
+    return manifestDigest;    
 }

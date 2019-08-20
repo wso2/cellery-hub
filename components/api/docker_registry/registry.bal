@@ -31,28 +31,24 @@ http:Client dockerRegistryClientEP = new(config:getAsString("docker.registry.url
     }
 });
 
-public function getDockerManifestDigest(string orgName, string imageName, string imageVersion) returns string {
+public function getDockerManifestDigest(string orgName, string imageName, string artifactVersion, string bearerToken = "") returns http:Response? | error {
     log:printDebug(io:sprintf("Invoking docker registry get manifests API"));
-    string getManifestEndPoint = io:sprintf("/v2/%s/%s/manifests/%s", orgName, imageName, imageVersion);
-    var response = dockerRegistryClientEP->get(getManifestEndPoint, message = "");
-    string requestType = "";
-    string name = "";
-    string actions = "";
+    string getManifestEndPoint = io:sprintf("/v2/%s/%s/manifests/%s", orgName, imageName, artifactVersion);
+    log:printDebug(io:sprintf("Reached getDockerManifestDigest with bearer token %s", bearerToken));
+
+    http:Request dockerRegistryRequest = new;
+    dockerRegistryRequest.addHeader("Authorization", "Bearer " + bearerToken);
+
+    var response = dockerRegistryClientEP->get(getManifestEndPoint, message = dockerRegistryRequest);
+
     if (response is http:Response) {
-        log:printDebug(io:sprintf("Received Status Code : %d", response.statusCode));
-        if (response.statusCode == http:UNAUTHORIZED_401) {
-            var payload = response.getJsonPayload();
-            if (payload is json) {
-                log:printDebug(io:sprintf("Received payload from docker registry: %s", payload));
-                requestType = payload["errors"][0]["detail"][0]["Type"].toString();
-                name = payload["errors"][0]["detail"][0]["Name"].toString();
-                actions = payload["errors"][0]["detail"][0]["Action"].toString();           
-            }
-        }
+        return response;
     }  else {
-        log:printError(io:sprintf("Error when calling the dockerRegistryClientEP : %s", response.reason()), err = response);
+        string errMsg = io:sprintf("Error when calling the dockerRegistryClientEP for fetching manifest of \'%s/%s:%s\'", orgName, imageName, artifactVersion);
+        log:printError(errMsg, err = response);
+        error er = error(errMsg);
+        return er;
     }
-    return io:sprintf("%s:%s:%s", requestType, name, actions);
 }
 
 public function deleteArtifactFromRegistry(string orgName, string imageName, string digest) returns string {
@@ -111,26 +107,6 @@ public function getTokenFromDockerAuthForGetManifest(string userName, string tok
         log:printError(io:sprintf("Error when calling the dockerAuthClientEP : %s", authResponse.reason()), err = authResponse);
     }
     return jwtToken;
-}
-
-public function getManifestFromDockerRegistry(string orgName, string imageName, string artifactVersion, string bearerToken) returns string {
-    log:printDebug(io:sprintf("Calling docker registry API with bearer token to get manifest"));
-    string getManifestEndPoint = io:sprintf("/v2/%s/%s/manifests/%s", orgName, imageName, artifactVersion);
-    
-    string manifestDigest = "";
-    http:Request dockerRegistryRequest = new;
-    dockerRegistryRequest.addHeader("Authorization", "Bearer " + bearerToken);
-    var getManifestResponse = dockerRegistryClientEP->get(getManifestEndPoint, message = dockerRegistryRequest);
-    log:printDebug(io:sprintf("Received payload for get manifest: %s", getManifestResponse));
-    if (getManifestResponse is http:Response) {
-        var manifestPayload = getManifestResponse.getJsonPayload();
-        manifestDigest = getManifestResponse.getHeader("Docker-Content-Digest");
-        log:printDebug(io:sprintf("Manifest payload : %s", manifestPayload));  
-        log:printDebug(io:sprintf("Manifest Digest: %s", manifestDigest));         
-    } else {
-        log:printError(io:sprintf("Error when calling the docker registry with token for get manifest: %s", getManifestResponse.reason()), err = getManifestResponse);
-    }
-    return manifestDigest;
 }
 
 public function deleteManifestFromDockerRegistry(string orgName, string imageName, string manifestDigest, string bearerToken) returns int {
