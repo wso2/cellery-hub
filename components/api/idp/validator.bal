@@ -38,7 +38,7 @@ public function getTokenDetails(string token) returns (TokenDetail)|error {
     error ? x = req.setContentType(constants:APPLICATION_URL_ENCODED_CONTENT_TYPE);
     // TODO There is a bug on ballerina that when there are more than one global client endpoints,
     // we have to reinitialize the endpoint. Need to remove this after the bug on this in ballerina is fixed
-    http:Client idpClientEP = getClientEP();
+    http:Client idpClientEP = getBasicAuthIDPClient(config:getAsString("idp.username"),config:getAsString("idp.password"));
     var response = idpClientEP->post(config:getAsString(constants:IDP_INTROSPCET_VAR), req);
     if (response is http:Response) {
         if (response.statusCode < 200 || response.statusCode > 300){
