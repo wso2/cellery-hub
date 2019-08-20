@@ -113,9 +113,9 @@ public function getTokenFromDockerAuthForGetManifest(string userName, string tok
     return jwtToken;
 }
 
-public function getManifestFromDockerRegistry(string userName, string token, string artifactVersion, string bearerToken, string registryScope) returns string {
+public function getManifestFromDockerRegistry(string orgName, string imageName, string artifactVersion, string bearerToken) returns string {
     log:printDebug(io:sprintf("Calling docker registry API with bearer token to get manifest"));
-    string getManifestEndPoint = io:sprintf("/v2/%s/manifests/%s", registryScope.split(":")[1], artifactVersion);
+    string getManifestEndPoint = io:sprintf("/v2/%s/%s/manifests/%s", orgName, imageName, artifactVersion);
     
     string manifestDigest = "";
     http:Request dockerRegistryRequest = new;
@@ -133,9 +133,9 @@ public function getManifestFromDockerRegistry(string userName, string token, str
     return manifestDigest;
 }
 
-public function deleteManifestFromDockerRegistry(string userName, string token, string manifestDigest, string bearerToken, string registryScope) returns int {
+public function deleteManifestFromDockerRegistry(string orgName, string imageName, string manifestDigest, string bearerToken) returns int {
     log:printDebug(io:sprintf("Invoking docker auth API for deleteManifest"));
-    string deleteEndPoint = io:sprintf("/v2/%s/manifests/%s", registryScope.split(":")[1], manifestDigest);
+    string deleteEndPoint = io:sprintf("/v2/%s/%s/manifests/%s", orgName, imageName, manifestDigest);
 
     http:Request dockerRegistryRequest = new;
     dockerRegistryRequest.addHeader("Authorization", "Bearer " + bearerToken);

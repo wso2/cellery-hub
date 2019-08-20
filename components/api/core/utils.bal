@@ -72,7 +72,7 @@ function deleteArtifactFromRegistry (http:Request deleteArtifactReq, string orgN
     string tokenToGetManifestDigest = docker_registry:getTokenFromDockerAuthForGetManifest(userId, token, registryScopeForGetManifest);
     log:printDebug(io:sprintf("Token to get manifest digest : %s", tokenToGetManifestDigest));
 
-    string manifestDigest = docker_registry:getManifestFromDockerRegistry(userId, token, artifactVersion, tokenToGetManifestDigest, registryScopeForGetManifest);
+    string manifestDigest = docker_registry:getManifestFromDockerRegistry(orgName, imageName, artifactVersion, tokenToGetManifestDigest);
     log:printDebug(io:sprintf("Manifest digest : %s", manifestDigest));
 
     string registryScopeForDelete = docker_registry:deleteArtifactFromRegistry(orgName, imageName, manifestDigest);
@@ -81,7 +81,7 @@ function deleteArtifactFromRegistry (http:Request deleteArtifactReq, string orgN
     string tokenToDeleteManifest = docker_registry:getTokenFromDockerAuthForGetManifest(userId, token, registryScopeForDelete);
     log:printDebug(io:sprintf("Token to delete manifest : %s", tokenToDeleteManifest));
 
-    int deleteStatusCode = docker_registry:deleteManifestFromDockerRegistry(userId, token, manifestDigest, tokenToDeleteManifest, registryScopeForDelete);
+    int deleteStatusCode = docker_registry:deleteManifestFromDockerRegistry(orgName, imageName, manifestDigest, tokenToDeleteManifest);
 
     if (deleteStatusCode == http:ACCEPTED_202){
         log:printDebug(io:sprintf("Artifact \'%s/%s:%s\' is successfully deleted from the registry", orgName, imageName, artifactVersion));
