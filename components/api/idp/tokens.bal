@@ -30,7 +30,7 @@ public function getTokens(string authCode, string callbackUrl) returns (gen:Toke
     tokenReq.setTextPayload(reqBody, contentType = constants:APPLICATION_URL_ENCODED_CONTENT_TYPE);
     // TODO There is a bug on ballerina that when there are more than one global client endpoints,
     // we have to reinitialize the endpoint. Need to remove this after the bug on this in ballerina is fixed
-    http:Client oidcProviderClientEP = getOidcProviderClientEP(config:getAsString("idp.oidc.clientid"),
+    http:Client oidcProviderClientEP = getBasicAuthIDPClient(config:getAsString("idp.oidc.clientid"),
     config:getAsString("idp.oidc.clientsecret"));
     var response = check oidcProviderClientEP->post(config:getAsString("idp.token.endpoint"), tokenReq);
 
@@ -57,9 +57,9 @@ public function revokeToken(string accessToken, string clientId, string clientSe
     revocationReq.setTextPayload(reqBody, contentType = constants:APPLICATION_URL_ENCODED_CONTENT_TYPE);
     // TODO There is a bug on ballerina that when there are more than one global client endpoints,
     // we have to reinitialize the endpoint. Need to remove this after the bug on this in ballerina is fixed
-    http:Client oidcProviderClientEP = getOidcProviderClientEP(clientId,clientSecret);
+    http:Client tokenRevocationClientEP = getBasicAuthIDPClient(clientId,clientSecret);
     log:printDebug("Sending revocation reqesut to IDP "); 
-    var response = check oidcProviderClientEP->post(config:getAsString("idp.revocation.endpoint"), revocationReq);
+    var response = check tokenRevocationClientEP->post(config:getAsString("idp.revocation.endpoint"), revocationReq);
     if (response.statusCode >= 300) {
         error err = error(io:sprintf("Failed to call IdP token endpoint with status code ", response.statusCode));
         return err;
@@ -75,7 +75,7 @@ public function exchangeJWTWithToken(string jwt, string userId) returns (gen:Tok
     tokenReq.setTextPayload(reqBody, contentType = constants:APPLICATION_URL_ENCODED_CONTENT_TYPE);
     // TODO There is a bug on ballerina that when there are more than one global client endpoints,
     // we have to reinitialize the endpoint. Need to remove this after the bug on this in ballerina is fixed
-    http:Client oidcProviderClientEP = getOidcProviderClientEP(config:getAsString("idp.jwt.bearer.grant.clientid"),
+    http:Client oidcProviderClientEP = getBasicAuthIDPClient(config:getAsString("idp.jwt.bearer.grant.clientid"),
     config:getAsString("idp.jwt.bearer.grant.clientsecret"));
     var response = check oidcProviderClientEP->post(config:getAsString("idp.token.endpoint"), tokenReq);
 
