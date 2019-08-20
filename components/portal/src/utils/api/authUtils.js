@@ -174,18 +174,28 @@ class AuthUtils {
      * The provided global state will be updated accordingly as well.
      *
      * @param {StateHolder} globalState The global state provided to the current component
+     * @returns {Promise} A promise for the logout call
      */
-    static signOut(globalState) {
-        AuthUtils.removeUserFromBrowser();
-        localStorage.removeItem(AuthUtils.FEDERATED_IDP_KEY);
+    static signOut = (globalState) => new Promise((resolve) => {
+        const logout = () => {
+            AuthUtils.removeUserFromBrowser();
+            localStorage.removeItem(AuthUtils.FEDERATED_IDP_KEY);
 
-        const params = {
-            id_token_hint: globalState.get(StateHolder.USER).tokens.idToken,
-            post_logout_redirect_uri: `${window.location.origin}/`
+            const params = {
+                id_token_hint: globalState.get(StateHolder.USER).tokens.idToken,
+                post_logout_redirect_uri: `${window.location.origin}/`
+            };
+            const signOutEndpoint = `${globalState.get(StateHolder.CONFIG).idp.url}${AuthUtils.LOGOUT_ENDPOINT}`;
+            window.location.assign(`${signOutEndpoint}${HttpUtils.generateQueryParamString(params)}`);
+            resolve();
         };
-        const signOutEndpoint = `${globalState.get(StateHolder.CONFIG).idp.url}${AuthUtils.LOGOUT_ENDPOINT}`;
-        window.location.assign(`${signOutEndpoint}${HttpUtils.generateQueryParamString(params)}`);
-    }
+        HttpUtils.callHubAPI(
+            {
+                url: "/auth/revoke",
+                method: "GET"
+            },
+            globalState).then(logout).catch(logout);
+    });
 
     /**
      * Set the default federated IdP to be used.
