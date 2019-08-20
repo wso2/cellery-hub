@@ -60,7 +60,7 @@ public function revokeToken(string accessToken, string clientId, string clientSe
     http:Client oidcProviderClientEP = getOidcProviderClientEP(clientId,clientSecret);
     log:printDebug("Sending revocation reqesut to IDP "); 
     var response = check oidcProviderClientEP->post(config:getAsString("idp.revocation.endpoint"), revocationReq);
-    if (response.statusCode >= 400) {
+    if (response.statusCode >= 300) {
         error err = error(io:sprintf("Failed to call IdP token endpoint with status code ", response.statusCode));
         return err;
     } else {
