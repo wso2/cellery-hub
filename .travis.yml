@@ -1,5 +1,7 @@
 dist: xenial
 language: go
+jdk:
+  - openjdk8
 node_js:
   - 9.11.2
 go:
