@@ -1,11 +1,11 @@
 dist: xenial
-language: go
+language: java
+go:
+  - 1.11.x
 jdk:
   - openjdk8
 node_js:
   - 9.11.2
-go:
-  - 1.11.x
 services:
   - docker
 cache:
