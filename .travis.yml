@@ -1,5 +1,5 @@
 dist: xenial
-language: go
+language: java
 go:
   - 1.11.x
 jdk:
