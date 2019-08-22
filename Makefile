@@ -271,7 +271,8 @@ docker.$(API): build.$(API)
 
 .PHONY: docker.$(IDENTITY_SERVER_CUSTOMIZATION)
 docker.$(IDENTITY_SERVER_CUSTOMIZATION): build.$(IDENTITY_SERVER_CUSTOMIZATION)
-	mvn clean install -f docker/identity-server/pom.xml -Ddocker.repo.name=$(DOCKER_REPO) -Ddocker.image.tag=$(VERSION)
+	@:
+	#mvn clean install -f docker/identity-server/pom.xml -Ddocker.repo.name=$(DOCKER_REPO) -Ddocker.image.tag=$(VERSION)
 
 .PHONY: docker.$(DEPLOYMENT_INIT)
 docker.$(DEPLOYMENT_INIT): build.$(DEPLOYMENT_INIT)
