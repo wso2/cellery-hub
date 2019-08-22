@@ -661,7 +661,7 @@ public function updateImage(http:Request updateImageReq, string orgName, string 
             sql:UpdateResult | error? updateImageRes = db:updateImageDescriptionNSummary(orgName, imageName, updateImageBody.description, updateImageBody.summary, userId);
             if (updateImageRes is sql:UpdateResult) {
                 if (updateImageRes.updatedRowCount == 1) {
-                    log:printDebug(io:sprintf("Description and summery of the image %s/%s is successfully updated. Author : %s", orgName, imageName, userId));
+                    log:printDebug(io:sprintf("Description and summary of the image %s/%s are successfully updated. Author : %s", orgName, imageName, userId));
                     error? updateImageKeywordsRes = db:updateImageKeywords(orgName, imageName, updateImageBody.keywords, userId);
                     if updateImageKeywordsRes is error {
                         log:printError(io:sprintf("Failed to update image %s/%s for Author %s.", orgName, imageName, userId), err = updateImageKeywordsRes);
@@ -758,14 +758,14 @@ gen:ArtifactUpdateRequest updateArtifactBody) returns http:Response {
 public function updateOrganization(http:Request updateOrganizationReq, string orgName, gen:OrgUpdateRequest updateOrganizationBody) returns http:Response {
     if (updateOrganizationReq.hasHeader(constants:AUTHENTICATED_USER)) {
         string userId = updateOrganizationReq.getHeader(constants:AUTHENTICATED_USER);
-        log:printDebug(io:sprintf("Entries to be updated in the organization \'%s\' by user %s, Description : %s, Summary : %s", orgName, userId,
-        updateOrganizationBody.description, updateOrganizationBody.summary));
+        log:printDebug(io:sprintf("Entries to be updated in the organization \'%s\' by user %s, Description: %s, Summary: %s, Url: %s", orgName, userId,
+        updateOrganizationBody.description, updateOrganizationBody.summary, updateOrganizationBody.websiteUrl));
 
-        sql:UpdateResult | error? updateOrgRes = db:updateOrgDescriptionNSummary(updateOrganizationBody.description, updateOrganizationBody.summary,
-        orgName, userId);
+        sql:UpdateResult | error? updateOrgRes = db:updateOrgInfo(updateOrganizationBody.description, updateOrganizationBody.summary,
+        updateOrganizationBody.websiteUrl, orgName, userId);
         if (updateOrgRes is sql:UpdateResult) {
             if (updateOrgRes.updatedRowCount == 1) {
-                log:printDebug(io:sprintf("Description and summery of the organization \'%s\' is successfully updated. Author : %s", orgName, userId));
+                log:printDebug(io:sprintf("Description, summary and url of the organization \'%s\' are successfully updated. Author : %s", orgName, userId));
                 return buildSuccessResponse();
             } else if (updateOrgRes.updatedRowCount == 0) {
                 log:printError(io:sprintf("Failed to update organization \'%s\' for Author %s : No matching records found", orgName, userId));

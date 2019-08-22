@@ -421,9 +421,9 @@ public function updateImageDescriptionNSummary(string orgName, string imageName,
     return res;
 }
 
-public function updateOrgDescriptionNSummary(string description, string summary, string orgName, string userId) returns sql:UpdateResult | error? {
-    log:printInfo(io:sprintf("Updating description and summary of the organization \'%s\'", orgName));
-    sql:UpdateResult res = check connection->update(UPDATE_ORG_DESCRIPTION_N_SUMMARY_QUERY, description, summary, orgName, userId);
+public function updateOrgInfo(string description, string summary, string url, string orgName, string userId) returns sql:UpdateResult | error? {
+    log:printInfo(io:sprintf("Updating description, summary and url of the organization \'%s\'", orgName));
+    sql:UpdateResult res = check connection->update(UPDATE_ORG_INFO_QUERY, description, summary, url, orgName, userId);
     return res;
 }
 

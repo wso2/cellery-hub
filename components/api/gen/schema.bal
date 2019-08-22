@@ -215,6 +215,7 @@ public type ImageUpdateRequest record {
 public type OrgUpdateRequest record {
     string description;
     string summary;
+    string websiteUrl;
 };
 
 public type ArtifactUpdateRequest record {
