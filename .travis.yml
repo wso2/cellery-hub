@@ -1,11 +1,11 @@
 dist: xenial
-language: go
+language: java
+go:
+  - 1.11.x
 jdk:
   - openjdk8
 node_js:
   - 9.11.2
-go:
-  - 1.11.x
 services:
   - docker
 cache:
@@ -19,6 +19,6 @@ before_install:
   - export TRAVIS_BUILD_DIR=$HOME/gopath/src/github.com/cellery-io/cellery-hub
   - cd $HOME/gopath/src/github.com/cellery-io/cellery-hub
 script:
-  - make clean init check-style build test docker
+  - travis_wait 30 make clean init check-style build test docker
 after_success:
   - bash <(curl -s https://codecov.io/bash)
