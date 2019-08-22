@@ -106,7 +106,7 @@ class OrgList extends React.Component {
                                             </Avatar>
                                         </ListItemAvatar>
                                         <ListItemText primary={org.orgName}
-                                            secondary={org.description}/>
+                                            secondary={org.summary}/>
                                         <People className={classes.elementIcon}/>
                                         <Typography variant={"subtitle2"} color={"inherit"}
                                             className={classes.elementText}>
