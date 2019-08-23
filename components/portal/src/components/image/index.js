@@ -528,9 +528,8 @@ class Image extends React.Component {
                                     </Grid>
                                     <ImageUpdateDialog open={isEditDialogOpen} image={imageName}
                                         summary={imageData.summary} description={imageData.description}
-                                        keywords={imageData.keywords} org={orgName}
-                                        onClose={(newData) => {
-                                            this.handleEditDialogClose();
+                                        keywords={imageData.keywords} org={orgName} onClose={this.handleEditDialogClose}
+                                        onUpdate={(newData) => {
                                             this.setState((prevState) => ({
                                                 imageData: {
                                                     ...prevState.imageData,
