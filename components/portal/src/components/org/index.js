@@ -93,6 +93,12 @@ const styles = (theme) => ({
     },
     titleContainer: {
         flexGrow: 1
+    },
+    summary: {
+        display: "block",
+        fontSize: 14,
+        marginTop: theme.spacing(3 / 2),
+        color: "#333333"
     }
 
 });
@@ -290,7 +296,8 @@ class Org extends React.Component {
                                                 </Typography>
                                             </div>
                                             <div>
-                                                <Typography variant={"body1"} color={"inherit"}>
+                                                <Typography variant={"body1"} color={"inherit"}
+                                                    className={classes.summary}>
                                                     {orgData.summary}
                                                 </Typography>
                                             </div>
@@ -313,13 +320,14 @@ class Org extends React.Component {
                                     </Grid>
                                     <OrgUpdateDialog open={isEditDialogOpen} org={orgName}
                                         description={orgData.description} summary={orgData.summary}
-                                        onClose={(newData) => {
-                                            this.handleEditDialogClose();
+                                        websiteUrl={orgData.websiteUrl}
+                                        onClose={this.handleEditDialogClose} onUpdate={(newData) => {
                                             this.setState((prevState) => ({
                                                 orgData: {
                                                     ...prevState.orgData,
                                                     summary: newData.summary,
-                                                    description: newData.description
+                                                    description: newData.description,
+                                                    websiteUrl: newData.websiteUrl
                                                 }
                                             }));
                                         }}/>
