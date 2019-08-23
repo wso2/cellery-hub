@@ -404,6 +404,8 @@ definitions:
         type: "string"
       summary:
         type: "string"
+      websiteUrl:
+        type: "string"
   ArtifactUpdateRequest:
     type: "object"
     properties:
