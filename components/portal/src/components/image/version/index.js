@@ -518,8 +518,8 @@ class ImageVersion extends React.Component {
                                     </Grid>
                                     <VersionUpdateDialog open={isEditDialogOpen} image={imageName}
                                         version={version} description={versionData.description} org={orgName}
-                                        onClose={(newData) => {
-                                            this.handleEditDialogClose();
+                                        onClose={this.handleEditDialogClose}
+                                        onUpdate={(newData) => {
                                             this.setState((prevState) => ({
                                                 versionData: {
                                                     ...prevState.versionData,

@@ -89,7 +89,7 @@ class ImageUpdateDialog extends React.Component {
 
     handleUpdateImage = () => {
         const self = this;
-        const {globalState, image, org} = self.props;
+        const {globalState, image, org, onUpdate} = self.props;
         const {summary, description, keywords} = self.state;
         NotificationUtils.showLoadingOverlay(`Updating image ${org}/${image}`, globalState);
         HttpUtils.callHubAPI(
@@ -104,6 +104,11 @@ class ImageUpdateDialog extends React.Component {
             },
             globalState
         ).then(() => {
+            onUpdate({
+                summary: summary,
+                description: description,
+                keywords: keywords
+            });
             self.handleClose();
             NotificationUtils.hideLoadingOverlay(globalState);
         }).catch((err) => {
@@ -123,13 +128,13 @@ class ImageUpdateDialog extends React.Component {
     };
 
     handleClose = () => {
-        const {onClose} = this.props;
-        const {summary, description, keywords} = this.state;
-        onClose({
+        const {onClose, summary, description, keywords} = this.props;
+        this.setState({
             summary: summary,
             description: description,
             keywords: keywords
         });
+        onClose();
     };
 
     render() {
@@ -186,7 +191,8 @@ ImageUpdateDialog.propTypes = {
     org: PropTypes.string.isRequired,
     summary: PropTypes.string.isRequired,
     description: PropTypes.string.isRequired,
-    keywords: PropTypes.arrayOf(PropTypes.string).isRequired
+    keywords: PropTypes.arrayOf(PropTypes.string).isRequired,
+    onUpdate: PropTypes.func.isRequired
 };
 
 export default withStyles(styles)(withGlobalState(ImageUpdateDialog));

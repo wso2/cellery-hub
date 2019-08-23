@@ -66,7 +66,7 @@ class VersionUpdateDialog extends React.Component {
 
     handleUpdateImageVersion = () => {
         const self = this;
-        const {globalState, org, image, version} = self.props;
+        const {globalState, org, image, version, onUpdate} = self.props;
         const {description} = self.state;
         NotificationUtils.showLoadingOverlay(`Updating image version ${org}/${image}:${version}`, globalState);
         HttpUtils.callHubAPI(
@@ -79,6 +79,9 @@ class VersionUpdateDialog extends React.Component {
             },
             globalState
         ).then(() => {
+            onUpdate({
+                description: description
+            });
             self.handleClose();
             NotificationUtils.hideLoadingOverlay(globalState);
         }).catch((err) => {
@@ -98,11 +101,11 @@ class VersionUpdateDialog extends React.Component {
     };
 
     handleClose = () => {
-        const {onClose} = this.props;
-        const {description} = this.state;
-        onClose({
+        const {onClose, description} = this.props;
+        this.setState({
             description: description
         });
+        onClose();
     };
 
     render() {
@@ -146,7 +149,8 @@ VersionUpdateDialog.propTypes = {
     org: PropTypes.string.isRequired,
     image: PropTypes.string.isRequired,
     version: PropTypes.string.isRequired,
-    description: PropTypes.string.isRequired
+    description: PropTypes.string.isRequired,
+    onUpdate: PropTypes.func.isRequired
 };
 
 export default withStyles(styles)(withGlobalState(VersionUpdateDialog));
