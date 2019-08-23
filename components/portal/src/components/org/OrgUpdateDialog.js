@@ -55,7 +55,8 @@ class ImageUpdateDialog extends React.Component {
         super(props);
         this.state = {
             summary: props.summary,
-            description: props.description
+            description: props.description,
+            websiteUrl: props.websiteUrl
         };
     }
 
@@ -71,10 +72,16 @@ class ImageUpdateDialog extends React.Component {
         });
     };
 
+    handleUrlInputChange = (event) => {
+        this.setState({
+            websiteUrl: event.currentTarget.value
+        });
+    };
+
     handleUpdateOrg = () => {
         const self = this;
-        const {globalState, org} = self.props;
-        const {summary, description} = self.state;
+        const {globalState, org, onUpdate} = self.props;
+        const {summary, description, websiteUrl} = self.state;
         NotificationUtils.showLoadingOverlay(`Updating organization ${org}`, globalState);
         HttpUtils.callHubAPI(
             {
@@ -82,11 +89,17 @@ class ImageUpdateDialog extends React.Component {
                 method: "PUT",
                 data: {
                     summary: summary,
-                    description: description
+                    description: description,
+                    websiteUrl: websiteUrl
                 }
             },
             globalState
         ).then(() => {
+            onUpdate({
+                summary: summary,
+                description: description,
+                websiteUrl: websiteUrl
+            });
             self.handleClose();
             NotificationUtils.hideLoadingOverlay(globalState);
         }).catch((err) => {
@@ -106,17 +119,18 @@ class ImageUpdateDialog extends React.Component {
     };
 
     handleClose = () => {
-        const {onClose} = this.props;
-        const {description, summary} = this.state;
-        onClose({
+        const {onClose, summary, description, websiteUrl} = this.props;
+        this.setState({
             summary: summary,
-            description: description
+            description: description,
+            websiteUrl: websiteUrl
         });
+        onClose();
     };
 
     render() {
         const {classes, open, org} = this.props;
-        const {summary, description} = this.state;
+        const {summary, description, websiteUrl} = this.state;
 
         return (
             <div>
@@ -132,6 +146,11 @@ class ImageUpdateDialog extends React.Component {
                             <Input id={"summary"} value={summary} type={"text"} autoFocus multiline={true}
                                 inputProps={{maxLength: 60}} onChange={this.handleSummaryInputChange}/>
                             <FormHelperText>Limited to 60 characters</FormHelperText>
+                        </FormControl>
+                        <FormControl fullWidth className={classes.formControl}>
+                            <InputLabel htmlFor={"websiteUrl"}>Website URL</InputLabel>
+                            <Input id={"websiteUrl"} value={websiteUrl} type={"text"}
+                                onChange={this.handleUrlInputChange}/>
                         </FormControl>
                         <FormControl fullWidth className={classes.formControl}>
                             <InputLabel htmlFor={"description"}>About</InputLabel>
@@ -160,7 +179,9 @@ ImageUpdateDialog.propTypes = {
     onClose: PropTypes.func.isRequired,
     org: PropTypes.string.isRequired,
     summary: PropTypes.string.isRequired,
-    description: PropTypes.string.isRequired
+    description: PropTypes.string.isRequired,
+    websiteUrl: PropTypes.string.isRequired,
+    onUpdate: PropTypes.func.isRequired
 };
 
 export default withStyles(styles)(withGlobalState(ImageUpdateDialog));
