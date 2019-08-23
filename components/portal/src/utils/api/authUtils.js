@@ -33,39 +33,26 @@ class AuthUtils {
     static COMMON_AUTH_ENDPOINT = "/commonauth";
 
     static USER_KEY = "user";
-    static FEDERATED_IDP_KEY = "hub-fidp";
-
-    static FederatedIdP = {
-        GOOGLE: "google",
-        GITHUB: "github"
-    };
-
-    /**
-     * @typedef {AuthUtils.FederatedIdP.GOOGLE|AuthUtils.FederatedIdP.GITHUB} FederatedIdPType
-     */
 
     /**
      * Redirect the user to IDP for Hub authentication.
      *
      * @param {StateHolder} globalState The global state provided to the current component
-     * @param {FederatedIdPType} [fidpOverride] The federated idp to be used
      */
-    static initiateHubLoginFlow(globalState, fidpOverride) {
+    static initiateHubLoginFlow(globalState) {
         const clientId = globalState.get(StateHolder.CONFIG).idp.hubClientId;
-        this.initiateLoginFlow(globalState, fidpOverride, clientId, window.location.origin + window.location.pathname,
-            true);
+        this.initiateLoginFlow(globalState, clientId, window.location.origin + window.location.pathname, true);
     }
 
     /**
      * Redirect the user to IDP for SDK authentication.
      *
      * @param {StateHolder} globalState The global state provided to the current component
-     * @param {FederatedIdPType} [fidpOverride] The federated idp to be used
      * @param {string} redirectUrl The URL to redirect back to
      */
-    static initiateSdkLoginFlow(globalState, fidpOverride, redirectUrl) {
+    static initiateSdkLoginFlow(globalState, redirectUrl) {
         const clientId = globalState.get(StateHolder.CONFIG).idp.sdkClientId;
-        this.initiateLoginFlow(globalState, fidpOverride, clientId, redirectUrl, false);
+        this.initiateLoginFlow(globalState, clientId, redirectUrl, false);
     }
 
     /**
@@ -73,24 +60,11 @@ class AuthUtils {
      *
      * @private
      * @param {StateHolder} globalState The global state provided to the current component
-     * @param {FederatedIdPType} [fidpOverride] The federated idp to be used
      * @param {string} clientId The client ID to be used
      * @param {string} redirectUrl The URL to redirect back to
      * @param {boolean} isPortalLogin Whether this is a portal login or an SDK login.
      */
-    static initiateLoginFlow(globalState, fidpOverride, clientId, redirectUrl, isPortalLogin) {
-        let fidp;
-        if (fidpOverride) {
-            fidp = fidpOverride;
-            AuthUtils.setDefaultFIdP(fidp);
-        } else {
-            const defaultFidp = AuthUtils.getDefaultFIdP();
-            if (defaultFidp) {
-                fidp = defaultFidp;
-            } else {
-                throw Error("Failed to login without Federated IdP selected");
-            }
-        }
+    static initiateLoginFlow(globalState, clientId, redirectUrl, isPortalLogin) {
         let scope = "openid";
         if (isPortalLogin) {
             scope = `${scope} ${Math.random().toString(36).substring(7)}`;
@@ -101,8 +75,7 @@ class AuthUtils {
             nonce: "auth",
             scope: scope,
             client_id: clientId,
-            redirect_uri: redirectUrl,
-            fidp: fidp
+            redirect_uri: redirectUrl
         };
         const authEndpoint = `${globalState.get(StateHolder.CONFIG).idp.url}${AuthUtils.AUTHORIZATION_ENDPOINT}`;
         window.location.assign(`${authEndpoint}${HttpUtils.generateQueryParamString(params)}`);
@@ -203,25 +176,6 @@ class AuthUtils {
             },
             globalState).then(logout).catch(logout);
     });
-
-    /**
-     * Set the default federated IdP to be used.
-     *
-     * @private
-     * @param {FederatedIdPType} fidp The new federated IdP
-     */
-    static setDefaultFIdP(fidp) {
-        localStorage.setItem(AuthUtils.FEDERATED_IDP_KEY, /** @type{string} **/ fidp);
-    }
-
-    /**
-     * Get the default federated IdP.
-     *
-     * @returns {FederatedIdPType} The default federated IdP
-     */
-    static getDefaultFIdP() {
-        return /** @type{FederatedIdPType} **/ localStorage.getItem(AuthUtils.FEDERATED_IDP_KEY);
-    }
 
     /**
      * Remove the stored user from the Browser.

@@ -19,7 +19,6 @@
 /* eslint prefer-promise-reject-errors: ["off"] */
 /* eslint camelcase: ["off"] */
 
-import AuthUtils from "./authUtils";
 import {StateHolder} from "../../components/common/state";
 import axios from "axios";
 import HttpUtils, {HubApiError} from "./httpUtils";
@@ -407,7 +406,6 @@ describe("HttpUtils", () => {
 
         it("should reject with response and initiate login flow when axios rejects with a "
             + `${unauthorizedStatusCode} status code`, async () => {
-            AuthUtils.setDefaultFIdP("github");
             jest.spyOn(window.location, "assign").mockImplementation((location) => {
                 const params = {
                     callback: window.location.pathname + window.location.search
