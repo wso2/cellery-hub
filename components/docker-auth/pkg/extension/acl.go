@@ -53,9 +53,20 @@ func ValidateAccess(db *sql.DB, accessToken string, execId string) (bool, error)
 	log.Printf("[%s] Received labels are :%s\n", execId, authReqInfo.Labels)
 
 	isPullOnly := false
-	if len(authReqInfo.Actions) == 1 && authReqInfo.Actions[0] == pullAction {
-		log.Printf("[%s] Received a request for pull only action\n", execId)
-		isPullOnly = true
+	isDeleteAction := false
+	isPushAction := false
+	if len(authReqInfo.Actions) == 1 {
+		if authReqInfo.Actions[0] == pullAction {
+			log.Printf("[%s] Received a request for pull only action\n", execId)
+			isPullOnly = true
+		} else if authReqInfo.Actions[0] == deleteAction {
+			log.Printf("[%s] Received a request for delete action\n", execId)
+			isDeleteAction = true
+		}
+	} else if len(authReqInfo.Actions) == 2 && authReqInfo.Actions[0] == pullAction &&
+		authReqInfo.Actions[1] == pushAction {
+		log.Printf("[%s] Received a request for push action\n", execId)
+		isPushAction = true
 	}
 
 	log.Printf("[%s] Label map length : %d\n", execId, len(authReqInfo.Labels))
@@ -70,7 +81,7 @@ func ValidateAccess(db *sql.DB, accessToken string, execId string) (bool, error)
 		if isPullOnly {
 			log.Printf("[%s] Validating access for unauthenticated user for pull action\n", execId)
 		} else {
-			log.Printf("[%s] Denying access for unauthenticated user for push action\n", execId)
+			log.Printf("[%s] Denying access for unauthenticated user for push/delete actions\n", execId)
 			return false, nil
 		}
 	}
@@ -83,9 +94,15 @@ func ValidateAccess(db *sql.DB, accessToken string, execId string) (bool, error)
 	if isPullOnly {
 		log.Printf("[%s] Received a pulling task\n", execId)
 		return isAuthorizedToPull(db, authReqInfo.Account, organization, image, execId)
-	} else {
+	} else if isPushAction {
 		log.Printf("[%s] Received a pushing task\n", execId)
 		return isAuthorizedToPush(db, authReqInfo.Account, organization, execId)
+	} else if isDeleteAction {
+		log.Printf("[%s] Received a deleting task\n", execId)
+		return isAuthorizedToDelete(db, authReqInfo.Account, organization, execId)
+	} else {
+		log.Printf("[%s] Received an unrecognized task\n", execId)
+		return false, fmt.Errorf("unrecognized task requested")
 	}
 }
 
@@ -194,6 +211,36 @@ func isAuthorizedToPush(db *sql.DB, user, organization string, execId string) (b
 			return true, nil
 		} else {
 			log.Printf("[%s] User does not have push rights\n", execId)
+			return false, err
+		}
+	}
+	return false, nil
+}
+
+func isAuthorizedToDelete(db *sql.DB, user, organization string, execId string) (bool, error) {
+	log.Printf("[%s] User %s is trying to perform delete action on organization :%s\n", execId, user, organization)
+	results, err := db.Query(getUserRoleQuery, user, organization)
+	defer func() {
+		closeResultSet(results, "isAuthorizedToDelete", execId)
+	}()
+	if err != nil {
+		log.Printf("[%s] Error while calling the mysql query getUserRoleQuery :%s\n", execId, err)
+		return false, err
+	}
+	if results.Next() {
+		var userRole string
+		// for each row, scan the result into our tag composite object
+		err = results.Scan(&userRole)
+		if err != nil {
+			log.Printf("[%s] Error in retrieving the username role from the database :%s\n", execId, err)
+			return false, err
+		}
+		log.Printf("[%s] User role is declared as %s\n", execId, userRole)
+		if userRole == userAdminRole {
+			log.Printf("[%s] User is allowed to delete the image\n", execId)
+			return true, nil
+		} else {
+			log.Printf("[%s] User does not have delete rights\n", execId)
 			return false, err
 		}
 	}

@@ -33,6 +33,8 @@ const MaxIdleConnectionsEnvVar = "MAX_IDLE_CONNECTIONS"
 const ConnectionMaxLifetimeEnvVar = "MAX_LIFE_TIME"
 
 const pullAction = "pull"
+const pushAction = "push"
+const deleteAction = "delete"
 const publicVisibility = "PUBLIC"
 
 const ExecIdHeaderName = "x-cellery-hub-exec-id"
