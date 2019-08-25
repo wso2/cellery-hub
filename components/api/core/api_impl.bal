@@ -21,6 +21,7 @@ import ballerina/io;
 import ballerina/log;
 import ballerina/mysql;
 import ballerina/transactions;
+import ballerina/internal;
 import cellery_hub_api/constants;
 import cellery_hub_api/db;
 import cellery_hub_api/idp;
@@ -124,7 +125,7 @@ public function revokeToken(http:Request revokeTokenReq, boolean isPortalToken) 
 public function exchangeTokensWithJWTGrant(http:Request getTokensReq) returns http:Response {
 
     if (!getTokensReq.hasHeader(constants:AUTHENTICATED_USER)) {
-        return buildErrorResponse(http:UNAUTHORIZED_401, constants:API_ERROR_CODE, 
+        return buildErrorResponse(http:UNAUTHORIZED_401, constants:API_ERROR_CODE,
         "Unable exchange token since no authenticated user found", "Unauthenticated request. Auth token is not provided");
     }
 
@@ -827,30 +828,56 @@ int resultLimit) returns http:Response {
 # + imageName - image name of the artifact
 # + artifactVersion - version of the artifact
 # + return - http resonce (200 if success, 401, 404 or 500 otherwise)
-public function deleteArtifact (http:Request deleteArtifactReq, string orgName, string imageName, string artifactVersion) returns http:Response {
+public function deleteArtifact(http:Request deleteArtifactReq, string orgName, string imageName, string artifactVersion) returns http:Response {
     if (deleteArtifactReq.hasHeader(constants:AUTHENTICATED_USER)) {
         string userId = deleteArtifactReq.getHeader(constants:AUTHENTICATED_USER);
         log:printInfo(io:sprintf("User \'%s\' is attempting to delete the artifact \'%s/%s:%s\'", userId, orgName, imageName, artifactVersion));
+        http:Response resp;
 
-        int | error? deletedRowCount = db:deleteArtifactFromDb(userId, orgName, imageName, artifactVersion);
-
-        if (deletedRowCount is int) {
-            if (deletedRowCount == 1) {
-                log:printInfo(io:sprintf("Successfully deleted the artifact \'%s/%s:%s\' by user \'%s\'", orgName, imageName, artifactVersion, userId));
-                deleteArtifactFromRegistry(deleteArtifactReq, orgName, imageName, artifactVersion);
-                return buildSuccessResponse();
-            } else if (deletedRowCount == 0) {
-                log:printDebug(io:sprintf("Failed to delete the artifact \'%s/%s:%s\'. No matching records found", orgName, imageName, artifactVersion));
-                return buildErrorResponse(http:NOT_FOUND_404, constants:API_ERROR_CODE, "Unable to delete artifact", "No matching records found");
+        transaction {
+            var transactionId = transactions:getCurrentTransactionId();
+            log:printDebug(io:sprintf("Started transaction \'%s\' for deleting the artifact \'%s/%s:%s\'", transactionId, orgName,
+            imageName, artifactVersion));
+            int | error? deletedRowCount = db:deleteArtifactFromDb(userId, orgName, imageName, artifactVersion);
+            if (deletedRowCount is int) {
+                if (deletedRowCount == 1) {
+                    var deleteResult = deleteArtifactFromRegistry(deleteArtifactReq, orgName, imageName, artifactVersion);
+                    if (deleteResult is error) {
+                        log:printError(io:sprintf("Failed to delete the artifact \'%s/%s:%s\'", orgName, imageName, artifactVersion),
+                        err = deleteResult);
+                        resp = buildUnknownErrorResponse();
+                        abort;
+                    } else {
+                        log:printInfo(io:sprintf("Successfully deleted the artifact \'%s/%s:%s\' by user \'%s\'", orgName, imageName,
+                        artifactVersion, userId));
+                        resp = buildSuccessResponse();
+                    }
+                } else if (deletedRowCount == 0) {
+                    log:printDebug(io:sprintf("Failed to delete the artifact \'%s/%s:%s\' from db. No matching records found", orgName, imageName, artifactVersion));
+                    resp = buildErrorResponse(http:NOT_FOUND_404, constants:API_ERROR_CODE, "Unable to delete artifact", "No matching records found");
+                    abort;
+                } else {
+                    log:printDebug(io:sprintf("Failed to delete the artifact \'%s/%s:%s\' from db. More than one matching records found", orgName,
+                    imageName, artifactVersion));
+                    resp = buildUnknownErrorResponse();
+                    abort;
+                }
             } else {
-                log:printDebug(io:sprintf("Failed to delete the artifact \'%s/%s:%s\'. More than one matching records found", orgName,
-                imageName, artifactVersion));
-                return buildUnknownErrorResponse();
+                log:printError(io:sprintf("Unable to delete the artifact \'%s/%s:%s\' : %s", orgName, imageName, artifactVersion, deletedRowCount));
+                resp = buildUnknownErrorResponse();
+                abort;
             }
-        } else {
-            log:printError(io:sprintf("Unable to delete the artifact \'%s/%s:%s\' : %s", orgName, imageName, artifactVersion, deletedRowCount));
-            return buildUnknownErrorResponse();
+        } onretry {
+            log:printDebug(io:sprintf("Retrying deleting artifact \'%s/%s:%s\' for transaction %s", orgName, imageName, artifactVersion,
+            transactions:getCurrentTransactionId()));
+        } committed {
+            log:printDebug(io:sprintf("Deleting artifact \'%s/%s:%s\' successful for transaction %s", orgName, imageName, artifactVersion,
+            transactions:getCurrentTransactionId()));
+        } aborted {
+            log:printError(io:sprintf("Deleting artifact \'%s/%s:%s\' aborted for transaction %s", orgName, imageName, artifactVersion,
+            transactions:getCurrentTransactionId()));
         }
+        return resp;
     } else {
         log:printError("Unauthenticated request for delete artifact: Username is not found");
         return buildErrorResponse(http:UNAUTHORIZED_401, constants:API_ERROR_CODE, "Unable to delete artifact",
@@ -864,7 +891,7 @@ public function deleteArtifact (http:Request deleteArtifactReq, string orgName, 
 # + orgName - organization name that the artifact is belong to
 # + imageName - image name of the artifact
 # + return - http resonce (200 if success, 401, 404 or 500 otherwise)
-public function deleteImage (http:Request deleteImageReq, string orgName, string imageName) returns http:Response {
+public function deleteImage(http:Request deleteImageReq, string orgName, string imageName) returns http:Response {
     if (deleteImageReq.hasHeader(constants:AUTHENTICATED_USER)) {
         string userId = deleteImageReq.getHeader(constants:AUTHENTICATED_USER);
         log:printInfo(io:sprintf("User \'%s\' is attempting to delete the image \'%s/%s\'", userId, orgName, imageName));
@@ -875,20 +902,27 @@ public function deleteImage (http:Request deleteImageReq, string orgName, string
             int | error? deletedRowCount = db:deleteImageFromDb(userId, orgName, imageName);
             if (deletedRowCount is int) {
                 if (deletedRowCount == 1) {
-                    log:printInfo(io:sprintf("Successfully deleted the image \'%s/%s\' by user \'%s\'", orgName, imageName, userId));
-                    resp = buildSuccessResponse();
+                    var deleteResult = deleteImageFromResitry(orgName, imageName);
+                    if (deleteResult is error) {
+                        log:printError(io:sprintf("Failed to delete the image \'%s/%s\'", orgName, imageName), err = deleteResult);
+                        resp = buildUnknownErrorResponse();
+                        abort;
+                    } else {
+                        log:printInfo(io:sprintf("Successfully deleted the image \'%s/%s\' by user \'%s\'", orgName, imageName, userId));
+                        resp = buildSuccessResponse();
+                    }
                 } else if (deletedRowCount == 0) {
                     log:printError(io:sprintf("Failed to delete the image \'%s/%s\'. No matching records found", orgName, imageName));
                     resp = buildErrorResponse(http:NOT_FOUND_404, constants:API_ERROR_CODE, "Unable to delete image", "No matching records found");
                     abort;
                 } else {
-                    log:printError(io:sprintf("Failed to delete the image \'%s/%s\'. More than one matching records found", orgName,
+                    log:printError(io:sprintf("Failed to delete the image \'%s/%s\' from db. More than one matching records found", orgName,
                     imageName));
                     resp = buildUnknownErrorResponse();
                     abort;
                 }
             } else {
-                log:printError(io:sprintf("Unable to delete the image \'%s/%s\' : %s", orgName, imageName, deletedRowCount));
+                log:printError(io:sprintf("Unable to delete the image \'%s/%s\' from db: %s", orgName, imageName, deletedRowCount));
                 resp = buildUnknownErrorResponse();
                 abort;
             }
@@ -915,7 +949,7 @@ public function deleteImage (http:Request deleteImageReq, string orgName, string
 # + deleteOrganizationReq - received request which contains header
 # + orgName - organization name that expected to delete
 # + return - http resonce (200 if success, 401, 404 or 500 otherwise)
-public function deleteOrganization (http:Request deleteOrganizationReq, string orgName) returns http:Response {
+public function deleteOrganization(http:Request deleteOrganizationReq, string orgName) returns http:Response {
     if (deleteOrganizationReq.hasHeader(constants:AUTHENTICATED_USER)) {
         string userId = deleteOrganizationReq.getHeader(constants:AUTHENTICATED_USER);
         log:printInfo(io:sprintf("User \'%s\' is attempting to delete the organization \'%s\'", userId, orgName));
@@ -926,8 +960,15 @@ public function deleteOrganization (http:Request deleteOrganizationReq, string o
             int | error? deletedRowCount = db:deleteOrganizationFromDb(userId, orgName);
             if (deletedRowCount is int) {
                 if (deletedRowCount == 1) {
-                    log:printInfo(io:sprintf("Successfully deleted the organization \'%s\' by user \'%s\'", orgName, userId));
-                    resp = buildSuccessResponse();
+                    var deleteResult = deleteOrganizationFromResitry(orgName);
+                    if (deleteResult is error) {
+                        log:printError(io:sprintf("Failed to delete the organization \'%s\'", orgName), err = deleteResult);
+                        resp = buildUnknownErrorResponse();
+                        abort;
+                    } else {
+                        log:printInfo(io:sprintf("Successfully deleted the organization \'%s\' by user \'%s\'", orgName, userId));
+                        resp = buildSuccessResponse();
+                    }
                 } else if (deletedRowCount == 0) {
                     log:printError(io:sprintf("Failed to delete the organization \'%s\'. No matching records found", orgName));
                     resp = buildErrorResponse(http:NOT_FOUND_404, constants:API_ERROR_CODE, "Unable to delete organization", "No matching records found");

@@ -1,3 +1,4 @@
+import ballerina/io;
 // ------------------------------------------------------------------------
 //
 // Copyright 2019 WSO2, Inc. (http://wso2.com)
@@ -16,7 +17,7 @@
 //
 // ------------------------------------------------------------------------
 
-function addOrgUserMapping(string userId, string orgName, string role) returns http:Response{
+function addOrgUserMapping(string userId, string orgName, string role) returns http:Response {
     var orgUserRes = db:insertOrgUserMapping(userId, orgName, role);
     if (orgUserRes is error) {
         log:printError(io:sprintf("Unexpected error occured while inserting org-user mapping. user : %s, Organization : %s", userId, orgName),
@@ -28,7 +29,7 @@ function addOrgUserMapping(string userId, string orgName, string role) returns h
     }
 }
 
-function updatePayloadWithUserInfo (json payload, string field) returns error? {
+function updatePayloadWithUserInfo(json payload, string field) returns error? {
     string userId = payload[field].toString();
     idp:UserInfo | error? modifiedRes = idp:getUserInfo(userId);
     if (modifiedRes is idp:UserInfo) {
@@ -59,7 +60,7 @@ function getUserToken(string authorizationHeader, string cookieHeader) returns s
     return token;
 }
 
-function deleteArtifactFromRegistry (http:Request deleteArtifactReq, string orgName, string imageName, string artifactVersion) {
+function deleteArtifactFromRegistry(http:Request deleteArtifactReq, string orgName, string imageName, string artifactVersion) returns error? {
     string userId = deleteArtifactReq.getHeader(constants:AUTHENTICATED_USER);
     string token = getUserToken(deleteArtifactReq.getHeader(constants:AUTHORIZATION_HEADER),
     deleteArtifactReq.getHeader(constants:COOKIE_HEADER));
@@ -71,17 +72,15 @@ function deleteArtifactFromRegistry (http:Request deleteArtifactReq, string orgN
         boolean | error isArtifactDeleted = deleteManifest(orgName, imageName, manifestDigest, userId, token);
         if (isArtifactDeleted is boolean && isArtifactDeleted) {
             log:printDebug(io:sprintf("Artifact \'%s/%s:%s\' is successfully deleted from the registry", orgName, imageName, artifactVersion));
-        } else if (isArtifactDeleted is error){
-            log:printError(io:sprintf("Error while deleting the artifact \'%s/%s:%s\' from the registry", orgName, imageName, artifactVersion),
-            err = isArtifactDeleted);
+        } else if (isArtifactDeleted is error) {
+            return isArtifactDeleted;
         }
     } else {
-        log:printError(io:sprintf("Error while fetching manifest digest of artifact \'%s/%s:%s\'", orgName, imageName, artifactVersion),
-        err = manifestDigest);
+        return manifestDigest;
     }
 }
 
-function getManifestDigest (string orgName, string imageName, string artifactVersion, string bearerToken = "", string userId, string token)
+function getManifestDigest(string orgName, string imageName, string artifactVersion, string bearerToken = "", string userId, string token)
 returns string | error {
     var responseForGetManifest = docker_registry:getResponseFromManifestAPI(orgName, imageName, artifactVersion = artifactVersion, bearerToken = bearerToken);
     if (responseForGetManifest is http:Response) {
@@ -91,11 +90,11 @@ returns string | error {
             if (payload is json) {
                 log:printDebug(io:sprintf("Received payload from docker registry for getManifestDigest request: %s", payload));
                 string registryScopeForGetManifest = buildRegistryScope(payload);
-                log:printDebug(io:sprintf("Registry scope for getManifest : %s", registryScopeForGetManifest));       
+                log:printDebug(io:sprintf("Registry scope for getManifest : %s", registryScopeForGetManifest));
 
                 string tokenToGetManifestDigest = docker_registry:getTokenFromDockerAuth(userId, token, registryScopeForGetManifest);
                 log:printDebug("Retrived a token to get manifest digest");
-                return getManifestDigest (orgName, imageName, artifactVersion, bearerToken = tokenToGetManifestDigest, userId, token); 
+                return getManifestDigest(orgName, imageName, artifactVersion, bearerToken = tokenToGetManifestDigest, userId, token);
             } else {
                 error er = error("Failed to extract json payload from getManifest response");
                 return er;
@@ -108,15 +107,14 @@ returns string | error {
             return er;
         }
     } else {
-        string errMsg = io:sprintf("Error while fetching digest of docker manifest. %s", responseForGetManifest);
-        error er = error(errMsg);
+        error er = error(io:sprintf("Error while fetching digest of docker manifest. %s", responseForGetManifest));
         return er;
     }
 }
 
-function deleteManifest (string orgName, string imageName, string manifestdigest, string bearerToken = "", string userId, string token)
+function deleteManifest(string orgName, string imageName, string manifestdigest, string bearerToken = "", string userId, string token)
 returns boolean | error {
-    log:printDebug(io:sprintf("Digest received by deleteManifest : \'%s\'", manifestdigest));    
+    log:printDebug(io:sprintf("Digest received by deleteManifest : \'%s\'", manifestdigest));
     var responseForDeleteManifest = docker_registry:getResponseFromManifestAPI(orgName, imageName, digest = manifestdigest, bearerToken = bearerToken);
     if (responseForDeleteManifest is http:Response) {
         log:printDebug(io:sprintf("Received status code for deleteManifestDigest request: %d", responseForDeleteManifest.statusCode));
@@ -125,12 +123,12 @@ returns boolean | error {
             if (payload is json) {
                 log:printDebug(io:sprintf("Received payload from docker registry for deleteManifest request: %s", payload));
                 string registryScopeForDeleteManifest = buildRegistryScope(payload);
-                log:printDebug(io:sprintf("Registry scope for deleteManifest request: %s", registryScopeForDeleteManifest));       
+                log:printDebug(io:sprintf("Registry scope for deleteManifest request: %s", registryScopeForDeleteManifest));
 
                 string tokenToDeleteManifest = docker_registry:getTokenFromDockerAuth(userId, token, registryScopeForDeleteManifest);
-                log:printDebug("Retrived a token to delete manifest");      
+                log:printDebug("Retrived a token to delete manifest");
 
-                return deleteManifest(orgName, imageName, manifestdigest, bearerToken = tokenToDeleteManifest, userId, token); 
+                return deleteManifest(orgName, imageName, manifestdigest, bearerToken = tokenToDeleteManifest, userId, token);
             } else {
                 error er = error("Failed to extract json payload from deleteManifest response");
                 return er;
@@ -143,17 +141,56 @@ returns boolean | error {
             return er;
         }
     } else {
-        string errMsg = io:sprintf("Error while deleting docker manifest. %s", responseForDeleteManifest);
-        error er = error(errMsg);
+        error er = error(io:sprintf("Error while deleting docker manifest. %s", responseForDeleteManifest));
         return er;
-    } 
+    }
 }
 
-function buildRegistryScope (json payload) returns string {
+function buildRegistryScope(json payload) returns string {
     log:printDebug("Building scopes requested by the docker registry");
     string requestType = payload["errors"][0]["detail"][0]["Type"].toString();
     string name = payload["errors"][0]["detail"][0]["Name"].toString();
     string actions = payload["errors"][0]["detail"][0]["Action"].toString();
 
     return io:sprintf("%s:%s:%s", requestType, name, actions);
+}
+
+public function deleteImageFromResitry(string orgName, string imageName) returns error? {
+    string imageDirectoryPath = io:sprintf("%s/%s/%s", constants:DOCKER_REGISTRY_REPOSITORIES_FILEPATH, orgName, imageName);
+    log:printInfo(io:sprintf("Deleting the image \'%s/%s\' from the registry. Image directory : %s", orgName, imageName, imageDirectoryPath));
+    internal:Path directoryToBeDeleted = new (imageDirectoryPath);
+
+    if (directoryToBeDeleted.isDirectory()) {
+        var deleteResult = directoryToBeDeleted.delete();
+
+        if (deleteResult is error) {
+            error er = error("Unexpected error while deleting the image from the registry");
+            return er;
+        } else {
+            log:printInfo(io:sprintf("Image \'%s/%s\' is successfully deleted from the registry", orgName, imageName));
+        }
+    } else {
+        error er = error(io:sprintf("Image directory \'%s\' is not found in the registry", imageDirectoryPath));
+        return er;
+    }
+}
+
+public function deleteOrganizationFromResitry(string orgName) returns error? {
+    string orgDirectoryPath = io:sprintf("%s/%s", constants:DOCKER_REGISTRY_REPOSITORIES_FILEPATH, orgName);
+    log:printInfo(io:sprintf("Deleting the organization \'%s\' from the registry. Organization directory : %s", orgName, orgDirectoryPath));
+    internal:Path directoryToBeDeleted = new (orgDirectoryPath);
+
+    if (directoryToBeDeleted.isDirectory()) {
+        var deleteResult = directoryToBeDeleted.delete();
+
+        if (deleteResult is error) {
+            error er = error("Unexpected error while deleting the organization from the registry");
+            return er;
+        } else {
+            log:printInfo(io:sprintf("Organization \'%s\' is successfully deleted from the registry", orgName));
+        }
+    } else {
+        error er = error(io:sprintf("Organization directory \'%s\' is not found in the registry", orgDirectoryPath));
+        return er;
+    }
 }
