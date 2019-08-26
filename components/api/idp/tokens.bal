@@ -109,7 +109,7 @@ public function extractSubject(string jwt) returns error  | string{
     log:printDebug("Decoding jwt token body :" + jwt);
     string[] split_string = jwt.split("\\."); // Split the string
     string base64EncodedBody = split_string[1]; // Payload part
-    byte[] bodyBytes = check encoding:decodeBase64(base64EncodedBody);
+    byte[] bodyBytes = check encoding:decodeBase64Url(base64EncodedBody);
     string body = encoding:byteArrayToString(bodyBytes, encoding = "utf-8");
     log:printDebug("Decoded jwt token body :" + body);
     io:StringReader sr = new(body, encoding = "UTF-8");
