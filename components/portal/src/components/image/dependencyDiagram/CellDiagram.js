@@ -16,8 +16,11 @@
  * under the License.
  */
 
+/* eslint max-lines: ["error", 600] */
+
 import "vis/dist/vis-network.min.css";
 import CircularProgress from "@material-ui/core/CircularProgress";
+import Constants from "../../../utils/constants";
 import React from "react";
 import vis from "vis";
 import {withStyles} from "@material-ui/core/styles";
@@ -38,7 +41,8 @@ class CellDiagram extends React.Component {
     static NodeType = {
         CELL: "cell",
         COMPONENT: "component",
-        GATEWAY: "gateway"
+        GATEWAY: "gateway",
+        COMPOSITE: "composite"
     };
 
     static GRAPH_OPTIONS = {
@@ -68,6 +72,11 @@ class CellDiagram extends React.Component {
                 inherit: false,
                 color: "#ccc7c7"
             },
+
+            /*
+             * Arrows 'from' configuration will switch the direction of the arrow 'from' and 'to' in edge data.
+             *the config will show the arrow label closer to 'to' node
+             */
             arrows: {
                 from: {
                     enabled: true,
@@ -137,15 +146,18 @@ class CellDiagram extends React.Component {
     };
 
     draw = () => {
-        const {data, focusedCell, onClickNode} = this.props;
+        const {data, focusedNode, onClickNode} = this.props;
+
         const componentNodes = [];
         const dataEdges = [];
-        const cellNodes = [];
+        const parentNodes = [];
         const availableCells = data.cells;
-        const focusCellIngressTypes = data.metaInfo[focusedCell].ingresses;
-        const componentDependencyLinks = data.metaInfo[focusedCell].componentDependencyLinks;
-        const availableComponents = data.components.filter((component) => (focusedCell === component.cell))
-            .map((component) => `${component.cell}${CellDiagram.CELL_COMPONENT_SEPARATOR}${component.name}`);
+        const availableComposites = data.composites;
+        const focusCellIngressTypes = data.metaInfo[focusedNode].ingresses;
+        const componentDependencyLinks = data.metaInfo[focusedNode].componentDependencyLinks;
+        const nodeType = data.metaInfo[focusedNode].type;
+        const availableComponents = data.components.filter((component) => (focusedNode === component.parent))
+            .map((component) => `${component.parent}${CellDiagram.CELL_COMPONENT_SEPARATOR}${component.name}`);
 
         const getGroupNodesIds = (group) => {
             const output = [];
@@ -197,73 +209,17 @@ class CellDiagram extends React.Component {
             return result;
         };
 
-        const getIngressTypes = (cell) => data.metaInfo[cell].ingresses.join(", ");
+        const getIngressTypes = (parent) => data.metaInfo[parent].ingresses.join(", ");
 
-        const drawOnCanvas = (from, to, ctx, radius) => {
-            const arrow = {
-                h: 3,
-                w: 10
-            };
-            const ptCircleFrom = getPointOnCircle(radius, from, to);
-            const ptCircleTo = getPointOnCircle(radius, to, from);
-            const ptArrow = getPointOnCircle(radius + arrow.w + 10, to, from);
-
-            drawCircle(ctx, from, radius);
-            drawCircle(ctx, to, radius);
-            drawLine(ctx, ptCircleFrom, ptCircleTo);
-            drawArrow(ctx, arrow, ptArrow, ptCircleTo);
+        const getAngleBetweenPoints = (cx, cy, ex, ey) => {
+            const dy = ey - cy;
+            const dx = ex - cx;
+            let theta = Math.atan2(dy, dx);
+            theta *= 180 / Math.PI;
+            return theta;
         };
 
-        const drawArrow = (ctx, arrow, ptArrow, endPt) => {
-            const angleInDegrees = getAngleBetweenPoints(ptArrow, endPt);
-            ctx.save();
-            ctx.translate(ptArrow.x, ptArrow.y);
-            ctx.rotate(angleInDegrees * Math.PI / 180);
-            ctx.beginPath();
-            ctx.moveTo(0, 0);
-            ctx.lineTo(0, -arrow.h);
-            ctx.lineTo(arrow.w, 0);
-            ctx.lineTo(0, Number(arrow.h));
-            ctx.closePath();
-            ctx.fillStyle = "#ccc7c7";
-            ctx.stroke();
-            ctx.fill();
-            ctx.restore();
-        };
-
-        const drawCircle = (ctx, circle, radius) => {
-            ctx.beginPath();
-            ctx.fillStyle = "#808080";
-            ctx.strokeStyle = "transparent";
-            ctx.arc(circle.x, circle.y, radius, 0, 2 * Math.PI, false);
-            ctx.stroke();
-            ctx.closePath();
-        };
-
-        const drawLine = (ctx, startPt, endPt) => {
-            ctx.beginPath();
-            ctx.moveTo(startPt.x, startPt.y);
-            ctx.lineTo(endPt.x, endPt.y);
-            ctx.strokeStyle = "#ccc7c7";
-            ctx.stroke();
-            ctx.closePath();
-        };
-
-        const getPointOnCircle = (radius, originPt, endPt) => {
-            const angleInDegrees = getAngleBetweenPoints(originPt, endPt);
-            const x = radius * Math.cos(angleInDegrees * Math.PI / 180) + originPt.x;
-            const y = radius * Math.sin(angleInDegrees * Math.PI / 180) + originPt.y;
-            return {x: x, y: y};
-        };
-
-        const getAngleBetweenPoints = (originPt, endPt) => {
-            const interPt = {
-                x: endPt.x - originPt.x,
-                y: endPt.y - originPt.y
-            };
-            return Math.atan2(interPt.y, interPt.x) * 180 / Math.PI;
-        };
-
+        // Add component nodes
         if (availableComponents) {
             availableComponents.forEach((node, index) => {
                 componentNodes.push({
@@ -276,63 +232,152 @@ class CellDiagram extends React.Component {
             });
         }
 
+        // Add cell nodes
         if (availableCells) {
             for (const cell of availableCells) {
-                if (cell === focusedCell) {
-                    cellNodes.push({
+                if (cell === focusedNode) {
+                    parentNodes.push({
                         id: cell,
                         label: cell,
                         shape: "image",
                         image: "/icons/focusedCell.svg",
-                        group: CellDiagram.NodeType.CELL
+                        group: Constants.Type.CELL
                     });
                 } else {
-                    cellNodes.push({
+                    parentNodes.push({
                         id: cell,
                         label: `${cell}\n<b>(${getIngressTypes(cell)})</b>`,
                         shape: "image",
                         image: "/icons/cell.svg",
-                        group: CellDiagram.NodeType.CELL
+                        group: Constants.Type.CELL
                     });
                 }
             }
         }
 
+        // Add composite nodes
+        if (availableComposites) {
+            for (const composite of availableComposites) {
+                if (composite === focusedNode) {
+                    parentNodes.push({
+                        id: composite,
+                        label: composite,
+                        shape: "image",
+                        image: "/icons/focusedComposite.svg",
+                        group: Constants.Type.COMPOSITE
+                    });
+                } else {
+                    parentNodes.push({
+                        id: composite,
+                        label: `${composite}\n<b>(${getIngressTypes(composite)})</b>`,
+                        shape: "image",
+                        image: "/icons/composite.svg",
+                        group: Constants.Type.COMPOSITE
+                    });
+                }
+            }
+        }
+
+        // Add edges
         if (data.dependencyLinks) {
             data.dependencyLinks.forEach((edge, index) => {
+                // Finding distinct links
+                const linkMatches = dataEdges.find(
+                    (existingEdge) => (existingEdge.from.parent === edge.from.parent
+                        && existingEdge.from.component === edge.from.component) && existingEdge.to === edge.to);
+
+                if (!linkMatches) {
+                    if (focusedNode === edge.to) {
+                        if (nodeType === Constants.Type.COMPOSITE) {
+                            // Add temporary node to border of the composite
+                            parentNodes.push({
+                                id: `temp-node-${edge.to}`,
+                                label: "",
+                                shape: "dot",
+                                fixed: true,
+                                color: {
+                                    border: "#fff",
+                                    background: "#fff"
+                                }
+                            });
+
+                            /*
+                             * Draw the edge from incoming node to temporary node.
+                             * 'from' and 'to' values from edge data is switched and assigned dataEdges according to the
+                             *arrow config in GRAPH_OPTIONS.
+                             */
+                            dataEdges.push({
+                                from: `temp-node-${edge.to}`,
+                                to: edge.from.parent,
+                                label: edge.alias
+                            });
+                        }
+
+                        // Add the gateway node incoming edges
+                        dataEdges.push({
+                            from: `${edge.to}${CellDiagram.CELL_COMPONENT_SEPARATOR}${CellDiagram.NodeType.GATEWAY}`,
+                            to: edge.from.parent,
+                            label: edge.alias
+                        });
+                    } else if (focusedNode === edge.from.parent) {
+                        // Add component to cell edges
+                        dataEdges.push({
+                            from: edge.to,
+                            to: `${edge.from.parent}${CellDiagram.CELL_COMPONENT_SEPARATOR}${edge.from.component}`,
+                            label: edge.alias
+                        });
+                    } else {
+                        // Add cell/composite dependencies
+                        dataEdges.push({
+                            from: edge.to,
+                            to: edge.from.parent,
+                            label: edge.alias
+                        });
+                    }
+                }
+            });
+        }
+
+        // Add component wise dependencies
+        if (componentDependencyLinks) {
+            componentDependencyLinks.forEach((edge, index) => {
                 // Finding distinct links
                 const linkMatches = dataEdges.find(
                     (existingEdge) => existingEdge.from === edge.from && existingEdge.to === edge.to);
 
                 if (!linkMatches) {
                     dataEdges.push({
-                        id: index,
-                        from: edge.to,
-                        to: edge.from,
-                        label: edge.alias
+                        from: `${focusedNode}${CellDiagram.CELL_COMPONENT_SEPARATOR}${edge.to}`,
+                        to: `${focusedNode}${CellDiagram.CELL_COMPONENT_SEPARATOR}${edge.from}`
                     });
                 }
             });
         }
 
-        const nodes = new vis.DataSet(cellNodes);
+        const nodes = new vis.DataSet(parentNodes);
         nodes.add(componentNodes);
-        nodes.add({
-            id: `${focusedCell}${CellDiagram.CELL_COMPONENT_SEPARATOR}${CellDiagram.NodeType.GATEWAY}`,
-            label: CellDiagram.NodeType.GATEWAY,
-            shape: "image",
-            image: "/icons/gateway.svg",
-            group: CellDiagram.NodeType.GATEWAY,
-            fixed: true
-        });
 
         const incomingNodes = [];
-        dataEdges.forEach((edge, index) => {
-            if (edge.from === focusedCell) {
-                edge.from = `${focusedCell}${CellDiagram.CELL_COMPONENT_SEPARATOR}${CellDiagram.NodeType.GATEWAY}`;
-                incomingNodes.push(edge.from);
-            }
-        });
+        if (nodeType === Constants.Type.CELL) {
+            // Add gateway node
+            nodes.add({
+                id: `${focusedNode}${CellDiagram.CELL_COMPONENT_SEPARATOR}${CellDiagram.NodeType.GATEWAY}`,
+                label: CellDiagram.NodeType.GATEWAY,
+                shape: "image",
+                image: "/icons/gateway.svg",
+                group: CellDiagram.NodeType.GATEWAY,
+                fixed: true
+            });
+
+            // Check for incoming nodes of a cell to get the position to place the graph on the canvas
+            dataEdges.forEach((edge, index) => {
+                if (edge.from
+                    === `${focusedNode}${CellDiagram.CELL_COMPONENT_SEPARATOR}${CellDiagram.NodeType.GATEWAY}`) {
+                    incomingNodes.push(edge.to);
+                }
+            });
+        }
+
         const edges = new vis.DataSet(dataEdges);
 
         const graphData = {
@@ -353,6 +398,32 @@ class CellDiagram extends React.Component {
 
             this.network.on("stabilized", () => {
                 const nodeIds = nodes.getIds();
+                const centerPoint = getPolygonCentroid(getGroupNodePositions(CellDiagram.NodeType.COMPONENT));
+                const polygonRadius = getDistance(getGroupNodePositions(CellDiagram.NodeType.COMPONENT), centerPoint);
+                const size = polygonRadius + spacing;
+
+                // Place temporary node on the border of the composite to get the incoming edge point to the composite
+                if (nodeType === Constants.Type.COMPOSITE) {
+                    dataEdges.forEach((edge, index) => {
+                        if (edge.from === `temp-node-${focusedNode}`) {
+                            const fromNode = edge.to;
+                            const from = this.network.getPositions([fromNode]);
+                            const angleInDegrees = getAngleBetweenPoints(centerPoint.x, centerPoint.y, from[fromNode].x,
+                                from[fromNode].y);
+                            // Get the coordinate of the connecting point of the composite
+                            const incomingPoint = findPoint(centerPoint.x, centerPoint.y, angleInDegrees, size - 30);
+                            const tempNode = nodes.get(edge.from);
+                            // Place the temporary node on the composite border
+                            tempNode.fixed = true;
+                            tempNode.x = incomingPoint.x;
+                            tempNode.y = incomingPoint.y;
+                            tempNode.mass = 1;
+                            tempNode.size = 1;
+                            updatedNodes.push(tempNode);
+                        }
+                    });
+                    nodes.update(updatedNodes);
+                }
 
                 this.network.fit({
                     nodes: nodeIds
@@ -360,7 +431,6 @@ class CellDiagram extends React.Component {
                 this.loader.current.style.visibility = "hidden";
                 this.loader.current.style.height = "0vh";
                 this.dependencyGraph.current.style.visibility = "visible";
-
                 this.network.setOptions({physics: false});
                 window.onresize = () => {
                     this.network.fit({
@@ -383,20 +453,12 @@ class CellDiagram extends React.Component {
                 ctx.font = "bold 1.3rem Arial";
                 ctx.textAlign = "center";
                 ctx.fillStyle = "#666666";
-                ctx.fillText(focusedCell, focusCellLabelPoint.x, focusCellLabelPoint.y + 20);
+                ctx.fillText(focusedNode, focusCellLabelPoint.x, focusCellLabelPoint.y + 20);
                 ctx.font = "bold 0.8rem Arial";
                 ctx.textAlign = "center";
                 ctx.fillStyle = "#777777";
                 ctx.fillText(`(${focusCellIngressTypes.join(", ")})`, focusCellLabelPoint.x,
                     focusCellLabelPoint.y + 45);
-
-                componentDependencyLinks.forEach((link) => {
-                    const from = this.network.getPositions([link.from]);
-                    const to = this.network.getPositions([link.to]);
-                    if (from[link.from] && to[link.to]) {
-                        drawOnCanvas(from[link.from], to[link.to], ctx, 37);
-                    }
-                });
             });
 
             this.network.on("stabilizationIterationsDone", () => {
@@ -426,40 +488,41 @@ class CellDiagram extends React.Component {
                         }
                     }
                 }
-
                 centerPoint = getPolygonCentroid(getGroupNodePositions(CellDiagram.NodeType.COMPONENT));
 
-                const focusedNode = nodes.get(focusedCell);
-                focusedNode.size = size;
-                focusedNode.label = undefined;
-                focusedNode.fixed = true;
+                const focused = nodes.get(focusedNode);
+                focused.size = size;
+                focused.label = undefined;
+                focused.fixed = true;
                 if (componentNodes.length === 1) {
-                    focusedNode.mass = 5;
+                    focused.mass = 5;
                 } else {
-                    focusedNode.mass = polygonRadius / 10;
+                    focused.mass = polygonRadius / 10;
                 }
-                this.network.moveNode(focusedCell, centerPoint.x, centerPoint.y);
-                updatedNodes.push(focusedNode);
+                this.network.moveNode(focusedNode, centerPoint.x, centerPoint.y);
+                updatedNodes.push(focused);
 
                 // Placing gateway node
-                const gatewayNode = nodes.get(
-                    `${focusedCell}${CellDiagram.CELL_COMPONENT_SEPARATOR}${CellDiagram.NodeType.GATEWAY}`);
-                const gatewayPoint = findPoint(centerPoint.x, centerPoint.y, 90, size * Math.cos(180 / 8));
+                if (nodeType === Constants.Type.CELL) {
+                    const gatewayNode = nodes.get(
+                        `${focusedNode}${CellDiagram.CELL_COMPONENT_SEPARATOR}${CellDiagram.NodeType.GATEWAY}`);
+                    const gatewayPoint = findPoint(centerPoint.x, centerPoint.y, 90, size * Math.cos(180 / 8));
 
-                if (gatewayNode) {
-                    const x = gatewayPoint.x;
-                    const y = gatewayPoint.y;
-                    this.network.moveNode(gatewayNode.id, x, y);
-                    updatedNodes.push(gatewayNode);
+                    if (gatewayNode) {
+                        const x = gatewayPoint.x;
+                        const y = gatewayPoint.y;
+                        this.network.moveNode(gatewayNode.id, x, y);
+                        updatedNodes.push(gatewayNode);
+                    }
                 }
-
                 nodes.update(updatedNodes);
             });
 
             this.network.on("selectNode", (event) => {
                 this.network.unselectAll();
                 const clickedNode = nodes.get(event.nodes[0]);
-                if (clickedNode.group === CellDiagram.NodeType.CELL && clickedNode.id !== focusedCell) {
+                if (((clickedNode.group === Constants.Type.CELL)
+                        || (clickedNode.group === Constants.Type.COMPOSITE)) && clickedNode.id !== focusedNode) {
                     onClickNode(event.nodes[0]);
                 }
             });
@@ -487,7 +550,7 @@ class CellDiagram extends React.Component {
 CellDiagram.propTypes = {
     classes: PropTypes.object.isRequired,
     data: PropTypes.object,
-    focusedCell: PropTypes.string,
+    focusedNode: PropTypes.string.isRequired,
     onClickNode: PropTypes.func
 };
 

@@ -53,6 +53,10 @@ const Constants = {
         ADMIN: "admin",
         PUSH: "push",
         PULL: "pull"
+    },
+    Type: {
+        CELL: "Cell",
+        COMPOSITE: "Composite"
     }
 };
 
