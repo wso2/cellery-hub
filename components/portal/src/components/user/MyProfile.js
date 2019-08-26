@@ -385,7 +385,7 @@ class MyProfile extends React.Component {
                                                             <div className={"userID"}>
                                                                 <Typography variant={"subtitle2"} color={"inherit"}
                                                                     className={classes.rightPanelSubTitle}>
-                                                                    Username
+                                                                    User ID
                                                                 </Typography>
                                                                 <Tooltip placement={"left"} title={"This can be used "
                                                                     + "as the username to perform CLI operations such "
