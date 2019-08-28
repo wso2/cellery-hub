@@ -50,35 +50,80 @@ returns http:Response? | error?  {
     }
 }
 
-public function getTokenFromDockerAuth(string userName, string token, string registryScope) returns string {
-    log:printDebug(io:sprintf("Invoking docker auth API for get token to getManifests"));
-    string jwtToken = "";
-    http:Client dockerAuthClientEP = new(config:getAsString("docker.auth.url"), config = {
-        auth: {
-            scheme: http:BASIC_AUTH,
-            config: {
-                username: userName,
-                password: token
-            }
-        },
-        secureSocket: {
-            trustStore: {
-                path: config:getAsString("security.truststore"),
-                password: config:getAsString("security.truststorepass")
-            },
-            verifyHostname: false
-        }
-    });
+public function getManifestDigest(string orgName, string imageName, string artifactVersion, string bearerToken = "", string userId, string token)
+returns string | error {
+    var responseForGetManifest = getResponseFromManifestAPI(orgName, imageName, artifactVersion = artifactVersion, bearerToken = bearerToken);
+    if (responseForGetManifest is http:Response) {
+        log:printDebug(io:sprintf("Received status code for getManifestDigest request: %d", responseForGetManifest.statusCode));
+        if (responseForGetManifest.statusCode == http:UNAUTHORIZED_401) {
+            var payload = responseForGetManifest.getJsonPayload();
+            if (payload is json) {
+                log:printDebug(io:sprintf("Received payload from docker registry for getManifestDigest request: %s", payload));
+                string registryScopeForGetManifest = buildRegistryScope(payload);
+                log:printDebug(io:sprintf("Registry scope for getManifest : %s", registryScopeForGetManifest));
 
-    string getTokenPathParams = "/auth?service=Docker%20registry&scope=" + registryScope;
-    var authResponse = dockerAuthClientEP->get(getTokenPathParams, message = "");
-    if (authResponse is http:Response) {
-        var authPayload = authResponse.getJsonPayload();
-        if (authPayload is json) {
-            jwtToken = authPayload["token"].toString();
-        }              
+                string tokenToGetManifestDigest = getTokenFromDockerAuth(userId, token, registryScopeForGetManifest);
+                log:printDebug("Retrived a token to get manifest digest");
+                return getManifestDigest(orgName, imageName, artifactVersion, bearerToken = tokenToGetManifestDigest, userId, token);
+            } else {
+                error er = error("Failed to extract json payload from getManifest response");
+                return er;
+            }
+        } else if (responseForGetManifest.statusCode == http:OK_200) {
+            log:printDebug(io:sprintf("Successfully retrieved the digest of the atifact \'%s/%s:%s\'", orgName, imageName, artifactVersion));
+            return responseForGetManifest.getHeader("Docker-Content-Digest");
+        } else {
+            error er = error("Failed to fetch the digest of docker manifest. This may be due to an unknown manifest");
+            return er;
+        }
     } else {
-        log:printError(io:sprintf("Error when calling the dockerAuthClientEP : %s", authResponse.reason()), err = authResponse);
+        error er = error(io:sprintf("Error while fetching digest of docker manifest. %s", responseForGetManifest));
+        return er;
     }
-    return jwtToken;
+}
+
+public function deleteManifest(string orgName, string imageName, string manifestdigest, string bearerToken = "", string userId, string token)
+returns boolean | error {
+    log:printDebug(io:sprintf("Digest received by deleteManifest : \'%s\'", manifestdigest));
+    var responseForDeleteManifest = getResponseFromManifestAPI(orgName, imageName, digest = manifestdigest, bearerToken = bearerToken);
+    if (responseForDeleteManifest is http:Response) {
+        log:printDebug(io:sprintf("Received status code for deleteManifestDigest request: %d", responseForDeleteManifest.statusCode));
+        if (responseForDeleteManifest.statusCode == http:UNAUTHORIZED_401) {
+            var payload = responseForDeleteManifest.getJsonPayload();
+            if (payload is json) {
+                log:printDebug(io:sprintf("Received payload from docker registry for deleteManifest request: %s", payload));
+                string registryScopeForDeleteManifest = buildRegistryScope(payload);
+                log:printDebug(io:sprintf("Registry scope for deleteManifest request: %s", registryScopeForDeleteManifest));
+
+                string tokenToDeleteManifest = getTokenFromDockerAuth(userId, token, registryScopeForDeleteManifest);
+                log:printDebug("Retrived a token to delete manifest");
+
+                return deleteManifest(orgName, imageName, manifestdigest, bearerToken = tokenToDeleteManifest, userId, token);
+            } else {
+                error er = error("Failed to extract json payload from deleteManifest response");
+                return er;
+            }
+        } else if (responseForDeleteManifest.statusCode == http:ACCEPTED_202) {
+            log:printDebug(io:sprintf("Deleted the artifact \'%s/%s\'. Digest : %s", orgName, imageName, manifestdigest));
+            return true;
+        } else {
+            error er = error("Failed to delete the docker manifest. This may be due to an unknown manifest");
+            return er;
+        }
+    } else {
+        error er = error(io:sprintf("Error while deleting docker manifest. %s", responseForDeleteManifest));
+        return er;
+    }
+}
+
+function buildRegistryScope(json payload) returns string {
+    log:printDebug("Building scopes requested by the docker registry");
+    string requestType = payload[constants:REGISTRY_RESPONSE_ERRORS_FIELD][0][constants:REGISTRY_RESPONSE_DETAIL_FIELD][0]
+    [constants:REGISTRY_RESPONSE_TYPE_FIELD].toString();
+    string name = payload[constants:REGISTRY_RESPONSE_ERRORS_FIELD][0][constants:REGISTRY_RESPONSE_DETAIL_FIELD][0]
+    [constants:REGISTRY_RESPONSE_NAME_FIELD].toString();
+    string actions = payload[constants:REGISTRY_RESPONSE_ERRORS_FIELD][0][constants:REGISTRY_RESPONSE_DETAIL_FIELD][0]
+    [constants:REGISTRY_RESPONSE_ACTION_FIELD].toString();
+
+    return io:sprintf("%s:%s:%s", requestType, name, actions);
 }

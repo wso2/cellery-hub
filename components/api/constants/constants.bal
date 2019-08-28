@@ -60,4 +60,10 @@ public const string UPDATED_DATE = "UPDATED_DATE";
 public const string CACHE_EXPIRY_VAR = "token.cache.expiry";
 public const string CACHE_CAPACITY_VAR = "token.cache.capacity";
 
+public const string DOCKER_REGISTRY_SERVICE_NAME = "Docker%20registry";
 public const string DOCKER_REGISTRY_REPOSITORIES_FILEPATH = "/var/lib/registry/docker/registry/v2/repositories";
+public const string REGISTRY_RESPONSE_ERRORS_FIELD = "errors";
+public const string REGISTRY_RESPONSE_DETAIL_FIELD = "detail";
+public const string REGISTRY_RESPONSE_TYPE_FIELD = "Type";
+public const string REGISTRY_RESPONSE_NAME_FIELD = "Name";
+public const string REGISTRY_RESPONSE_ACTION_FIELD = "Action";
