@@ -27,6 +27,7 @@ public const int API_ERROR_CODE = 1;
 public const int ENTRY_ALREADY_EXISTING_ERROR_CODE = 2;
 public const int ALLOWED_LIMIT_EXCEEDED_ERROR_CODE = 3;
 public const int ENTRY_NOT_FOUND_ERROR_CODE = 4;
+public const int ACTION_NOT_ALLOWED_ERROR_CODE = 5;
 
 public const string VALIDATE_USER = "validateUser";
 public const string OFFSET = "offset";

@@ -190,7 +190,6 @@ public function deleteOrganizationFromResitry(string orgName) returns error? {
             log:printInfo(io:sprintf("Organization \'%s\' is successfully deleted from the registry", orgName));
         }
     } else {
-        error er = error(io:sprintf("Organization directory \'%s\' is not found in the registry", orgDirectoryPath));
-        return er;
+        log:printInfo(io:sprintf("Organization directory \'%s\' is not found in the registry", orgDirectoryPath));
     }
 }

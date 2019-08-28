@@ -646,7 +646,7 @@ returns http:Response {
 # + orgName - Organization name
 # + imageName - Image ID
 # + updateImageBody - received body which contain the description, summary and keywords array
-# + return - http response (200 if success, 401, 404 or 500 otherwise)
+# + return - http response (200 if success, 401, 403 or 500 otherwise)
 public function updateImage(http:Request updateImageReq, string orgName, string imageName, gen:ImageUpdateRequest updateImageBody) returns http:Response {
     if (updateImageReq.hasHeader(constants:AUTHENTICATED_USER)) {
         string userId = updateImageReq.getHeader(constants:AUTHENTICATED_USER);
@@ -674,7 +674,7 @@ public function updateImage(http:Request updateImageReq, string orgName, string 
                 } else if (updateImageRes.updatedRowCount == 0) {
                     log:printError(io:sprintf("Failed to update image %s/%s for Author %s : No matching records found",
                     imageName, orgName, userId));
-                    resp = buildErrorResponse(http:NOT_FOUND_404, constants:ENTRY_NOT_FOUND_ERROR_CODE, "Unable to update image", "");
+                    resp = buildErrorResponse(http:FORBIDDEN_403, constants:ACTION_NOT_ALLOWED_ERROR_CODE, "Unable to update image", "");
                     abort;
                 } else {
                     log:printError(io:sprintf("Failed to update image %s/%s for Author %s : More than one matching records found",
@@ -713,7 +713,7 @@ public function updateImage(http:Request updateImageReq, string orgName, string 
 # + orgName - organization name received as a path parameter
 # + imageName - image name received as a path parameter
 # + artifactVersion - version of the artifact received as a path parameter
-# + return - http response (200 if success, 401, 404 or 500 otherwise)
+# + return - http response (200 if success, 401, 403 or 500 otherwise)
 public function updateArtifact(http:Request updateArtifactReq, string orgName, string imageName, string artifactVersion,
 gen:ArtifactUpdateRequest updateArtifactBody) returns http:Response {
     if (updateArtifactReq.hasHeader(constants:AUTHENTICATED_USER)) {
@@ -731,7 +731,7 @@ gen:ArtifactUpdateRequest updateArtifactBody) returns http:Response {
             } else if (updateArtifactRes.updatedRowCount == 0) {
                 log:printError(io:sprintf("Failed to update artifact \'%s/%s:%s\' for Author %s : No matching records found", orgName, imageName,
                 artifactVersion, userId));
-                return buildErrorResponse(http:NOT_FOUND_404, constants:ENTRY_NOT_FOUND_ERROR_CODE, "Unable to update artifact", "");
+                return buildErrorResponse(http:FORBIDDEN_403, constants:ACTION_NOT_ALLOWED_ERROR_CODE, "Unable to update artifact", "");
             } else {
                 log:printError(io:sprintf("Failed to update artifact \'%s/%s:%s\' for Author %s : More than one matching records found", orgName,
                 imageName, artifactVersion, userId));
@@ -754,7 +754,7 @@ gen:ArtifactUpdateRequest updateArtifactBody) returns http:Response {
 # + updateOrganizationReq - received request which contains header
 # + orgName - organization name received as a path parameter
 # + updateOrganizationBody - received body which contain the description and summary
-# + return - http response (200 if success, 401, 404 or 500 otherwise)
+# + return - http response (200 if success, 401, 403 or 500 otherwise)
 public function updateOrganization(http:Request updateOrganizationReq, string orgName, gen:OrgUpdateRequest updateOrganizationBody) returns http:Response {
     if (updateOrganizationReq.hasHeader(constants:AUTHENTICATED_USER)) {
         string userId = updateOrganizationReq.getHeader(constants:AUTHENTICATED_USER);
@@ -769,7 +769,7 @@ public function updateOrganization(http:Request updateOrganizationReq, string or
                 return buildSuccessResponse();
             } else if (updateOrgRes.updatedRowCount == 0) {
                 log:printError(io:sprintf("Failed to update organization \'%s\' for Author %s : No matching records found", orgName, userId));
-                return buildErrorResponse(http:NOT_FOUND_404, constants:ENTRY_NOT_FOUND_ERROR_CODE, "Unable to update organization", "");
+                return buildErrorResponse(http:FORBIDDEN_403, constants:ACTION_NOT_ALLOWED_ERROR_CODE, "Unable to update organization", "");
             } else {
                 log:printError(io:sprintf("Failed to update organization \'%s\' for Author %s : More than one matching records found", orgName, userId));
                 return buildUnknownErrorResponse();
@@ -827,7 +827,7 @@ int resultLimit) returns http:Response {
 # + orgName - organization name that the artifact is belong to
 # + imageName - image name of the artifact
 # + artifactVersion - version of the artifact
-# + return - http resonce (200 if success, 401, 404 or 500 otherwise)
+# + return - http resonce (200 if success, 401, 403 or 500 otherwise)
 public function deleteArtifact(http:Request deleteArtifactReq, string orgName, string imageName, string artifactVersion) returns http:Response {
     if (deleteArtifactReq.hasHeader(constants:AUTHENTICATED_USER)) {
         string userId = deleteArtifactReq.getHeader(constants:AUTHENTICATED_USER);
@@ -854,7 +854,7 @@ public function deleteArtifact(http:Request deleteArtifactReq, string orgName, s
                     }
                 } else if (deletedRowCount == 0) {
                     log:printDebug(io:sprintf("Failed to delete the artifact \'%s/%s:%s\' from db. No matching records found", orgName, imageName, artifactVersion));
-                    resp = buildErrorResponse(http:NOT_FOUND_404, constants:API_ERROR_CODE, "Unable to delete artifact", "No matching records found");
+                    resp = buildErrorResponse(http:FORBIDDEN_403, constants:ACTION_NOT_ALLOWED_ERROR_CODE, "Unable to delete artifact", "No matching records found");
                     abort;
                 } else {
                     log:printDebug(io:sprintf("Failed to delete the artifact \'%s/%s:%s\' from db. More than one matching records found", orgName,
@@ -890,7 +890,7 @@ public function deleteArtifact(http:Request deleteArtifactReq, string orgName, s
 # + deleteImageReq - received request which contains header
 # + orgName - organization name that the artifact is belong to
 # + imageName - image name of the artifact
-# + return - http resonce (200 if success, 401, 404 or 500 otherwise)
+# + return - http resonce (200 if success, 401, 403 or 500 otherwise)
 public function deleteImage(http:Request deleteImageReq, string orgName, string imageName) returns http:Response {
     if (deleteImageReq.hasHeader(constants:AUTHENTICATED_USER)) {
         string userId = deleteImageReq.getHeader(constants:AUTHENTICATED_USER);
@@ -913,7 +913,7 @@ public function deleteImage(http:Request deleteImageReq, string orgName, string 
                     }
                 } else if (deletedRowCount == 0) {
                     log:printError(io:sprintf("Failed to delete the image \'%s/%s\'. No matching records found", orgName, imageName));
-                    resp = buildErrorResponse(http:NOT_FOUND_404, constants:API_ERROR_CODE, "Unable to delete image", "No matching records found");
+                    resp = buildErrorResponse(http:FORBIDDEN_403, constants:ACTION_NOT_ALLOWED_ERROR_CODE, "Unable to delete image", "No matching records found");
                     abort;
                 } else {
                     log:printError(io:sprintf("Failed to delete the image \'%s/%s\' from db. More than one matching records found", orgName,
@@ -948,7 +948,7 @@ public function deleteImage(http:Request deleteImageReq, string orgName, string 
 #
 # + deleteOrganizationReq - received request which contains header
 # + orgName - organization name that expected to delete
-# + return - http resonce (200 if success, 401, 404 or 500 otherwise)
+# + return - http resonce (200 if success, 401, 403 or 500 otherwise)
 public function deleteOrganization(http:Request deleteOrganizationReq, string orgName) returns http:Response {
     if (deleteOrganizationReq.hasHeader(constants:AUTHENTICATED_USER)) {
         string userId = deleteOrganizationReq.getHeader(constants:AUTHENTICATED_USER);
@@ -971,7 +971,7 @@ public function deleteOrganization(http:Request deleteOrganizationReq, string or
                     }
                 } else if (deletedRowCount == 0) {
                     log:printError(io:sprintf("Failed to delete the organization \'%s\'. No matching records found", orgName));
-                    resp = buildErrorResponse(http:NOT_FOUND_404, constants:API_ERROR_CODE, "Unable to delete organization", "No matching records found");
+                    resp = buildErrorResponse(http:FORBIDDEN_403, constants:ACTION_NOT_ALLOWED_ERROR_CODE, "Unable to delete organization", "No matching records found");
                     abort;
                 } else {
                     log:printError(io:sprintf("Failed to delete the organization \'%s\'. More than one matching records found", orgName));
