@@ -23,15 +23,13 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"os"
 	"strings"
 	"time"
 
-	"github.com/cellery-io/cellery-hub/components/docker-auth/pkg/extension"
-
 	"github.com/dgrijalva/jwt-go"
+	"go.uber.org/zap"
 )
 
 const (
@@ -42,160 +40,168 @@ const (
 	dockerAuthCertEnvVar  = "REGISTRY_AUTH_TOKEN_ROOTCERTBUNDLE"
 )
 
-func readCert(certPathEnv string, execId string) ([]byte, error) {
+func readCert(certPathEnv string, logger *zap.SugaredLogger, execId string) ([]byte, error) {
 	key, err := ioutil.ReadFile(os.Getenv(certPathEnv))
 	if err != nil {
-		log.Printf("[%s] Failed to read the cert : %s\n", execId, err)
 		return nil, fmt.Errorf("error occured while reading the cert %s", err)
 	}
-	log.Printf("[%s] Read cert successfully\n", execId)
+	logger.Debugf("[%s] Read cert successfully", execId)
 	return key, nil
 }
 
-func getJWTClaims(token string, execId string) jwt.MapClaims {
+func getJWTClaims(token string, logger *zap.SugaredLogger, execId string) jwt.MapClaims {
 	jwtToken, _ := jwt.Parse(token, nil)
 	claims, ok := jwtToken.Claims.(jwt.MapClaims)
 	if ok {
-		log.Printf("[%s] Received JWT claims successfully\n", execId)
+		logger.Debugf("[%s] Received JWT claims successfully", execId)
 		return claims
 	}
 	return nil
 }
 
-func getClaimValue(claim jwt.MapClaims, claimKey string, execId string) string {
+func getClaimValue(claim jwt.MapClaims, claimKey string, logger *zap.SugaredLogger, execId string) string {
 	value, ok := claim[claimKey].(string)
 	if ok {
-		log.Printf("[%s] Received JWT claim for the claim key %s successfully\n", execId, claimKey)
+		logger.Debugf("[%s] Received JWT claim for the claim key %s successfully", execId, claimKey)
 		return value
 	}
 	return ""
 }
 
-func validateToken(inToken string, cert []byte, execId string) (bool, error) {
+func validateToken(inToken string, cert []byte, logger *zap.SugaredLogger, execId string) (bool, error) {
 	publicRSA, err := jwt.ParseRSAPublicKeyFromPEM(cert)
 	if err != nil {
-		log.Printf("[%s] Failed to parse the cert : %s\n", execId, err)
 		return false, fmt.Errorf("error occured while parsing the cert : %s", err)
 	}
 	token, err := jwt.Parse(inToken, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodRSA); !ok {
-			return nil, fmt.Errorf("[%s] Unexpected signing method: %s\n", execId, token.Header["alg"])
+			return nil, fmt.Errorf("[%s] Unexpected signing method: %s", execId, token.Header["alg"])
 		}
 		return publicRSA, err
 	})
 	if token != nil && token.Valid {
-		log.Printf("[%s] Token received is valid\n", execId)
+		logger.Debugf("[%s] Token received is valid", execId)
 
 		return true, nil
 	}
-	log.Printf("[%s] Token received is invalid\n", execId)
+	logger.Debugf("[%s] Token received is invalid", execId)
 	return false, err
 }
 
-func Authenticate(uName string, token string, execId string) int {
-	log.Printf("[%s] Authentication logic handler reached and token will be validated\n", execId)
-	if isJWT(execId) {
-		log.Printf("[%s] Performing authentication by using JWT\n", execId)
-		jwtValidity := validateJWT(token, uName, execId)
+func Authenticate(uName string, token string, logger *zap.SugaredLogger, execId string) (bool, error) {
+	logger.Debugf("[%s] Authentication logic handler reached and token will be validated", execId)
+	isJwt, err := isJWT(logger, execId)
+	if err != nil {
+		return false, fmt.Errorf("something went wrong while reading 'IS_JWT' environment variable")
+	}
+	if isJwt {
+		logger.Debugf("[%s] Performing authentication by using JWT", execId)
+		jwtValidity, err := validateJWT(token, uName, logger, execId)
+		if err != nil {
+			return false, fmt.Errorf("something went wrong while validating JWT")
+		}
 		if jwtValidity {
-			log.Printf("[%s] User successfully authenticated. Returning success status code\n", execId)
-			return extension.SuccessExitCode
+			logger.Debugf("[%s] User successfully authenticated. Returning success status code", execId)
+			return true, nil
 		} else {
-			log.Printf("[%s] User failed to authenticate. Returning error status code\n", execId)
-			return extension.ErrorExitCode
+			logger.Debugf("[%s] User failed to authenticate. Returning error status code", execId)
+			return false, nil
 		}
 	} else {
-		log.Printf("[%s] Performing authentication by using access token\n", execId)
-		if validateAccessToken(token, uName, execId) {
-			log.Printf("[%s] User successfully authenticated. Returning success status code\n", execId)
-			return extension.SuccessExitCode
+		logger.Debugf("[%s] Performing authentication by using access token", execId)
+		accessTokenValidity, err := validateAccessToken(token, uName, logger, execId)
+		if err != nil {
+			return false, fmt.Errorf("something went wrong while validating access token")
+		}
+		if accessTokenValidity {
+			logger.Debugf("[%s] User successfully authenticated. Returning success status code", execId)
+			return true, nil
 		} else {
-			log.Printf("[%s] User failed to authenticate. Returning error status code\n", execId)
-			return extension.ErrorExitCode
+			logger.Debugf("[%s] User failed to authenticate. Returning error status code", execId)
+			return false, nil
 		}
 	}
 }
 
-func validateJWT(token string, username string, execId string) bool {
-	claim := getJWTClaims(token, execId)
-	iss := getClaimValue(claim, issuerClaim, execId)
-	sub := getClaimValue(claim, subjectClaim, execId)
+func validateJWT(token string, username string, logger *zap.SugaredLogger, execId string) (bool, error) {
+	claim := getJWTClaims(token, logger, execId)
+	iss := getClaimValue(claim, issuerClaim, logger, execId)
+	sub := getClaimValue(claim, subjectClaim, logger, execId)
 
-	log.Printf("[%s] Token issuer : %s\n", execId, iss)
-	log.Printf("[%s] Subject : %s\n", execId, sub)
+	logger.Debugf("[%s] Token issuer : %s", execId, iss)
+	logger.Debugf("[%s] Subject : %s", execId, sub)
 
 	if sub != username {
-		log.Printf("[%s] Username(%s) does not match with subject(%s) in JWT\n", execId, username, sub)
-		return false
+		logger.Debugf("[%s] Username(%s) does not match with subject(%s) in JWT", execId, username, sub)
+		return false, nil
 	}
 
-	certificateInUse, err := readCert(idpCertEnvVar, execId)
+	certificateInUse, err := readCert(idpCertEnvVar, logger, execId)
 	if err != nil {
-		log.Printf("[%s] Unable to load idp cert file : %s\n", execId, err)
+		return false, fmt.Errorf("unable to load idp cert file : %s", err)
 	}
 
 	if iss == authTokenIssuerEnvVar {
-		certificateInUse, err = readCert(dockerAuthCertEnvVar, execId)
+		certificateInUse, err = readCert(dockerAuthCertEnvVar, logger, execId)
 		if err != nil {
-			log.Printf("[%s] Unable to load docker auth file : %s\n", execId, err)
+			return false, fmt.Errorf("unable to load docker auth file : %s", err)
 		}
 	}
 
-	tokenValidity, err := validateToken(token, certificateInUse, execId)
+	tokenValidity, err := validateToken(token, certificateInUse, logger, execId)
 	if err != nil {
-		log.Printf("[%s] Token is not valid : %s\n", execId, err)
-		return false
+		return false, fmt.Errorf("token is not valid : %s", err)
 	}
-	log.Printf("[%s] Signature verified\n", execId)
+	logger.Debugf("[%s] Signature verified", execId)
 
 	if tokenValidity {
-		log.Printf("[%s] User successfully authenticated\n", execId)
-		return true
+		logger.Debugf("[%s] User successfully authenticated", execId)
+		return true, nil
 	} else {
-		log.Printf("[%s] Authentication failed\n", execId)
-		return false
+		logger.Debugf("[%s] Authentication failed", execId)
+		return false, nil
 	}
 }
 
 // isJWT checks whether the token is jwt token or access token.
-func isJWT(execId string) bool {
+func isJWT(logger *zap.SugaredLogger, execId string) (bool, error) {
 	isJWTEnv := os.Getenv("IS_JWT")
 	var isJWT bool
 	if len(isJWTEnv) == 0 {
-		log.Printf("[%s] Error: IS_JWT environment variable is empty\n", execId)
-		return false
+		return false, fmt.Errorf("error: IS_JWT environment variable is empty")
 	} else {
 		if isJWTEnv == "true" {
-			log.Printf("[%s] Received a JWT token\n", execId)
+			logger.Debugf("[%s] Received a JWT token", execId)
 			isJWT = true
 		} else if isJWTEnv == "false" {
-			log.Printf("[%s] Received an access token\n", execId)
+			logger.Debugf("[%s] Received an access token", execId)
 			isJWT = false
 		} else {
-			log.Printf("[%s] Error: Wrong environment value given. The value should be either true or false\n",
-				execId)
-			return false
+			return false, fmt.Errorf("wrong environment value given. The value should be either true or false")
 		}
 	}
-	return isJWT
+	return isJWT, nil
 }
 
 // validateAccessToken is used to introspect the access token
-func validateAccessToken(token string, providedUsername string, execId string) bool {
-	introspectionUrl, urlAvailability := resolveIntrospectionUrl(execId)
+func validateAccessToken(token string, providedUsername string, logger *zap.SugaredLogger,
+	execId string) (bool, error) {
+	introspectionUrl, urlAvailability, err := resolveIntrospectionUrl(logger, execId)
+	if err != nil {
+		return false, fmt.Errorf("something went wrong while resolving introspection url")
+	}
 	if !urlAvailability {
-		return false
+		return false, nil
 	}
 	payload := strings.NewReader("token=" + token)
 	req, err := http.NewRequest("POST", introspectionUrl, payload)
 	if err != nil {
-		log.Printf("[%s] Error creating new request to the introspection endpoint : %s\n", execId, err)
-		return false
+		return false, fmt.Errorf("error creating new request to the introspection endpoint : %s", err)
 	}
-	log.Printf("[%s] Created new request to the introspection endpoint : %s\n", execId, introspectionUrl)
-	username, password, credentialsAvailability := resolveCredentials(execId)
-	if !credentialsAvailability {
-		return false
+	logger.Debugf("[%s] Created new request to the introspection endpoint : %s", execId, introspectionUrl)
+	username, password, err := resolveCredentials(logger, execId)
+	if err != nil {
+		return false, err
 	}
 	req.SetBasicAuth(username, password)
 	// todo Remove the the host verification turning off
@@ -207,112 +213,108 @@ func validateAccessToken(token string, providedUsername string, execId string) b
 	client := &http.Client{Transport: tr}
 	res, err := client.Do(req)
 	if err != nil {
-		log.Printf("[%s] Error sending the request to the introspection endpoint : %s\n", execId, err)
-		return false
+		return false, fmt.Errorf("error sending the request to the introspection endpoint : %s", err)
 	}
 
 	if res.StatusCode == http.StatusBadRequest {
-		log.Printf("[%s] %d status code returned from IDP probably due to empty token\n", execId,
+		return false, fmt.Errorf("[%s] %d status code returned from IDP probably due to empty token", execId,
 			res.StatusCode)
-		return false
 	} else if res.StatusCode != http.StatusOK {
-		log.Printf("[%s] Error while calling IDP, status code :%d. Exiting without authorization\n", execId,
-			res.StatusCode)
-		return false
+		return false, fmt.Errorf("[%s] Error while calling IDP, status code :%d. Exiting without "+
+			"authorization\n", execId, res.StatusCode)
 	}
 
 	defer res.Body.Close()
 	body, err := ioutil.ReadAll(res.Body)
 	if err != nil {
-		log.Printf("[%s] Error reading the response from introspection endpoint. Returing without "+
-			"authorization : %s\n", execId, err)
-		return false
+		return false, fmt.Errorf("error reading the response from introspection endpoint. Returing without "+
+			"authorization : %s", err)
 	} else {
-		log.Printf("[%s] Response recieved from introspection endpoint : %s\n", execId, body)
+		logger.Debugf("[%s] Response recieved from introspection endpoint : %s", execId, body)
 	}
 
 	var result map[string]interface{}
 	err = json.Unmarshal([]byte(string(body)), &result)
 	if err != nil {
-		log.Printf("[%s] Error un marshalling the json : %s\n", execId, err)
-		return false
+		return false, fmt.Errorf("error un marshalling the json : %s", err)
 	}
 	isActive, ok := (result["active"]).(bool)
 	if !ok {
-		log.Printf("[%s] Error casting active to boolean. This may be due to a invalid token\n", execId)
-		return false
+		return false, fmt.Errorf("error casting active to boolean. This may be due to a invalid token")
 	}
-	log.Printf("[%s] Resolved acess token validity\n", execId)
-	isExpired := isExpired(result["exp"], execId)
-	isValidUser := isValidUser(result["username"], providedUsername, execId)
-	return isExpired && isActive && isValidUser
+	logger.Debugf("[%s] Resolved acess token validity", execId)
+	isExpired, err := isExpired(result["exp"], logger, execId)
+	if err != nil {
+		return false, err
+	}
+	isValidUser, err := isValidUser(result["username"], providedUsername, logger, execId)
+	if err != nil {
+		return false, err
+	}
+	return isExpired && isActive && isValidUser, nil
 }
 
 // resolves the IS host and port from the environment variables.
 // If the environment is not set the port and host will be resolved through the config file.
-func resolveIntrospectionUrl(execId string) (string, bool) {
+func resolveIntrospectionUrl(logger *zap.SugaredLogger, execId string) (string, bool, error) {
 	idpEndPoint := os.Getenv("IDP_END_POINT")
 	introspectionEP := os.Getenv("INTROSPECTION_END_POINT")
 	if len(introspectionEP) == 0 {
-		log.Printf("[%s] Error: INTROSPECTION_END_POINT environment variable is empty\n", execId)
-		return "", false
+		return "", false, fmt.Errorf("'INTROSPECTION_END_POINT' environment variable is empty")
 	}
 	if len(idpEndPoint) == 0 {
-		log.Printf("[%s] Error: IDP_END_POINT environment variable is empty\n", execId)
-		return "", false
+		return "", false, fmt.Errorf("'IDP_END_POINT' environment variable is empty")
 	}
-	return idpEndPoint + introspectionEP, true
+	logger.Debugf("[%s] Successfully resolved introspection url", execId)
+	return idpEndPoint + introspectionEP, true, nil
 }
 
 // resolveCredentials resolves the user credentials of the user that is used to communicate to introspection endpoint
-func resolveCredentials(execId string) (string, string, bool) {
+func resolveCredentials(logger *zap.SugaredLogger, execId string) (string, string, error) {
 	username := os.Getenv("USERNAME")
 	if len(username) == 0 {
-		log.Printf("[%s] Error: USERNAME environment variable is empty\n", execId)
-		return "", "", true
+		return "", "", fmt.Errorf("'USERNAME' environment variable is empty")
 	}
 	password := os.Getenv("PASSWORD")
 	if len(password) == 0 {
-		log.Printf("[%s] Error: PASSWORD environment variable is empty\n", execId)
-		return "", "", true
+		return "", "", fmt.Errorf("'PASSWORD' environment variable is empty")
 	}
-	log.Printf("[%s] Suceesfully received credentials\n", execId)
-	return username, password, true
+	logger.Debugf("[%s] Suceesfully received credentials", execId)
+	return username, password, nil
 }
 
 // isValidUser checks whether the provided username matches with the username in the token
-func isValidUser(tokenUsername interface{}, providedUsername string, execId string) bool {
+func isValidUser(tokenUsername interface{}, providedUsername string, logger *zap.SugaredLogger,
+	execId string) (bool, error) {
 	if username, ok := tokenUsername.(string); ok {
 		usernameTokens := strings.Split(username, "@")
-		log.Printf("[%s] User %s, needed to be validated with provided username %s\n",
+		logger.Debugf("[%s] User %s, needed to be validated with provided username %s",
 			execId, usernameTokens[0], providedUsername)
 		if providedUsername == usernameTokens[0] {
-			log.Printf("[%s] User received is valid\n", execId)
-			return true
+			logger.Debugf("[%s] User received is valid", execId)
+			return true, nil
 		}
-		log.Printf("[%s] Username does not match with the provided username %s\n", execId, providedUsername)
+		logger.Debugf("[%s] Username does not match with the provided username %s", execId, providedUsername)
 	} else {
-		log.Printf("[%s] Error casting username to string. This may be due to a invalid token\n", execId)
-		return false
+		return false, fmt.Errorf("error casting username to string. This may be due to a invalid token")
 	}
-	return false
+	return false, nil
 }
 
 // isExpired validated whether the username is expired
-func isExpired(timestamp interface{}, execId string) bool {
+func isExpired(timestamp interface{}, logger *zap.SugaredLogger, execId string) (bool, error) {
 	if validity, ok := timestamp.(float64); ok {
 		tm := time.Unix(int64(validity), 0)
 		remainder := tm.Sub(time.Now())
 		if remainder > 0 {
-			log.Printf("[%s] Token received is not expired\n", execId)
-			return true
+			logger.Debugf("[%s] Token received is not expired", execId)
+			return true, nil
 		}
-		log.Printf("[%s] Token received is expired. Token expiry time is %s, while the system time is %s\n",
+		logger.Debugf("[%s] Token received is expired. Token expiry time is %s, while the system time is %s",
 			execId, tm, time.Now())
 	} else {
-		log.Printf("[%s] Error casting timestamp %s to string. This may be due to a invalid token\n",
-			execId, timestamp)
-		return false
+		return false, fmt.Errorf("error casting timestamp %s to string. This may be due to a invalid token",
+			timestamp)
 	}
-	return false
+	return false, nil
 }

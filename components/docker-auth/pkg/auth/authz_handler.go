@@ -19,24 +19,27 @@
 package auth
 
 import (
+	"fmt"
+
 	"database/sql"
-	"log"
+
+	"github.com/cesanta/docker_auth/auth_server/api"
+	"go.uber.org/zap"
 
 	"github.com/cellery-io/cellery-hub/components/docker-auth/pkg/extension"
 )
 
-func Authorization(dbConn *sql.DB, accessToken string, execId string) int {
-	log.Printf("[%s] Authorization logic handler reached and access will be validated\n", execId)
-	isValid, err := extension.ValidateAccess(dbConn, accessToken, execId)
+func Authorization(dbConn *sql.DB, ai *api.AuthRequestInfo, logger *zap.SugaredLogger, execId string) (bool, error) {
+	logger.Debugf("[%s] Authorization logic handler reached and access will be validated", execId)
+	isValid, err := extension.ValidateAccess(dbConn, ai.Actions, ai.Account, ai.Name, ai.Labels, logger, execId)
 	if err != nil {
-		log.Printf("[%s] Error occurred while validating the user :%s\n", execId, err)
-		return extension.ErrorExitCode
+		return false, fmt.Errorf("[%s] Error occurred while validating the user :%s", execId, err)
 	}
 	if isValid {
-		log.Printf("[%s] Authorized user. Access granted by authz handler\n", execId)
-		return extension.SuccessExitCode
+		logger.Debugf("[%s] Authorized user. Access granted by authz handler", execId)
+		return true, nil
 	} else {
-		log.Printf("[%s] User access denied by authz handler\n", execId)
-		return extension.ErrorExitCode
+		logger.Debugf("[%s] User access denied by authz handler", execId)
+		return false, nil
 	}
 }

@@ -161,9 +161,7 @@ build.$(PROXY): clean.$(PROXY) init.$(PROXY)
 
 .PHONY: build.$(DOCKER_AUTH)
 build.$(DOCKER_AUTH): clean.$(DOCKER_AUTH) init.$(DOCKER_AUTH)
-	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o ./components/$(DOCKER_AUTH)/target/authentication ./components/$(DOCKER_AUTH)/cmd/authn/authentication.go
-	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o ./components/$(DOCKER_AUTH)/target/authorization ./components/$(DOCKER_AUTH)/cmd/authz/authorization.go
-	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o ./components/$(DOCKER_AUTH)/target/auth_server ./components/$(DOCKER_AUTH)/cmd/authserver/
+	@:
 
 .PHONY: build.$(PORTAL)
 build.$(PORTAL): clean.$(PORTAL) init.$(PORTAL)
@@ -210,18 +208,10 @@ docker.$(PROXY): build.$(PROXY)
 	docker build -t $(DOCKER_REPO)/cellery-hub-proxy:$(VERSION) .
 
 .PHONY: docker.$(DOCKER_AUTH)
-docker.$(DOCKER_AUTH): build.$(DOCKER_AUTH)
-	rm -rf ./docker/$(DOCKER_AUTH)/target
-	rm -rf ./docker/$(DOCKER_AUTH)/$(AUTH_SERVER)/target
-	mkdir ./docker/$(DOCKER_AUTH)/target/
-	cp ./components/$(DOCKER_AUTH)/target/authentication ./docker/$(DOCKER_AUTH)/target/
-	cp ./components/$(DOCKER_AUTH)/target/authorization ./docker/$(DOCKER_AUTH)/target/
-	mkdir ./docker/$(DOCKER_AUTH)/$(AUTH_SERVER)/target/
-	cp ./components/$(DOCKER_AUTH)/target/auth_server ./docker/$(DOCKER_AUTH)/$(AUTH_SERVER)/target/
-	cd ./docker/$(DOCKER_AUTH); \
+docker.$(DOCKER_AUTH):
+	cd ./docker/$(AUTH_SERVER); \
+	docker build -t $(DOCKER_REPO)/$(AUTH_SERVER):latest .
 	docker build -t $(DOCKER_REPO)/cellery-hub-docker-auth:$(VERSION) .
-	cd ./docker/$(DOCKER_AUTH)/$(AUTH_SERVER); \
-	docker build -t $(DOCKER_REPO)/cellery-hub-docker-auth-server:$(VERSION) .
 
 .PHONY: docker.$(PORTAL)
 docker.$(PORTAL): build.$(PORTAL)
@@ -248,8 +238,8 @@ docker-push.$(PROXY):
 
 .PHONY: docker-push.$(DOCKER_AUTH)
 docker-push.$(DOCKER_AUTH):
+	docker push $(DOCKER_REPO)/$(AUTH_SERVER):latest
 	docker push $(DOCKER_REPO)/cellery-hub-docker-auth:$(VERSION)
-	docker push $(DOCKER_REPO)/cellery-hub-docker-auth-server:$(VERSION)
 
 .PHONY: docker-push.$(PORTAL)
 docker-push.$(PORTAL):
