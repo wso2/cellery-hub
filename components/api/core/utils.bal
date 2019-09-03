@@ -41,42 +41,71 @@ function updatePayloadWithUserInfo(json payload, string field) returns error? {
     }
 }
 
-function getUserToken(string authorizationHeader, string cookieHeader) returns string {
-    string token = "";
+function getUserToken(string authorizationHeader, string cookieHeader) returns string | error? {
     string[] splittedToken = authorizationHeader.split(" ");
-    if splittedToken.length() != 2 || !(splittedToken[0].equalsIgnoreCase(constants:TOKEN_BEARER_KEY)) {
-        log:printError("Did not receive the token in proper format");
+    if splittedToken.length() != 2 || !(splittedToken[0].equalsIgnoreCase(constants:BEARER_HEADER)) {
+        error er = error("Did not receive the token in proper format");
+        return er;
     }
     string lastTokenElement = splittedToken[1];
     string | error firstTokenElement = filter:getCookie(cookieHeader);
     if (firstTokenElement is error) {
-        log:printError("Cookie value could not be resolved. Passing to the next filter", err = firstTokenElement);
+        error er = error(io:sprintf("Cookie value could not be resolved. %s", firstTokenElement.reason()));
+        return er;
     } else {
-        token = io:sprintf("%s%s", firstTokenElement, lastTokenElement);
+        string token = io:sprintf("%s%s", firstTokenElement, lastTokenElement);
         if "" == token {
-            log:printDebug("Did not receive any token. Passing the request to the next filter");
+            error er = error("Did not receive any token");
+            return er;
         }
+        return token;
     }
-    return token;
 }
 
 function deleteArtifactFromRegistry(http:Request deleteArtifactReq, string orgName, string imageName, string artifactVersion) returns error? {
     string userId = deleteArtifactReq.getHeader(constants:AUTHENTICATED_USER);
-    string token = getUserToken(deleteArtifactReq.getHeader(constants:AUTHORIZATION_HEADER),
+    var token = getUserToken(deleteArtifactReq.getHeader(constants:AUTHORIZATION_HEADER),
     deleteArtifactReq.getHeader(constants:COOKIE_HEADER));
 
-    log:printInfo(io:sprintf("Attempting to delete the artifact \'%s/%s:%s\' from the registry", orgName, imageName, artifactVersion));
-    string | error manifestDigest = docker_registry:getManifestDigest(orgName, imageName, artifactVersion, userId, token);
-    if (manifestDigest is string) {
-        log:printDebug(io:sprintf("Retrived digest : %s", manifestDigest));
-        boolean | error isArtifactDeleted = docker_registry:deleteManifest(orgName, imageName, manifestDigest, userId, token);
-        if (isArtifactDeleted is boolean && isArtifactDeleted) {
-            log:printDebug(io:sprintf("Artifact \'%s/%s:%s\' is successfully deleted from the registry", orgName, imageName, artifactVersion));
-        } else if (isArtifactDeleted is error) {
-            return isArtifactDeleted;
+    if (token is string) {
+        log:printInfo(io:sprintf("Attempting to delete the artifact \'%s/%s:%s\' from the registry", orgName, imageName, artifactVersion));
+        string | error registryScopeForGetManifest = docker_registry:getScopeForFetchManifest(orgName, imageName, artifactVersion, userId, token);
+
+        if (registryScopeForGetManifest is string) {
+            log:printDebug(io:sprintf("Registry scope for getting manifest digest from registry api : %s", registryScopeForGetManifest));
+
+            string tokenToGetManifestDigest = docker_registry:getTokenFromDockerAuth(userId, token, registryScopeForGetManifest);
+            log:printDebug("Retrived a token from docker auth to invoke getManifestDigest end point");
+
+            string | error manifestDigest = docker_registry:getManifestDigest(orgName, imageName, artifactVersion, tokenToGetManifestDigest);
+
+            if (manifestDigest is string) {
+                string | error registryScopeForDeleteManifest = docker_registry:getScopeForDeleteManifest(orgName, imageName, manifestDigest, userId, token);
+
+                if (registryScopeForDeleteManifest is string) {
+                    log:printDebug(io:sprintf("Registry scope for deleting manifest from registry api: %s", registryScopeForDeleteManifest));
+
+                    string tokenToDeleteManifest = docker_registry:getTokenFromDockerAuth(userId, token, registryScopeForDeleteManifest);
+                    log:printDebug("Retrived a token from docker auth to invoke deleteManifest end point");   
+
+                    error? artifactDeleteResult = docker_registry:deleteManifest(orgName, imageName, manifestDigest, tokenToDeleteManifest);
+
+                    if (artifactDeleteResult is error) {
+                        return artifactDeleteResult;
+                    } else {
+                        log:printDebug(io:sprintf("Artifact \'%s/%s:%s\' is successfully deleted from the registry", orgName, imageName, artifactVersion));
+                    }
+                } else {
+                    return registryScopeForDeleteManifest;
+                }                
+            } else {
+                return manifestDigest;
+            }
+        } else {
+            return registryScopeForGetManifest;
         }
     } else {
-        return manifestDigest;
+        return token;
     }
 }
 

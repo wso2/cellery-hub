@@ -39,7 +39,7 @@ public function getTokenFromDockerAuth(string userName, string token, string reg
         }
     });
 
-    string getTokenPathParams = io:sprintf("/auth?service=%s&scope=%s", constants:DOCKER_REGISTRY_SERVICE_NAME, registryScope);
+    string getTokenPathParams = io:sprintf("/auth?service=%s&scope=%s", constants:DOCKER_REGISTRY_SERVICE_NAME.replace(" ", "%20"), registryScope);
     var authResponse = dockerAuthClientEP->get(getTokenPathParams, message = "");
     if (authResponse is http:Response) {
         var authPayload = authResponse.getJsonPayload();

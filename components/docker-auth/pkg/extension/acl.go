@@ -165,7 +165,7 @@ func isUserAvailable(db *sql.DB, organization, user string, execId string) (bool
 	}
 }
 
-func isAuthorizedToPull(db *sql.DB, user, organization, image string, execId string) (bool, error) {
+func isAuthorizedToPull(db *sql.DB, user string, organization, image string, execId string) (bool, error) {
 	log.Printf("[%s] ACL is checking whether the user %s is authorized to pull the image %s in the "+
 		" organization %s.\n", execId, user, image, organization)
 
@@ -187,7 +187,7 @@ func isAuthorizedToPull(db *sql.DB, user, organization, image string, execId str
 	}
 }
 
-func isAuthorizedToPush(db *sql.DB, user, organization string, execId string) (bool, error) {
+func isAuthorizedToPush(db *sql.DB, user string, organization string, execId string) (bool, error) {
 	log.Printf("[%s] User %s is trying to push to organization :%s\n", execId, user, organization)
 	results, err := db.Query(getUserRoleQuery, user, organization)
 	defer func() {
@@ -217,7 +217,7 @@ func isAuthorizedToPush(db *sql.DB, user, organization string, execId string) (b
 	return false, nil
 }
 
-func isAuthorizedToDelete(db *sql.DB, user, organization string, execId string) (bool, error) {
+func isAuthorizedToDelete(db *sql.DB, user string, organization string, execId string) (bool, error) {
 	log.Printf("[%s] User %s is trying to perform delete action on organization :%s\n", execId, user, organization)
 	results, err := db.Query(getUserRoleQuery, user, organization)
 	defer func() {

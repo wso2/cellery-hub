@@ -536,7 +536,6 @@ public function deleteArtifactFromDb(string userId, string orgName, string image
         imageName, artifactVersion, userId));
         return res.updatedRowCount;
     } else {
-        log:printError(io:sprintf("Error in deleting the artifact \'%s/%s:%s\'", orgName, imageName, artifactVersion));
         return res;
     }        
 }
@@ -549,7 +548,6 @@ public function deleteImageFromDb(string userId, string orgName, string imageNam
         res.updatedRowCount, orgName, imageName, userId));
         return res.updatedRowCount;
     } else {
-        log:printError(io:sprintf("Error in deleting the image \'%s/%s\'", orgName, imageName));
         return res;
     }        
 }
@@ -562,7 +560,6 @@ public function deleteOrganizationFromDb(string userId, string orgName) returns 
         res.updatedRowCount, orgName, userId));
         return res.updatedRowCount;
     } else {
-        log:printError(io:sprintf("Error in deleting the organization \'%s\'", orgName));
         return res;
     }        
 }

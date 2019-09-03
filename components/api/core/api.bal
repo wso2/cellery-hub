@@ -381,7 +381,8 @@ service CelleryHubAPI on ep {
         methods: ["GET"],
         path: "/artifacts/{orgName}/{imageName}/{artifactVersion}"
     }
-    resource function getArtifact(http:Caller outboundEp, http:Request _getArtifactReq, string orgName, string imageName, string artifactVersion) returns error? {
+    resource function getArtifact(http:Caller outboundEp, http:Request _getArtifactReq, string orgName, string imageName, string artifactVersion)
+    returns error? {
         http:Response _getArtifactRes = getArtifact(_getArtifactReq, untaint orgName, untaint imageName, untaint artifactVersion);
         error? x = outboundEp->respond(_getArtifactRes);
     }
@@ -913,7 +914,8 @@ service CelleryHubAPI on ep {
         methods:["DELETE"],
         path:"/artifacts/{orgName}/{imageName}/{artifactVersion}"
     }
-    resource function deleteArtifact (http:Caller outboundEp, http:Request _deleteArtifactReq, string orgName, string imageName, string artifactVersion) returns error? {
+    resource function deleteArtifact (http:Caller outboundEp, http:Request _deleteArtifactReq, string orgName, string imageName, string artifactVersion)
+    returns error? {
         http:Response _deleteArtifactRes = deleteArtifact(_deleteArtifactReq, orgName, imageName, artifactVersion);
         error? x = outboundEp->respond(_deleteArtifactRes);
     }
