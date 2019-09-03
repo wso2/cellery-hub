@@ -26,17 +26,27 @@ public type CellImageMetadata record {
 	string org;
 	string name;
 	string ver;
-	map<string> labels;
-	string[] dockerImages;
+	string schemaVersion;
+	string kind;
+	map<ComponentMetadata> components;
 	int buildTimestamp;
 	string buildCelleryVersion;
-	string[] ingresses;
+	boolean zeroScalingRequired;
+	boolean autoScalingRequired;
+};
+
+public type ComponentMetadata record {
+	string dockerImage;
+	boolean isDockerPushRequired;
+	map<string> labels;
+	string[] ingressTypes;
+	ComponentDependencies dependencies;
+};
+
+public type ComponentDependencies record {
+	map<CellImageMetadata> cells;
+	map<CellImageMetadata> composites;
 	string[] components;
-	map<CellImageMetadata> dependencies;
-	map<string[]> componentDep;
-	string[] exposed;
-	boolean zeroScaling;
-	boolean autoScaling;
 };
 
 
@@ -99,8 +109,10 @@ public function extractMetadataFromImage(byte[] cellImageBytes) returns (CellIma
                         var isForeignFormat = true;
                         if (parsedMetadata["buildCelleryVersion"] != ()) {
                             var buildCelleryVersion = string.convert(parsedMetadata["buildCelleryVersion"]);
-                            if (buildCelleryVersion is string) {
-                                log:printError("Format of the received metadata built using Cellery "
+                            var schemaVersion = string.convert(parsedMetadata["schemaVersion"]);
+                            if (buildCelleryVersion is string && schemaVersion is string) {
+                                log:printError("Format of the received metadata of Schema Version "
+                                    + schemaVersion +  " built using Cellery "
                                     + buildCelleryVersion + " does not match Cellery Hub supported metadata "
                                     + "format for transaction " + transactionId + metadataPayloadMessage);
                                 isForeignFormat = false;
