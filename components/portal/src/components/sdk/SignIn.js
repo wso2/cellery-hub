@@ -97,13 +97,35 @@ class SignIn extends React.Component {
         const params = HttpUtils.parseQueryParams(location.search);
         if (params.redirectUrl) {
             if (user) {
-                AuthUtils.initiateSdkLoginFlow(globalState, params.redirectUrl);
+                const currentUserId = globalState.get(StateHolder.USER).userId;
+                const queryParams = {
+                    orgName: "*",
+                    resultLimit: 0,
+                    offset: 0
+                };
+                HttpUtils.callHubAPI(
+                    {
+                        url: `/orgs/users/${currentUserId}${HttpUtils.generateQueryParamString(queryParams)}`,
+                        method: "GET"
+                    },
+                    globalState
+                ).then((response) => {
+                    if (response.count > 0) {
+                        AuthUtils.initiateSdkLoginFlow(globalState, params.redirectUrl);
+                    } else {
+                        const orgCreateQueryParams = {
+                            redirectUrl: params.redirectUrl
+                        };
+                        history.push(`/sdk/org-create${HttpUtils.generateQueryParamString(orgCreateQueryParams)}`);
+                    }
+                }).catch(() => {
+                    AuthUtils.initiateSdkLoginFlow(globalState, params.redirectUrl);
+                });
             } else if (params.code) {
                 const oneTimeToken = params.code;
                 AuthUtils.retrieveTokens(oneTimeToken, globalState, () => {
                     params.code = null;
                     history.replace(`${location.pathname}${HttpUtils.generateQueryParamString(params)}`);
-                    AuthUtils.initiateSdkLoginFlow(globalState, params.redirectUrl);
                 });
             } else {
                 sessionStorage.setItem(SignIn.REDIRECT_URL, params.redirectUrl);

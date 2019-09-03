@@ -30,7 +30,6 @@ class AuthUtils {
 
     static AUTHORIZATION_ENDPOINT = "/oauth2/authorize";
     static LOGOUT_ENDPOINT = "/oidc/logout";
-    static COMMON_AUTH_ENDPOINT = "/commonauth";
 
     static USER_KEY = "user";
 
@@ -78,22 +77,6 @@ class AuthUtils {
             redirect_uri: redirectUrl
         };
         const authEndpoint = `${globalState.get(StateHolder.CONFIG).idp.url}${AuthUtils.AUTHORIZATION_ENDPOINT}`;
-        window.location.assign(`${authEndpoint}${HttpUtils.generateQueryParamString(params)}`);
-    }
-
-    /**
-     * Continue the login flow.
-     *
-     * @param {StateHolder} globalState The global state provided to the current component
-     * @param {string} sessionDataKey The session data key of the login flow to continue
-     * @param {boolean} skipOrgCheck Whether to skip checking organization
-     */
-    static continueLoginFlow(globalState, sessionDataKey, skipOrgCheck) {
-        const params = {
-            sessionDataKey: sessionDataKey,
-            skipOrgCreation: skipOrgCheck
-        };
-        const authEndpoint = `${globalState.get(StateHolder.CONFIG).idp.url}${AuthUtils.COMMON_AUTH_ENDPOINT}`;
         window.location.assign(`${authEndpoint}${HttpUtils.generateQueryParamString(params)}`);
     }
 
