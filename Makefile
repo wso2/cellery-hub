@@ -24,9 +24,8 @@ DOCKER_AUTH := docker-auth
 PORTAL := portal
 API := api
 IDENTITY_SERVER_CUSTOMIZATION := identity-server-customization
-DEPLOYMENT_INIT := deployment-init
 AUTH_SERVER := auth-server
-COMPONENTS := $(PROXY) $(DOCKER_AUTH) $(PORTAL) $(API) $(IDENTITY_SERVER_CUSTOMIZATION) $(DEPLOYMENT_INIT)
+COMPONENTS := $(PROXY) $(DOCKER_AUTH) $(PORTAL) $(API) $(IDENTITY_SERVER_CUSTOMIZATION)
 
 CLEAN_TARGETS := $(addprefix clean., $(COMPONENTS))
 INIT_TARGETS := $(addprefix init., $(COMPONENTS))
@@ -87,11 +86,6 @@ clean.$(API):
 clean.$(IDENTITY_SERVER_CUSTOMIZATION):
 	mvn clean -f ./components/$(IDENTITY_SERVER_CUSTOMIZATION)/cellery-identity-customizations/pom.xml
 
-.PHONY: clean.$(DEPLOYMENT_INIT)
-clean.$(DEPLOYMENT_INIT):
-	@:
-
-
 .PHONY: init.$(PROXY)
 init.$(PROXY):
 	@:
@@ -119,11 +113,6 @@ init.$(API):
 init.$(IDENTITY_SERVER_CUSTOMIZATION):
 	@:
 
-.PHONY: init.$(DEPLOYMENT_INIT)
-init.$(DEPLOYMENT_INIT):
-	@:
-
-
 .PHONY: code-format.$(PROXY)
 code-format.$(PROXY):
 	@:
@@ -145,11 +134,6 @@ code-format.$(API):
 code-format.$(IDENTITY_SERVER_CUSTOMIZATION):
 	@:
 
-.PHONY: code-format.$(DEPLOYMENT_INIT)
-code-format.$(DEPLOYMENT_INIT):
-	@:
-
-
 .PHONY: check-style.$(PROXY)
 check-style.$(PROXY):
 	@:
@@ -170,11 +154,6 @@ check-style.$(API):
 .PHONY: check-style.$(IDENTITY_SERVER_CUSTOMIZATION)
 check-style.$(IDENTITY_SERVER_CUSTOMIZATION):
 	@:
-
-.PHONY: check-style.$(DEPLOYMENT_INIT)
-check-style.$(DEPLOYMENT_INIT):
-	@:
-
 
 .PHONY: build.$(PROXY)
 build.$(PROXY): clean.$(PROXY) init.$(PROXY)
@@ -199,11 +178,6 @@ build.$(API): clean.$(API) init.$(API)
 build.$(IDENTITY_SERVER_CUSTOMIZATION): clean.$(IDENTITY_SERVER_CUSTOMIZATION) init.$(IDENTITY_SERVER_CUSTOMIZATION)
 	mvn clean install -f components/$(IDENTITY_SERVER_CUSTOMIZATION)/cellery-identity-customizations/pom.xml
 
-.PHONY: build.$(DEPLOYMENT_INIT)
-build.$(DEPLOYMENT_INIT): clean.$(DEPLOYMENT_INIT) init.$(DEPLOYMENT_INIT)
-	@:
-
-
 .PHONY: test.$(PROXY)
 test.$(PROXY): build.$(PROXY)
 	@:
@@ -227,11 +201,6 @@ test.$(API): build.$(API)
 .PHONY: test.$(IDENTITY_SERVER_CUSTOMIZATION)
 test.$(IDENTITY_SERVER_CUSTOMIZATION): build.$(IDENTITY_SERVER_CUSTOMIZATION)
 	@:
-
-.PHONY: test.$(DEPLOYMENT_INIT)
-test.$(DEPLOYMENT_INIT): build.$(DEPLOYMENT_INIT)
-	@:
-
 
 .PHONY: docker.$(PROXY)
 docker.$(PROXY): build.$(PROXY)
@@ -273,12 +242,6 @@ docker.$(API): build.$(API)
 docker.$(IDENTITY_SERVER_CUSTOMIZATION): build.$(IDENTITY_SERVER_CUSTOMIZATION)
 	mvn clean install -f docker/identity-server/pom.xml -Ddocker.repo.name=$(DOCKER_REPO) -Ddocker.image.tag=$(VERSION)
 
-.PHONY: docker.$(DEPLOYMENT_INIT)
-docker.$(DEPLOYMENT_INIT): build.$(DEPLOYMENT_INIT)
-	cd ./docker/$(DEPLOYMENT_INIT); \
-	docker build -t $(DOCKER_REPO)/cellery-hub-deployment-init:$(VERSION) .
-
-
 .PHONY: docker-push.$(PROXY)
 docker-push.$(PROXY):
 	docker push $(DOCKER_REPO)/cellery-hub-proxy:$(VERSION)
@@ -299,12 +262,6 @@ docker-push.$(API):
 .PHONY: docker-push.$(IDENTITY_SERVER_CUSTOMIZATION)
 docker-push.$(IDENTITY_SERVER_CUSTOMIZATION):
 	docker push $(DOCKER_REPO)/cellery-hub-idp-570:$(VERSION)
-
-.PHONY: docker-push.$(DEPLOYMENT_INIT)
-docker-push.$(DEPLOYMENT_INIT):
-	docker push $(DOCKER_REPO)/cellery-hub-deployment-init:$(VERSION)
-
-
 
 .PHONY: deploy
 deploy:
