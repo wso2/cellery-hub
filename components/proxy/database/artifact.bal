@@ -153,8 +153,8 @@ function persistImageArtifactMetadata(string userId, string artifactImageId, ima
         log:printDebug(io:sprintf("Created new image with image id %s and version %s for transaction %s",
             artifactImageId, metadata.ver, transactions:getCurrentTransactionId()));
     }
-    _ = check persistImageArtifactLabels(artifactUuid, metadata.labels);
-    _ = check persistImageArtifactIngresses(artifactUuid, metadata.ingresses);
+    _ = check persistImageArtifactLabels(artifactUuid, metadata);
+    _ = check persistImageArtifactIngresses(artifactUuid, metadata);
 }
 
 # Cleanup labels for an artifact.
@@ -170,9 +170,16 @@ function cleanUpLabels(string artifactId) returns error? {
 # Persist Image Artifact labels in the Cellery Hub database.
 #
 # + artifactId - ID of the Cell Image without considering the versions
-# + labels - Labels to be added
+# + metadata - metadata of the image of which the labels are to be added
 # + return - Error if any occurred
-function persistImageArtifactLabels(string artifactId, map<string> labels) returns error? {
+function persistImageArtifactLabels(string artifactId, image:CellImageMetadata metadata) returns error? {
+    map<string> labels = {};
+    foreach var (componentName, component) in metadata.components {
+        foreach var (labelKey, labelValue) in component.labels {
+            labels[labelKey] = labelValue;
+        }
+    }
+
     if (labels.length() > 0) {
         string[][] dataBatch = [];
         int i = 0;
@@ -199,15 +206,33 @@ function cleanUpIngresses(string artifactId) returns error? {
 # Persist Image Artifact ingresses in the Cellery Hub database.
 #
 # + artifactId - ID of the Cell Image
-# + ingresses - Ingresses to be added
+# + metadata - metadata of the image of which the ingresses are to be added
 # + return - Error if any occurred
-function persistImageArtifactIngresses(string artifactId, string[] ingresses) returns error? {
+function persistImageArtifactIngresses(string artifactId, image:CellImageMetadata metadata) returns error? {
+    string[] ingresses = [];
+    int i = 0;
+    foreach var (componentName, component) in metadata.components {
+        foreach var ingressType in component.ingressTypes {
+            boolean alreadyPresent = false;
+            foreach var addedIngress in ingresses {
+                if (addedIngress == ingressType) {
+                    alreadyPresent = true;
+                    break;
+                }
+            }
+            if (!alreadyPresent) {
+                ingresses[i] = ingressType;
+                i = i + 1;
+            }
+        }
+    }
+
     if (ingresses.length() > 0) {
         string[][] dataBatch = [];
-        int i = 0;
+        int j = 0;
         foreach var ingress in ingresses {
-            dataBatch[i] = [artifactId, ingress];
-            i = i + 1;
+            dataBatch[j] = [artifactId, ingress];
+            j = j + 1;
         }
         _ = check celleryHubDB->batchUpdate(INSERT_REGISTRY_ARTIFACT_INGRESSES_QUERY, ...dataBatch);
         log:printDebug(
