@@ -119,7 +119,7 @@ public function extractMetadataFromImage(byte[] cellImageBytes) returns (CellIma
                             }
                         }
                         if (isForeignFormat) {
-                            log:printError("Format of the received metadata does not match Cellery Hub "
+                            log:printDebug("Format of the received metadata does not match Cellery Hub "
                                 + "supported metadata format for transaction " + transactionId
                                 + metadataPayloadMessage);
                         }
