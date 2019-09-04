@@ -49,6 +49,15 @@ public type ComponentDependencies record {
 	string[] components;
 };
 
+const string IMAGE_KIND_CELL = "Cell";
+const string IMAGE_KIND_COMPOSITE = "Composite";
+string[] IMAGE_KINDS = [IMAGE_KIND_CELL, IMAGE_KIND_COMPOSITE];
+
+const string INGRESS_TYPE_TCP = "TCP";
+const string INGRESS_TYPE_HTTP = "HTTP";
+const string INGRESS_TYPE_GRPC = "GRPC";
+const string INGRESS_TYPE_WEB = "WEB";
+string[] INGRESS_TYPES = [INGRESS_TYPE_TCP, INGRESS_TYPE_HTTP, INGRESS_TYPE_GRPC, INGRESS_TYPE_WEB];
 
 # Extract the metadata for the cell iamge file layer.
 #
@@ -123,8 +132,16 @@ public function extractMetadataFromImage(byte[] cellImageBytes) returns (CellIma
                                 + "supported metadata format for transaction " + transactionId
                                 + metadataPayloadMessage);
                         }
+                        return cellImageMetadata;
+                    } else {
+                        var validationResult = validateMetadata(cellImageMetadata);
+                        if (validationResult is error) {
+                            log:printError("Invalid metadata format", err = validationResult);
+                            return validationResult;
+                        } else {
+                            return cellImageMetadata;
+                        }
                     }
-                    return cellImageMetadata;
                 } else {
                     error err = error("failed to parse metadata.json due to " + parsedMetadata.reason());
                     var extracedCellImageDeleteResult = zipDest.delete();
@@ -155,4 +172,41 @@ public function extractMetadataFromImage(byte[] cellImageBytes) returns (CellIma
             }
         }
     }
+}
+
+# Validate the metadata values and return error if invalid.
+#
+# + cellImageMetadata - cellImageMetadata Metadata to be validated
+# + return - Error if invalid
+function validateMetadata(CellImageMetadata cellImageMetadata) returns error? {
+    // TODO: Update this validation to a ballerina enum based validation after migrating to Ballerina 1.0.0
+    if (!isValidEnum(cellImageMetadata.kind, IMAGE_KINDS)) {
+        error err = error(io:sprintf("invalid kind \"%s\" found", cellImageMetadata.kind));
+        return err;
+    }
+
+    foreach var (componentName, component) in cellImageMetadata.components {
+        foreach var ingressType in component.ingressTypes {
+            if (!isValidEnum(ingressType, INGRESS_TYPES)) {
+                error err = error(io:sprintf("invalid ingress type \"%s\" found", ingressType));
+                return err;
+            }
+        }
+    }
+}
+
+# Validate a enum value using an array of valid values.
+#
+# + actualValue - actualValue The actual value which should match the array of values
+# + validValues - validValues The array of valid values for the enum value
+# + return - Return Value Description
+function isValidEnum(string actualValue, string[] validValues) returns boolean {
+    var isValid = false;
+    foreach var validValue in validValues {
+        if (validValue == actualValue) {
+            isValid = true;
+            break;
+        }
+    }
+    return isValid;
 }
