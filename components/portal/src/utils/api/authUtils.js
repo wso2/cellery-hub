@@ -52,7 +52,8 @@ class AuthUtils {
      */
     static initiateHubLoginFlow(globalState, fidpOverride) {
         const clientId = globalState.get(StateHolder.CONFIG).idp.hubClientId;
-        this.initiateLoginFlow(globalState, fidpOverride, clientId, window.location.origin + window.location.pathname);
+        this.initiateLoginFlow(globalState, fidpOverride, clientId, window.location.origin + window.location.pathname,
+            true);
     }
 
     /**
@@ -64,7 +65,7 @@ class AuthUtils {
      */
     static initiateSdkLoginFlow(globalState, fidpOverride, redirectUrl) {
         const clientId = globalState.get(StateHolder.CONFIG).idp.sdkClientId;
-        this.initiateLoginFlow(globalState, fidpOverride, clientId, redirectUrl);
+        this.initiateLoginFlow(globalState, fidpOverride, clientId, redirectUrl, false);
     }
 
     /**
@@ -75,8 +76,9 @@ class AuthUtils {
      * @param {FederatedIdPType} [fidpOverride] The federated idp to be used
      * @param {string} clientId The client ID to be used
      * @param {string} redirectUrl The URL to redirect back to
+     * @param {boolean} isPortalLogin Whether this is a portal login or an SDK login.
      */
-    static initiateLoginFlow(globalState, fidpOverride, clientId, redirectUrl) {
+    static initiateLoginFlow(globalState, fidpOverride, clientId, redirectUrl, isPortalLogin) {
         let fidp;
         if (fidpOverride) {
             fidp = fidpOverride;
@@ -89,10 +91,15 @@ class AuthUtils {
                 throw Error("Failed to login without Federated IdP selected");
             }
         }
+        let scope = "openid";
+        if (isPortalLogin) {
+            scope = `${scope} ${Math.random().toString(36).substring(7)}`;
+        }
+
         const params = {
             response_type: "code",
             nonce: "auth",
-            scope: "openid",
+            scope: scope,
             client_id: clientId,
             redirect_uri: redirectUrl,
             fidp: fidp
