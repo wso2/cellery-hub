@@ -26,6 +26,8 @@ import (
 	"strconv"
 	"time"
 
+	_ "github.com/go-sql-driver/mysql"
+
 	"github.com/cellery-io/cellery-hub/components/docker-auth/pkg/extension"
 )
 
