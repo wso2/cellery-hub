@@ -16,14 +16,14 @@
 #
 # ------------------------------------------------------------------------
 
-FROM wso2cellery/cellery-hub-idp-base:5.7.0
+FROM wso2cellery/cellery-hub-idp-base:5.8.0
 
 ARG USER_HOME=/home/wso2carbon
 ARG FILES=./target/files
-ARG AUTHENTICATION_ENDPOINT_WEBAPP=${USER_HOME}/wso2is-5.7.0/repository/deployment/server/webapps/authenticationendpoint
+ARG AUTHENTICATION_ENDPOINT_WEBAPP=${USER_HOME}/wso2is-5.8.0/repository/deployment/server/webapps/authenticationendpoint
 
 # Copy the jar files
-COPY --chown=wso2carbon:wso2 ${FILES}/dropins/** ${USER_HOME}/wso2is-5.7.0/repository/components/dropins/
+COPY --chown=wso2carbon:wso2 ${FILES}/dropins/** ${USER_HOME}/wso2is-5.8.0/repository/components/dropins/
 
 # Copy the error pages
 
