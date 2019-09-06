@@ -37,7 +37,7 @@ returns string | error {
     imageName: %s, artifactVersion: %s",
     orgName, imageName, artifactVersion));
     string getManifestEndPoint = io:sprintf("/v2/%s/%s/manifests/%s", orgName, imageName, artifactVersion);
-    var responseForGetManifest = dockerRegistryClientEP->get(getManifestEndPoint, message = "");    
+    var responseForGetManifest = dockerRegistryClientEP->get(getManifestEndPoint, message = "");
 
     if (responseForGetManifest is http:Response) {
         log:printDebug(io:sprintf("Received status code for getManifestDigest request: %d", responseForGetManifest.statusCode));
@@ -68,7 +68,7 @@ returns string | error {
     http:Request dockerRegistryRequest = new;
     dockerRegistryRequest.addHeader(constants:AUTHORIZATION_HEADER, constants:BEARER_HEADER + " " + bearerToken);
     string getManifestEndPoint = io:sprintf("/v2/%s/%s/manifests/%s", orgName, imageName, artifactVersion);
-    var responseForGetManifest = dockerRegistryClientEP->get(getManifestEndPoint, message = dockerRegistryRequest);    
+    var responseForGetManifest = dockerRegistryClientEP->get(getManifestEndPoint, message = dockerRegistryRequest);
 
     if (responseForGetManifest is http:Response) {
         log:printDebug(io:sprintf("Received status code for getManifestDigest request: %d", responseForGetManifest.statusCode));

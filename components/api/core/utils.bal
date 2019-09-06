@@ -74,33 +74,43 @@ function deleteArtifactFromRegistry(http:Request deleteArtifactReq, string orgNa
         if (registryScopeForGetManifest is string) {
             log:printDebug(io:sprintf("Registry scope for getting manifest digest from registry api : %s", registryScopeForGetManifest));
 
-            string tokenToGetManifestDigest = docker_registry:getTokenFromDockerAuth(userId, token, registryScopeForGetManifest);
-            log:printDebug("Retrived a token from docker auth to invoke getManifestDigest end point");
+            string | error? tokenToGetManifestDigest = docker_registry:getTokenFromDockerAuth(userId, token, registryScopeForGetManifest);
 
-            string | error manifestDigest = docker_registry:getManifestDigest(orgName, imageName, artifactVersion, tokenToGetManifestDigest);
+            if (tokenToGetManifestDigest is string) {
+                log:printDebug("Retrived a token from docker auth to invoke getManifestDigest end point");
 
-            if (manifestDigest is string) {
-                string | error registryScopeForDeleteManifest = docker_registry:getScopeForDeleteManifest(orgName, imageName, manifestDigest, userId, token);
+                string | error manifestDigest = docker_registry:getManifestDigest(orgName, imageName, artifactVersion, tokenToGetManifestDigest);
 
-                if (registryScopeForDeleteManifest is string) {
-                    log:printDebug(io:sprintf("Registry scope for deleting manifest from registry api: %s", registryScopeForDeleteManifest));
+                if (manifestDigest is string) {
+                    string | error registryScopeForDeleteManifest = docker_registry:getScopeForDeleteManifest(orgName, imageName, manifestDigest, userId, token);
 
-                    string tokenToDeleteManifest = docker_registry:getTokenFromDockerAuth(userId, token, registryScopeForDeleteManifest);
-                    log:printDebug("Retrived a token from docker auth to invoke deleteManifest end point");   
+                    if (registryScopeForDeleteManifest is string) {
+                        log:printDebug(io:sprintf("Registry scope for deleting manifest from registry api: %s", registryScopeForDeleteManifest));
 
-                    error? artifactDeleteResult = docker_registry:deleteManifest(orgName, imageName, manifestDigest, tokenToDeleteManifest);
+                        string | error? tokenToDeleteManifest = docker_registry:getTokenFromDockerAuth(userId, token, registryScopeForDeleteManifest);
 
-                    if (artifactDeleteResult is error) {
-                        return artifactDeleteResult;
+                        if (tokenToDeleteManifest is string) {
+                            log:printDebug("Retrived a token from docker auth to invoke deleteManifest end point");   
+
+                            error? artifactDeleteResult = docker_registry:deleteManifest(orgName, imageName, manifestDigest, tokenToDeleteManifest);
+
+                            if (artifactDeleteResult is error) {
+                                return artifactDeleteResult;
+                            } else {
+                                log:printDebug(io:sprintf("Artifact \'%s/%s:%s\' is successfully deleted from the registry", orgName, imageName, artifactVersion));
+                            }
+                        } else {
+                            return tokenToDeleteManifest;
+                        }                        
                     } else {
-                        log:printDebug(io:sprintf("Artifact \'%s/%s:%s\' is successfully deleted from the registry", orgName, imageName, artifactVersion));
-                    }
+                        return registryScopeForDeleteManifest;
+                    }                
                 } else {
-                    return registryScopeForDeleteManifest;
-                }                
+                    return manifestDigest;
+                }
             } else {
-                return manifestDigest;
-            }
+                return tokenToGetManifestDigest;
+            }            
         } else {
             return registryScopeForGetManifest;
         }

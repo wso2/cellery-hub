@@ -16,12 +16,12 @@
 //
 // ------------------------------------------------------------------------
 
+import ballerina/http;
 import ballerina/io;
 import cellery_hub_api/constants;
 
-public function getTokenFromDockerAuth(string userName, string token, string registryScope) returns string {
-    log:printDebug(io:sprintf("Invoking docker auth API for get token to getManifests"));
-    string jwtToken = "";
+public function getTokenFromDockerAuth(string userName, string token, string registryScope) returns string | error? {
+    log:printInfo(io:sprintf("Invoking docker auth API for get token to getManifests. Scope : %s", registryScope));
     http:Client dockerAuthClientEP = new(config:getAsString("docker.auth.url"), config = {
         auth: {
             scheme: http:BASIC_AUTH,
@@ -39,15 +39,22 @@ public function getTokenFromDockerAuth(string userName, string token, string reg
         }
     });
 
-    string getTokenPathParams = io:sprintf("/auth?service=%s&scope=%s", constants:DOCKER_REGISTRY_SERVICE_NAME.replace(" ", "%20"), registryScope);
-    var authResponse = dockerAuthClientEP->get(getTokenPathParams, message = "");
-    if (authResponse is http:Response) {
-        var authPayload = authResponse.getJsonPayload();
-        if (authPayload is json) {
-            jwtToken = authPayload["token"].toString();
-        }              
+    string | error registryServiceName = http:encode(constants:DOCKER_REGISTRY_SERVICE_NAME, "utf-8");
+
+    if (registryServiceName is string) {
+        string getTokenPathParams = io:sprintf("/auth?service=%s&scope=%s", registryServiceName, registryScope);
+        var authResponse = dockerAuthClientEP->get(getTokenPathParams, message = "");
+        if (authResponse is http:Response) {
+            var authPayload = authResponse.getJsonPayload();
+            if (authPayload is json) {
+                return authPayload["token"].toString();
+            }
+        } else {
+            error er = error(io:sprintf("Error when calling the dockerAuthClientEP. %s", authResponse.reason()));
+            return er;
+        }
     } else {
-        log:printError(io:sprintf("Error when calling the dockerAuthClientEP : %s", authResponse.reason()), err = authResponse);
+        error er = error(io:sprintf("Error when encoding the registry service name. %s", registryServiceName.reason()));
+        return er;
     }
-    return jwtToken;
 }
