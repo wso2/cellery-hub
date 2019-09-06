@@ -166,7 +166,7 @@
                             <goal>build</goal>
                         </goals>
                         <configuration>
-                            <repository>${docker.repo.name}/cellery-hub-idp-570</repository>
+                            <repository>${docker.repo.name}/cellery-hub-idp-580</repository>
                             <tag>${docker.image.tag}</tag>
                         </configuration>
                     </execution>
