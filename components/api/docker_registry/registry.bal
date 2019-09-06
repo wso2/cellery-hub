@@ -31,35 +31,6 @@ http:Client dockerRegistryClientEP = new(config:getAsString("docker.registry.url
     }
 });
 
-public function getScopeForFetchManifest(string orgName, string imageName, string artifactVersion, string userId, string token)
-returns string | error {
-    log:printDebug(io:sprintf("Invoking getManifest end point of registry API without a docker auth token. orgName: %s,
-    imageName: %s, artifactVersion: %s",
-    orgName, imageName, artifactVersion));
-    string getManifestEndPoint = io:sprintf("/v2/%s/%s/manifests/%s", orgName, imageName, artifactVersion);
-    var responseForGetManifest = dockerRegistryClientEP->get(getManifestEndPoint, message = "");
-
-    if (responseForGetManifest is http:Response) {
-        log:printDebug(io:sprintf("Received status code for getManifestDigest request: %d", responseForGetManifest.statusCode));
-        if (responseForGetManifest.statusCode == http:UNAUTHORIZED_401) {
-            var payload = responseForGetManifest.getJsonPayload();
-            if (payload is json) {
-                log:printDebug(io:sprintf("Received payload from docker registry for getManifestDigest request: %s", payload));
-                return buildRegistryScope(payload);
-            } else {
-                error er = error("Failed to extract json payload from getManifest response");
-                return er;
-            }
-        } else {
-            error er = error("Failed to fetch the digest of docker manifest. This may be due to an unknown manifest");
-            return er;
-        }
-    } else {
-        error er = error(io:sprintf("Error while fetching digest of docker manifest. %s", responseForGetManifest));
-        return er;
-    }
-}
-
 public function getManifestDigest(string orgName, string imageName, string artifactVersion, string bearerToken)
 returns string | error {
     log:printDebug(io:sprintf("Invoking getManifest end point of registry API with a docker auth token. orgName: %s,
@@ -85,34 +56,6 @@ returns string | error {
     }
 }
 
-public function getScopeForDeleteManifest(string orgName, string imageName, string manifestdigest, string userId, string token)
-returns string | error {
-    log:printDebug(io:sprintf("Invoking deleteManifest end point of registry API without a docker auth token. orgName: %s, imageName: %s, digest: %s",
-    orgName, imageName, manifestdigest));
-    string deleteEndPoint = io:sprintf("/v2/%s/%s/manifests/%s", orgName, imageName, manifestdigest);
-    var responseForDeleteManifest = dockerRegistryClientEP->delete(deleteEndPoint, "");
-
-    if (responseForDeleteManifest is http:Response) {
-        log:printDebug(io:sprintf("Received status code for deleteManifestDigest request: %d", responseForDeleteManifest.statusCode));
-        if (responseForDeleteManifest.statusCode == http:UNAUTHORIZED_401) {
-            var payload = responseForDeleteManifest.getJsonPayload();
-            if (payload is json) {
-                log:printDebug(io:sprintf("Received payload from docker registry for deleteManifest request: %s", payload));
-                return buildRegistryScope(payload);
-            } else {
-                error er = error("Failed to extract json payload from deleteManifest response");
-                return er;
-            }
-        } else {
-            error er = error("Failed to fetch scope for delete the docker manifest. This may be due to an unknown manifest");
-            return er;
-        }
-    } else {
-        error er = error(io:sprintf("Error while fetching scope for delete the docker manifest. %s", responseForDeleteManifest));
-        return er;
-    }
-}
-
 public function deleteManifest(string orgName, string imageName, string manifestdigest, string bearerToken)
 returns error? {
     log:printDebug(io:sprintf("Invoking deleteManifest end point of registry API with a docker auth token. orgName: %s, imageName: %s, digest: %s",
@@ -134,16 +77,4 @@ returns error? {
         error er = error(io:sprintf("Error while deleting docker manifest. %s", responseForDeleteManifest));
         return er;
     }
-}
-
-function buildRegistryScope(json registryChallengePayload) returns string {
-    log:printDebug("Building scopes requested by the docker registry");
-    string requestType = registryChallengePayload[constants:REGISTRY_RESPONSE_ERRORS_FIELD][0][constants:REGISTRY_RESPONSE_DETAIL_FIELD][0]
-    [constants:REGISTRY_RESPONSE_TYPE_FIELD].toString();
-    string name = registryChallengePayload[constants:REGISTRY_RESPONSE_ERRORS_FIELD][0][constants:REGISTRY_RESPONSE_DETAIL_FIELD][0]
-    [constants:REGISTRY_RESPONSE_NAME_FIELD].toString();
-    string actions = registryChallengePayload[constants:REGISTRY_RESPONSE_ERRORS_FIELD][0][constants:REGISTRY_RESPONSE_DETAIL_FIELD][0]
-    [constants:REGISTRY_RESPONSE_ACTION_FIELD].toString();
-
-    return io:sprintf("%s:%s:%s", requestType, name, actions);
 }

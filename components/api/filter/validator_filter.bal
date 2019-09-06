@@ -58,9 +58,11 @@ public type validateRequestFilter object {
                     return true;
                 }
             }
-            if(request.rawPath.contains("/auth/revoke") && "get".equalsIgnoreCase(request.method)) {
+            if (request.rawPath.contains("/auth/revoke") && "get".equalsIgnoreCase(request.method)) {
                 processLogout(request, token);
                 return true;
+            } else if ("delete".equalsIgnoreCase(request.method)) {
+                request.setHeader(constants:CONSTRUCTED_TOKEN, token);
             }
             idp:TokenDetail | error tokenDetail = {
                 username: "",

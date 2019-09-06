@@ -1,4 +1,3 @@
-import ballerina/io;
 // ------------------------------------------------------------------------
 //
 // Copyright 2019 WSO2, Inc. (http://wso2.com)
@@ -16,6 +15,8 @@ import ballerina/io;
 // limitations under the License
 //
 // ------------------------------------------------------------------------
+
+import ballerina/io;
 
 function addOrgUserMapping(string userId, string orgName, string role) returns http:Response {
     var orgUserRes = db:insertOrgUserMapping(userId, orgName, role);
@@ -41,119 +42,79 @@ function updatePayloadWithUserInfo(json payload, string field) returns error? {
     }
 }
 
-function getUserToken(string authorizationHeader, string cookieHeader) returns string | error? {
-    string[] splittedToken = authorizationHeader.split(" ");
-    if splittedToken.length() != 2 || !(splittedToken[0].equalsIgnoreCase(constants:BEARER_HEADER)) {
-        error er = error("Did not receive the token in proper format");
-        return er;
-    }
-    string lastTokenElement = splittedToken[1];
-    string | error firstTokenElement = filter:getCookie(cookieHeader);
-    if (firstTokenElement is error) {
-        error er = error(io:sprintf("Cookie value could not be resolved. %s", firstTokenElement.reason()));
-        return er;
-    } else {
-        string token = io:sprintf("%s%s", firstTokenElement, lastTokenElement);
-        if "" == token {
-            error er = error("Did not receive any token");
-            return er;
-        }
-        return token;
-    }
-}
+function deleteArtifactFromRegistry(string orgName, string imageName, string artifactVersion, string userId, string userToken) returns error? {
+    log:printInfo(io:sprintf("Attempting to delete the artifact \'%s/%s:%s\' from the registry", orgName, imageName, artifactVersion));
+    string registryScopeForGetNDeleteManifest = io:sprintf("repository:%s/%s:%s,%s", orgName, imageName, constants:DELETE_ACTION, constants:PULL_ACTION);
 
-function deleteArtifactFromRegistry(http:Request deleteArtifactReq, string orgName, string imageName, string artifactVersion) returns error? {
-    string userId = deleteArtifactReq.getHeader(constants:AUTHENTICATED_USER);
-    var token = getUserToken(deleteArtifactReq.getHeader(constants:AUTHORIZATION_HEADER),
-    deleteArtifactReq.getHeader(constants:COOKIE_HEADER));
+    log:printDebug(io:sprintf("Registry scope for get and delete manifest digest from registry api : %s", registryScopeForGetNDeleteManifest));
 
-    if (token is string) {
-        log:printInfo(io:sprintf("Attempting to delete the artifact \'%s/%s:%s\' from the registry", orgName, imageName, artifactVersion));
-        string | error registryScopeForGetManifest = docker_registry:getScopeForFetchManifest(orgName, imageName, artifactVersion, userId, token);
+    string | error? getTokenResult = docker_registry:getTokenFromDockerAuth(userId, userToken, registryScopeForGetNDeleteManifest);
 
-        if (registryScopeForGetManifest is string) {
-            log:printDebug(io:sprintf("Registry scope for getting manifest digest from registry api : %s", registryScopeForGetManifest));
+    if (getTokenResult is string) {
+        log:printDebug("Retrived a token from docker auth to invoke getManifestDigest and deleteManifest endpoints");
 
-            string | error? tokenToGetManifestDigest = docker_registry:getTokenFromDockerAuth(userId, token, registryScopeForGetManifest);
+        string | error getManifestDigestResult = docker_registry:getManifestDigest(orgName, imageName, artifactVersion, getTokenResult);
 
-            if (tokenToGetManifestDigest is string) {
-                log:printDebug("Retrived a token from docker auth to invoke getManifestDigest end point");
+        if (getManifestDigestResult is string) {
+            log:printDebug(io:sprintf("Received digest of the artifact \'%s/%s:%s\': %s", orgName, imageName, artifactVersion, getManifestDigestResult));
+            error? artifactDeleteResult = docker_registry:deleteManifest(orgName, imageName, getManifestDigestResult, getTokenResult);
 
-                string | error manifestDigest = docker_registry:getManifestDigest(orgName, imageName, artifactVersion, tokenToGetManifestDigest);
-
-                if (manifestDigest is string) {
-                    string | error registryScopeForDeleteManifest = docker_registry:getScopeForDeleteManifest(orgName, imageName, manifestDigest, userId, token);
-
-                    if (registryScopeForDeleteManifest is string) {
-                        log:printDebug(io:sprintf("Registry scope for deleting manifest from registry api: %s", registryScopeForDeleteManifest));
-
-                        string | error? tokenToDeleteManifest = docker_registry:getTokenFromDockerAuth(userId, token, registryScopeForDeleteManifest);
-
-                        if (tokenToDeleteManifest is string) {
-                            log:printDebug("Retrived a token from docker auth to invoke deleteManifest end point");   
-
-                            error? artifactDeleteResult = docker_registry:deleteManifest(orgName, imageName, manifestDigest, tokenToDeleteManifest);
-
-                            if (artifactDeleteResult is error) {
-                                return artifactDeleteResult;
-                            } else {
-                                log:printDebug(io:sprintf("Artifact \'%s/%s:%s\' is successfully deleted from the registry", orgName, imageName, artifactVersion));
-                            }
-                        } else {
-                            return tokenToDeleteManifest;
-                        }                        
-                    } else {
-                        return registryScopeForDeleteManifest;
-                    }                
-                } else {
-                    return manifestDigest;
-                }
+            if (artifactDeleteResult is error) {
+                return artifactDeleteResult;
             } else {
-                return tokenToGetManifestDigest;
-            }            
+                log:printDebug(io:sprintf("Artifact \'%s/%s:%s\' is successfully deleted from the registry", orgName, imageName, artifactVersion));
+            }
         } else {
-            return registryScopeForGetManifest;
+            return getManifestDigestResult;
         }
     } else {
-        return token;
+        return getTokenResult;
     }
 }
 
 public function deleteImageFromResitry(string orgName, string imageName) returns error? {
-    string imageDirectoryPath = io:sprintf("%s/%s/%s", constants:DOCKER_REGISTRY_REPOSITORIES_FILEPATH, orgName, imageName);
-    log:printInfo(io:sprintf("Deleting the image \'%s/%s\' from the registry. Image directory : %s", orgName, imageName, imageDirectoryPath));
-    internal:Path directoryToBeDeleted = new (imageDirectoryPath);
+    if (orgName != "" && imageName != "") {
+        string imageDirectoryPath = io:sprintf("%s/%s/%s", constants:DOCKER_REGISTRY_REPOSITORIES_FILEPATH, orgName, imageName);
+        log:printInfo(io:sprintf("Deleting the image \'%s/%s\' from the registry. Image directory : %s", orgName, imageName, imageDirectoryPath));
+        internal:Path directoryToBeDeleted = new (imageDirectoryPath);
 
-    if (directoryToBeDeleted.isDirectory()) {
-        var deleteResult = directoryToBeDeleted.delete();
-
-        if (deleteResult is error) {
-            error er = error("Unexpected error while deleting the image from the registry");
-            return er;
+        if (directoryToBeDeleted.isDirectory()) {
+            var deleteResult = directoryToBeDeleted.delete();
+            if (deleteResult is error) {
+                error er = error("Unexpected error while deleting the image from the registry");
+                return er;
+            } else {
+                log:printDebug(io:sprintf("Image \'%s/%s\' is successfully deleted from the registry", orgName, imageName));
+            }
         } else {
-            log:printInfo(io:sprintf("Image \'%s/%s\' is successfully deleted from the registry", orgName, imageName));
+            error er = error(io:sprintf("Image directory \'%s\' is not found in the registry", imageDirectoryPath));
+            return er;
         }
     } else {
-        error er = error(io:sprintf("Image directory \'%s\' is not found in the registry", imageDirectoryPath));
+        error er = error("Received image name or org name is empty");
         return er;
     }
 }
 
 public function deleteOrganizationFromResitry(string orgName) returns error? {
-    string orgDirectoryPath = io:sprintf("%s/%s", constants:DOCKER_REGISTRY_REPOSITORIES_FILEPATH, orgName);
-    log:printInfo(io:sprintf("Deleting the organization \'%s\' from the registry. Organization directory : %s", orgName, orgDirectoryPath));
-    internal:Path directoryToBeDeleted = new (orgDirectoryPath);
+    if (orgName != "") {
+        string orgDirectoryPath = io:sprintf("%s/%s", constants:DOCKER_REGISTRY_REPOSITORIES_FILEPATH, orgName);
+        log:printInfo(io:sprintf("Deleting the organization \'%s\' from the registry. Organization directory : %s", orgName, orgDirectoryPath));
+        internal:Path directoryToBeDeleted = new (orgDirectoryPath);
 
-    if (directoryToBeDeleted.isDirectory()) {
-        var deleteResult = directoryToBeDeleted.delete();
-
-        if (deleteResult is error) {
-            error er = error("Unexpected error while deleting the organization from the registry");
-            return er;
+        if (directoryToBeDeleted.isDirectory()) {
+            var deleteResult = directoryToBeDeleted.delete();
+            if (deleteResult is error) {
+                error er = error("Unexpected error while deleting the organization from the registry");
+                return er;
+            } else {
+                log:printInfo(io:sprintf("Organization \'%s\' is successfully deleted from the registry", orgName));
+            }
         } else {
-            log:printInfo(io:sprintf("Organization \'%s\' is successfully deleted from the registry", orgName));
+            log:printInfo(io:sprintf("Organization directory \'%s\' is not found in the registry", orgDirectoryPath));
         }
     } else {
-        log:printInfo(io:sprintf("Organization directory \'%s\' is not found in the registry", orgDirectoryPath));
+        error er = error("Received org name is empty");
+        return er;  
     }
 }

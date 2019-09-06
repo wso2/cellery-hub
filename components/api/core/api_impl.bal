@@ -829,9 +829,9 @@ int resultLimit) returns http:Response {
 # + artifactVersion - version of the artifact
 # + return - http resonce (200 if success, 401, 403 or 500 otherwise)
 public function deleteArtifact(http:Request deleteArtifactReq, string orgName, string imageName, string artifactVersion) returns http:Response {
-    if (deleteArtifactReq.hasHeader(constants:AUTHENTICATED_USER)) {
+    if (deleteArtifactReq.hasHeader(constants:AUTHENTICATED_USER) && deleteArtifactReq.hasHeader(constants:CONSTRUCTED_TOKEN)) {
         string userId = deleteArtifactReq.getHeader(constants:AUTHENTICATED_USER);
-        log:printInfo(io:sprintf("User \'%s\' is attempting to delete the artifact \'%s/%s:%s\'", userId, orgName, imageName, artifactVersion));
+        log:printDebug(io:sprintf("User \'%s\' is attempting to delete the artifact \'%s/%s:%s\'", userId, orgName, imageName, artifactVersion));
         http:Response resp;
 
         transaction {
@@ -841,7 +841,8 @@ public function deleteArtifact(http:Request deleteArtifactReq, string orgName, s
             int | error? deletedRowCount = db:deleteArtifactFromDb(userId, orgName, imageName, artifactVersion);
             if (deletedRowCount is int) {
                 if (deletedRowCount == 1) {
-                    var deleteResult = deleteArtifactFromRegistry(deleteArtifactReq, orgName, imageName, artifactVersion);
+                    string userToken = deleteArtifactReq.getHeader(constants:CONSTRUCTED_TOKEN);
+                    var deleteResult = deleteArtifactFromRegistry(orgName, imageName, artifactVersion, userId, userToken);
                     if (deleteResult is error) {
                         log:printError(io:sprintf("Failed to delete the artifact \'%s/%s:%s\' from the registry", orgName, imageName, artifactVersion),
                         err = deleteResult);
@@ -868,18 +869,18 @@ public function deleteArtifact(http:Request deleteArtifactReq, string orgName, s
                 abort;
             }
         } onretry {
-            log:printDebug(io:sprintf("Retrying deleting artifact \'%s/%s:%s\' for transaction %s", orgName, imageName, artifactVersion,
+            log:printInfo(io:sprintf("Retrying deleting artifact \'%s/%s:%s\' for transaction %s", orgName, imageName, artifactVersion,
             transactions:getCurrentTransactionId()));
         } committed {
             log:printDebug(io:sprintf("Deleting artifact \'%s/%s:%s\' successful for transaction %s", orgName, imageName, artifactVersion,
             transactions:getCurrentTransactionId()));
         } aborted {
-            log:printDebug(io:sprintf("Deleting artifact \'%s/%s:%s\' aborted for transaction %s", orgName, imageName, artifactVersion,
+            log:printError(io:sprintf("Deleting artifact \'%s/%s:%s\' aborted for transaction %s", orgName, imageName, artifactVersion,
             transactions:getCurrentTransactionId()));
         }
         return resp;
     } else {
-        log:printDebug("Unauthenticated request for delete artifact: Username is not found");
+        log:printDebug("Unauthenticated request for delete artifact: UserId or Token is not found");
         return buildErrorResponse(http:UNAUTHORIZED_401, constants:API_ERROR_CODE, "Unable to delete artifact",
         "Unauthenticated request. Auth token is not provided");
     }
@@ -894,7 +895,7 @@ public function deleteArtifact(http:Request deleteArtifactReq, string orgName, s
 public function deleteImage(http:Request deleteImageReq, string orgName, string imageName) returns http:Response {
     if (deleteImageReq.hasHeader(constants:AUTHENTICATED_USER)) {
         string userId = deleteImageReq.getHeader(constants:AUTHENTICATED_USER);
-        log:printInfo(io:sprintf("User \'%s\' is attempting to delete the image \'%s/%s\'", userId, orgName, imageName));
+        log:printDebug(io:sprintf("User \'%s\' is attempting to delete the image \'%s/%s\'", userId, orgName, imageName));
         http:Response resp;
         transaction {
             var transactionId = transactions:getCurrentTransactionId();
@@ -927,13 +928,13 @@ public function deleteImage(http:Request deleteImageReq, string orgName, string 
                 abort;
             }
         } onretry {
-            log:printDebug(io:sprintf("Retrying deleting image \'%s/%s\' for transaction %s", orgName, imageName,
+            log:printInfo(io:sprintf("Retrying deleting image \'%s/%s\' for transaction %s", orgName, imageName,
             transactions:getCurrentTransactionId()));
         } committed {
             log:printDebug(io:sprintf("Deleting image \'%s/%s\' successful for transaction %s", orgName, imageName,
             transactions:getCurrentTransactionId()));
         } aborted {
-            log:printDebug(io:sprintf("Deleting image \'%s/%s\' aborted for transaction %s", orgName, imageName,
+            log:printError(io:sprintf("Deleting image \'%s/%s\' aborted for transaction %s", orgName, imageName,
             transactions:getCurrentTransactionId()));
         }
         return resp;
@@ -952,7 +953,7 @@ public function deleteImage(http:Request deleteImageReq, string orgName, string 
 public function deleteOrganization(http:Request deleteOrganizationReq, string orgName) returns http:Response {
     if (deleteOrganizationReq.hasHeader(constants:AUTHENTICATED_USER)) {
         string userId = deleteOrganizationReq.getHeader(constants:AUTHENTICATED_USER);
-        log:printInfo(io:sprintf("User \'%s\' is attempting to delete the organization \'%s\'", userId, orgName));
+        log:printDebug(io:sprintf("User \'%s\' is attempting to delete the organization \'%s\'", userId, orgName));
         http:Response resp;
         transaction {
             var transactionId = transactions:getCurrentTransactionId();
@@ -984,13 +985,13 @@ public function deleteOrganization(http:Request deleteOrganizationReq, string or
                 abort;
             }
         } onretry {
-            log:printDebug(io:sprintf("Retrying deleting organization \'%s\' for transaction %s", orgName,
+            log:printInfo(io:sprintf("Retrying deleting organization \'%s\' for transaction %s", orgName,
             transactions:getCurrentTransactionId()));
         } committed {
             log:printDebug(io:sprintf("Deleting organization \'%s\' successful for transaction %s", orgName,
             transactions:getCurrentTransactionId()));
         } aborted {
-            log:printDebug(io:sprintf("Deleting organization \'%s\' aborted for transaction %s", orgName,
+            log:printError(io:sprintf("Deleting organization \'%s\' aborted for transaction %s", orgName,
             transactions:getCurrentTransactionId()));
         }
         return resp;
