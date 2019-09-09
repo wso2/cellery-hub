@@ -21,11 +21,14 @@ import ballerina/io;
 import ballerina/log;
 import ballerina/mysql;
 import ballerina/transactions;
+import ballerina/internal;
 import cellery_hub_api/constants;
 import cellery_hub_api/db;
 import cellery_hub_api/idp;
+import cellery_hub_api/docker_registry;
 import ballerina/sql;
 import ballerina/encoding;
+import cellery_hub_api/filter;
 
 # Get Auth Tokens.
 #
@@ -68,22 +71,22 @@ public function getTokens(http:Request getTokensReq) returns http:Response {
 public function revokeToken(http:Request revokeTokenReq, boolean isPortalToken) returns http:Response {
 
     if (isPortalToken) {
-        if(revokeTokenReq.hasHeader(constants:CONSTRUCTED_TOKEN)) {
+        if (revokeTokenReq.hasHeader(constants:CONSTRUCTED_TOKEN)) {
             var revokeResponse = idp:revokeToken(revokeTokenReq.getHeader(constants:CONSTRUCTED_TOKEN), config:getAsString("idp.oidc.clientid"),
             config:getAsString("idp.oidc.clientsecret"));
             if (revokeResponse is error) {
                 log:printError("Error occured while invoking revocation endpoint", err = revokeResponse);
-                    return buildErrorResponse(http:INTERNAL_SERVER_ERROR_500, constants:API_ERROR_CODE, 
-                    "Error occured while invoking revoke endpoint", "Error occured while invoking revoke endpoint");
+                return buildErrorResponse(http:INTERNAL_SERVER_ERROR_500, constants:API_ERROR_CODE,
+                "Error occured while invoking revoke endpoint", "Error occured while invoking revoke endpoint");
             } else {
                 return buildSuccessResponse();
             }
         }
-        return buildErrorResponse(http:INTERNAL_SERVER_ERROR_500, constants:API_ERROR_CODE, 
-            "No valid token found in the get request", "Error occured while invoking revoke endpoint");
+        return buildErrorResponse(http:INTERNAL_SERVER_ERROR_500, constants:API_ERROR_CODE,
+        "No valid token found in the get request", "Error occured while invoking revoke endpoint");
     } else if (!revokeTokenReq.hasHeader(constants:AUTHENTICATED_USER)) {
-            return buildErrorResponse(http:UNAUTHORIZED_401, constants:API_ERROR_CODE, 
-            "Valid username is not found", "Either token is invalid or not present"); 
+        return buildErrorResponse(http:UNAUTHORIZED_401, constants:API_ERROR_CODE,
+        "Valid username is not found", "Either token is invalid or not present");
     } else {
         json | error body = revokeTokenReq.getJsonPayload();
         if (body is error) {
@@ -98,21 +101,21 @@ public function revokeToken(http:Request revokeTokenReq, boolean isPortalToken) 
                 var validateUsernameResponse = idp:validateUsername(token, revokeTokenReq.getHeader(constants:AUTHENTICATED_USER));
                 if (validateUsernameResponse is error) {
                     log:printError("Error occured while invoking revocation endpoint", err = validateUsernameResponse);
-                    return buildErrorResponse(http:UNAUTHORIZED_401, constants:API_ERROR_CODE, 
+                    return buildErrorResponse(http:UNAUTHORIZED_401, constants:API_ERROR_CODE,
                     "Error occured while validating username", "Error occured while validating username");
                 }
                 var revokeResponse = idp:revokeToken(token, config:getAsString("idp.jwt.bearer.grant.clientid"),
                 config:getAsString("idp.jwt.bearer.grant.clientsecret"));
                 if (revokeResponse is error) {
                     log:printError("Error occured while invoking revocation endpoint", err = revokeResponse);
-                    return buildErrorResponse(http:INTERNAL_SERVER_ERROR_500, constants:API_ERROR_CODE, 
+                    return buildErrorResponse(http:INTERNAL_SERVER_ERROR_500, constants:API_ERROR_CODE,
                     "Error occured while invoking revoke endpoint", "Probably due to invalid session");
                 } else {
                     return buildSuccessResponse();
                 }
             }
-        }        
-    } 
+        }
+    }
 }
 
 # Get Auth Tokens using JWT grant type.
@@ -122,7 +125,7 @@ public function revokeToken(http:Request revokeTokenReq, boolean isPortalToken) 
 public function exchangeTokensWithJWTGrant(http:Request getTokensReq) returns http:Response {
 
     if (!getTokensReq.hasHeader(constants:AUTHENTICATED_USER)) {
-        return buildErrorResponse(http:UNAUTHORIZED_401, constants:API_ERROR_CODE, 
+        return buildErrorResponse(http:UNAUTHORIZED_401, constants:API_ERROR_CODE,
         "Unable exchange token since no authenticated user found", "Unauthenticated request. Auth token is not provided");
     }
 
@@ -217,12 +220,12 @@ public function createOrg(http:Request createOrgReq, gen:OrgCreateRequest create
                         log:printDebug(io:sprintf("Creating Organization \'%s\' successful for transaction %s", createOrgsBody.orgName,
                         transactions:getCurrentTransactionId()));
                     } aborted {
-                        log:printError(io:sprintf("Creating Organization \'%s\' aborted for transaction %s", createOrgsBody.orgName,
+                        log:printDebug(io:sprintf("Creating Organization \'%s\' aborted for transaction %s", createOrgsBody.orgName,
                         transactions:getCurrentTransactionId()));
                     }
                     return resp ?: buildUnknownErrorResponse();
                 } else {
-                    log:printError(io:sprintf("Insertion denied : \'%s\' is an invalid organization name", createOrgsBody.orgName));
+                    log:printDebug(io:sprintf("Insertion denied : \'%s\' is an invalid organization name", createOrgsBody.orgName));
                     return buildErrorResponse(http:METHOD_NOT_ALLOWED_405, constants:API_ERROR_CODE, "Unable to create organization",
                     "Organization name is not valid");
                 }
@@ -230,7 +233,7 @@ public function createOrg(http:Request createOrgReq, gen:OrgCreateRequest create
                 log:printError("Unable to create organization", err = isMatch);
             }
         } else if (isOrgAvailable is boolean && isOrgAvailable) {
-            log:printError(io:sprintf("Organization creation failed : orgName \'%s\' is already taken", createOrgsBody.orgName));
+            log:printDebug(io:sprintf("Organization creation failed : orgName \'%s\' is already taken", createOrgsBody.orgName));
             return buildErrorResponse(http:CONFLICT_409, constants:ENTRY_ALREADY_EXISTING_ERROR_CODE, "Unable to create organization",
             "Organization name is already taken");
         } else if (isOrgAvailable is error) {
@@ -238,7 +241,7 @@ public function createOrg(http:Request createOrgReq, gen:OrgCreateRequest create
         }
         return buildUnknownErrorResponse();
     } else {
-        log:printError("Unauthenticated request for createOrg: Username is not found");
+        log:printDebug("Unauthenticated request for createOrg: Username is not found");
         return buildErrorResponse(http:UNAUTHORIZED_401, constants:API_ERROR_CODE, "Unable to create organization",
         "Unauthenticated request. Auth token is not provided");
     }
@@ -269,7 +272,7 @@ public function getOrg(http:Request getOrgReq, string orgName) returns http:Resp
             }
         } else {
             string errDes = io:sprintf("There is no organization named \'%s\'", orgName);
-            log:printError(io:sprintf("Unable to fetch organization. \'%s\'", errDes));
+            log:printDebug(io:sprintf("Unable to fetch organization. \'%s\'", errDes));
             return buildErrorResponse(http:NOT_FOUND_404, constants:API_ERROR_CODE, "Unable to fetch organization", errDes);
         }
     } else {
@@ -294,7 +297,7 @@ public function getImageByImageName(http:Request getImageRequest, string orgName
         log:printDebug("Number of results found for search : " + imageResults.count());
         if (imageResults.count() == 0) {
             string errMsg = "No image found with given image name and organization";
-            log:printError(errMsg);
+            log:printDebug(errMsg);
             return buildErrorResponse(http:NOT_FOUND_404, constants:API_ERROR_CODE, errMsg, errMsg);
         } else if (imageResults.count() > 1) {
             log:printError("Found more than one result for image GET: Number of results : " + imageResults.count());
@@ -341,7 +344,6 @@ public function getImageByImageName(http:Request getImageRequest, string orgName
             } else {
                 log:printError("Error while retriving image keywords" + imageName, err = resPayload);
             }
-
         }
     } else {
         log:printError("Error while retriving image" + imageName, err = imageResults);
@@ -386,9 +388,9 @@ int offset, int resultLimit) returns http:Response {
         };
 
         if (artifactDatumResults.count() == 0) {
-            log:printError("No image found with given image name and organization");
+            log:printDebug("No image found with given image name and organization");
         } else {
-            log:printError(io:sprintf("Found %d result(s) for artifact list", artifactDatumResults.count()));
+            log:printDebug(io:sprintf("Found %d result(s) for artifact list", artifactDatumResults.count()));
 
             foreach var item in artifactDatumResults {
                 gen:ArtifactDatum result = gen:ArtifactDatum.convert(item);
@@ -433,7 +435,6 @@ int offset, int resultLimit) returns http:Response {
             log:printError("Error occured while converting list image artifacts payload to json" + imageName, err = resPayload);
             return buildUnknownErrorResponse();
         }
-
     } else {
         log:printError("Error occured while retriving image for list image artifacts request" + imageName, err = artifactDatumResults);
         return buildUnknownErrorResponse();
@@ -466,7 +467,7 @@ public function getArtifact(http:Request getArtifactReq, string orgName, string 
         } else {
             string errMsg = "Unable to fetch artifact. ";
             string errDes = io:sprintf("There is no artifact named \'%s/%s:%s\'", orgName, imageName, artifactVersion);
-            log:printError(errMsg + errDes);
+            log:printDebug(errMsg + errDes);
             return buildErrorResponse(http:NOT_FOUND_404, constants:API_ERROR_CODE, errMsg, errDes);
         }
     } else {
@@ -534,13 +535,12 @@ returns http:Response {
                 return buildUnknownErrorResponse();
             }
         } else {
-
             log:printError(io:sprintf("Error occured while retriving users from DB for organization %s : user %s",
             orgName, userId));
             return buildUnknownErrorResponse();
         }
     } else {
-        log:printError("get org user request without an authenticated user");
+        log:printDebug("get org user request without an authenticated user");
         return buildErrorResponse(http:UNAUTHORIZED_401, constants:API_ERROR_CODE, "Unable to fetch organization users",
         "Unauthenticated request. No valid token is not provided");
     }
@@ -569,7 +569,7 @@ returns http:Response {
             return buildUnknownErrorResponse();
         }
     } else {
-        log:printError("Unauthenticated request for getUserOrgs: Username is not found");
+        log:printDebug("Unauthenticated request for getUserOrgs: Username is not found");
         return buildErrorResponse(http:UNAUTHORIZED_401, constants:API_ERROR_CODE, "Unable to retrieve user\'s organizations",
         "Unauthenticated request. Auth token is not provided");
     }
@@ -646,7 +646,7 @@ returns http:Response {
 # + orgName - Organization name
 # + imageName - Image ID
 # + updateImageBody - received body which contain the description, summary and keywords array
-# + return - http response (200 if success, 401, 404 or 500 otherwise)
+# + return - http response (200 if success, 401, 403 or 500 otherwise)
 public function updateImage(http:Request updateImageReq, string orgName, string imageName, gen:ImageUpdateRequest updateImageBody) returns http:Response {
     if (updateImageReq.hasHeader(constants:AUTHENTICATED_USER)) {
         string userId = updateImageReq.getHeader(constants:AUTHENTICATED_USER);
@@ -672,9 +672,9 @@ public function updateImage(http:Request updateImageReq, string orgName, string 
                         resp = buildSuccessResponse();
                     }
                 } else if (updateImageRes.updatedRowCount == 0) {
-                    log:printError(io:sprintf("Failed to update image %s/%s for Author %s : No matching records found",
+                    log:printDebug(io:sprintf("Failed to update image %s/%s for Author %s : No matching records found",
                     imageName, orgName, userId));
-                    resp = buildErrorResponse(http:NOT_FOUND_404, constants:ENTRY_NOT_FOUND_ERROR_CODE, "Unable to update image", "");
+                    resp = buildErrorResponse(http:FORBIDDEN_403, constants:ACTION_NOT_ALLOWED_ERROR_CODE, "Unable to update image", "");
                     abort;
                 } else {
                     log:printError(io:sprintf("Failed to update image %s/%s for Author %s : More than one matching records found",
@@ -695,12 +695,12 @@ public function updateImage(http:Request updateImageReq, string orgName, string 
             log:printDebug(io:sprintf("Transaction %s successfully commited for updating the image %s/%s", transactions:getCurrentTransactionId(),
             orgName, imageName));
         } aborted {
-            log:printError(io:sprintf("Updating image %s/%s aborted for transaction %s", orgName, imageName,
+            log:printDebug(io:sprintf("Updating image %s/%s aborted for transaction %s", orgName, imageName,
             transactions:getCurrentTransactionId()));
         }
         return resp;
     } else {
-        log:printError("Unauthenticated request for updateImage: Username is not found");
+        log:printDebug("Unauthenticated request for updateImage: Username is not found");
         return buildErrorResponse(http:UNAUTHORIZED_401, constants:API_ERROR_CODE, "Unable to update image",
         "Unauthenticated request. Auth token is not provided");
     }
@@ -713,7 +713,7 @@ public function updateImage(http:Request updateImageReq, string orgName, string 
 # + orgName - organization name received as a path parameter
 # + imageName - image name received as a path parameter
 # + artifactVersion - version of the artifact received as a path parameter
-# + return - http response (200 if success, 401, 404 or 500 otherwise)
+# + return - http response (200 if success, 401, 403 or 500 otherwise)
 public function updateArtifact(http:Request updateArtifactReq, string orgName, string imageName, string artifactVersion,
 gen:ArtifactUpdateRequest updateArtifactBody) returns http:Response {
     if (updateArtifactReq.hasHeader(constants:AUTHENTICATED_USER)) {
@@ -729,9 +729,9 @@ gen:ArtifactUpdateRequest updateArtifactBody) returns http:Response {
                 artifactVersion, userId));
                 return buildSuccessResponse();
             } else if (updateArtifactRes.updatedRowCount == 0) {
-                log:printError(io:sprintf("Failed to update artifact \'%s/%s:%s\' for Author %s : No matching records found", orgName, imageName,
+                log:printDebug(io:sprintf("Failed to update artifact \'%s/%s:%s\' for Author %s : No matching records found", orgName, imageName,
                 artifactVersion, userId));
-                return buildErrorResponse(http:NOT_FOUND_404, constants:ENTRY_NOT_FOUND_ERROR_CODE, "Unable to update artifact", "");
+                return buildErrorResponse(http:FORBIDDEN_403, constants:ACTION_NOT_ALLOWED_ERROR_CODE, "Unable to update artifact", "");
             } else {
                 log:printError(io:sprintf("Failed to update artifact \'%s/%s:%s\' for Author %s : More than one matching records found", orgName,
                 imageName, artifactVersion, userId));
@@ -743,7 +743,7 @@ gen:ArtifactUpdateRequest updateArtifactBody) returns http:Response {
             return buildUnknownErrorResponse();
         }
     } else {
-        log:printError("Unauthenticated request for updateArtifact: Username is not found");
+        log:printDebug("Unauthenticated request for updateArtifact: Username is not found");
         return buildErrorResponse(http:UNAUTHORIZED_401, constants:API_ERROR_CODE, "Unable to update artifact",
         "Unauthenticated request. Auth token is not provided");
     }
@@ -754,7 +754,7 @@ gen:ArtifactUpdateRequest updateArtifactBody) returns http:Response {
 # + updateOrganizationReq - received request which contains header
 # + orgName - organization name received as a path parameter
 # + updateOrganizationBody - received body which contain the description and summary
-# + return - http response (200 if success, 401, 404 or 500 otherwise)
+# + return - http response (200 if success, 401, 403 or 500 otherwise)
 public function updateOrganization(http:Request updateOrganizationReq, string orgName, gen:OrgUpdateRequest updateOrganizationBody) returns http:Response {
     if (updateOrganizationReq.hasHeader(constants:AUTHENTICATED_USER)) {
         string userId = updateOrganizationReq.getHeader(constants:AUTHENTICATED_USER);
@@ -768,8 +768,8 @@ public function updateOrganization(http:Request updateOrganizationReq, string or
                 log:printDebug(io:sprintf("Description, summary and url of the organization \'%s\' are successfully updated. Author : %s", orgName, userId));
                 return buildSuccessResponse();
             } else if (updateOrgRes.updatedRowCount == 0) {
-                log:printError(io:sprintf("Failed to update organization \'%s\' for Author %s : No matching records found", orgName, userId));
-                return buildErrorResponse(http:NOT_FOUND_404, constants:ENTRY_NOT_FOUND_ERROR_CODE, "Unable to update organization", "");
+                log:printDebug(io:sprintf("Failed to update organization \'%s\' for Author %s : No matching records found", orgName, userId));
+                return buildErrorResponse(http:FORBIDDEN_403, constants:ACTION_NOT_ALLOWED_ERROR_CODE, "Unable to update organization", "");
             } else {
                 log:printError(io:sprintf("Failed to update organization \'%s\' for Author %s : More than one matching records found", orgName, userId));
                 return buildUnknownErrorResponse();
@@ -780,7 +780,7 @@ public function updateOrganization(http:Request updateOrganizationReq, string or
             return buildUnknownErrorResponse();
         }
     } else {
-        log:printError("Unauthenticated request for updateOrganization: Username is not found");
+        log:printDebug("Unauthenticated request for updateOrganization: Username is not found");
         return buildErrorResponse(http:UNAUTHORIZED_401, constants:API_ERROR_CODE, "Unable to update organization",
         "Unauthenticated request. Auth token is not provided");
     }
@@ -818,5 +818,202 @@ int resultLimit) returns http:Response {
         log:printError(io:sprintf("Error occured while retrieving images with name \'%s\' for organization \'%s\'", imageName, orgName),
         err = imagesListForUserResult);
         return buildUnknownErrorResponse();
+    }
+}
+
+# Delete an artifact
+#
+# + deleteArtifactReq - received request which contains header
+# + orgName - organization name that the artifact is belong to
+# + imageName - image name of the artifact
+# + artifactVersion - version of the artifact
+# + return - http resonce (200 if success, 401, 403 or 500 otherwise)
+public function deleteArtifact(http:Request deleteArtifactReq, string orgName, string imageName, string artifactVersion)
+returns http:Response {
+    if (deleteArtifactReq.hasHeader(constants:AUTHENTICATED_USER) && deleteArtifactReq.hasHeader
+    (constants:CONSTRUCTED_TOKEN)) {
+        string userId = deleteArtifactReq.getHeader(constants:AUTHENTICATED_USER);
+        log:printDebug(io:sprintf("User \'%s\' is attempting to delete the artifact \'%s/%s:%s\'", userId, orgName,
+        imageName, artifactVersion));
+        http:Response resp;
+
+        transaction {
+            var transactionId = transactions:getCurrentTransactionId();
+            log:printDebug(io:sprintf("Started transaction \'%s\' for deleting the artifact \'%s/%s:%s\'",
+            transactionId, orgName,
+            imageName, artifactVersion));
+            int | error? deletedRowCount = db:deleteArtifactFromDb(userId, orgName, imageName, artifactVersion);
+            if (deletedRowCount is int) {
+                if (deletedRowCount == 1) {
+                    string userToken = deleteArtifactReq.getHeader(constants:CONSTRUCTED_TOKEN);
+                    var deleteResult = deleteArtifactFromRegistry(orgName, imageName, artifactVersion, userId,
+                    userToken);
+                    if (deleteResult is error) {
+                        log:printError(io:sprintf("Failed to delete the artifact \'%s/%s:%s\' from the registry",
+                        orgName, imageName, artifactVersion), err = deleteResult);
+                        resp = buildUnknownErrorResponse();
+                        abort;
+                    } else {
+                        log:printInfo(io:sprintf("Successfully deleted the artifact \'%s/%s:%s\' by user \'%s\'",
+                        orgName, imageName, artifactVersion, userId));
+                        resp = buildSuccessResponse();
+                    }
+                } else if (deletedRowCount == 0) {
+                    log:printDebug(io:sprintf("Failed to delete the artifact \'%s/%s:%s\' from db. No matching records "+
+                    "found", orgName, imageName, artifactVersion));
+                    resp = buildErrorResponse(http:FORBIDDEN_403, constants:ACTION_NOT_ALLOWED_ERROR_CODE, "Unable to "+
+                    "delete artifact", "Deletion is not allowed");
+                } else {
+                    log:printError(io:sprintf("Failed to delete the artifact \'%s/%s:%s\' from db. More than one "+
+                    "matching records found", orgName, imageName, artifactVersion));
+                    resp = buildUnknownErrorResponse();
+                }
+            } else {
+                log:printError(io:sprintf("Unable to delete the artifact \'%s/%s:%s\' from db", orgName, imageName,
+                artifactVersion), err = deletedRowCount);
+                resp = buildUnknownErrorResponse();
+                abort;
+            }
+        } onretry {
+            log:printInfo(io:sprintf("Retrying deleting artifact \'%s/%s:%s\' for transaction %s", orgName, imageName,
+            artifactVersion, transactions:getCurrentTransactionId()));
+        } committed {
+            log:printDebug(io:sprintf("Successfuly commited the transaction %s for deleting the artifact \'%s/%s:%s\'",
+            transactions:getCurrentTransactionId(), orgName, imageName, artifactVersion));
+        } aborted {
+            log:printError(io:sprintf("Deleting artifact \'%s/%s:%s\' aborted for transaction %s", orgName, imageName,
+            artifactVersion, transactions:getCurrentTransactionId()));
+        }
+        return resp;
+    } else {
+        log:printDebug("Unauthenticated request for delete artifact: UserId or Token is not found");
+        return buildErrorResponse(http:UNAUTHORIZED_401, constants:API_ERROR_CODE, "Unable to delete artifact",
+        "Unauthenticated request. Auth token is not provided");
+    }
+}
+
+# Delete an image
+#
+# + deleteImageReq - received request which contains header
+# + orgName - organization name that the artifact is belong to
+# + imageName - image name of the artifact
+# + return - http resonce (200 if success, 401, 403 or 500 otherwise)
+public function deleteImage(http:Request deleteImageReq, string orgName, string imageName) returns http:Response {
+    if (deleteImageReq.hasHeader(constants:AUTHENTICATED_USER)) {
+        string userId = deleteImageReq.getHeader(constants:AUTHENTICATED_USER);
+        log:printDebug(io:sprintf("User \'%s\' is attempting to delete the image \'%s/%s\'", userId, orgName,
+        imageName));
+        http:Response resp;
+        transaction {
+            var transactionId = transactions:getCurrentTransactionId();
+            log:printDebug(io:sprintf("Started transaction \'%s\' for deleting the image \'%s/%s\'", transactionId,
+            orgName, imageName));
+            int | error? deletedRowCount = db:deleteImageFromDb(userId, orgName, imageName);
+            if (deletedRowCount is int) {
+                if (deletedRowCount == 1) {
+                    var deleteResult = deleteImageFromResitry(orgName, imageName);
+                    if (deleteResult is error) {
+                        log:printError(io:sprintf("Failed to delete the image \'%s/%s\' from the registry", orgName,
+                        imageName), err = deleteResult);
+                        resp = buildUnknownErrorResponse();
+                        abort;
+                    } else {
+                        log:printInfo(io:sprintf("Successfully deleted the image \'%s/%s\' by user \'%s\'", orgName,
+                        imageName, userId));
+                        resp = buildSuccessResponse();
+                    }
+                } else if (deletedRowCount == 0) {
+                    log:printDebug(io:sprintf("Failed to delete the image \'%s/%s\'. No matching records found",
+                    orgName, imageName));
+                    resp = buildErrorResponse(http:FORBIDDEN_403, constants:ACTION_NOT_ALLOWED_ERROR_CODE, "Unable to "+ 
+                    "delete image", "Deletion is not allowed");
+                } else {
+                    log:printError(io:sprintf("Failed to delete the image \'%s/%s\' from db. More than one matching "+ 
+                    "records found", orgName, imageName));
+                    resp = buildUnknownErrorResponse();
+                }
+            } else {
+                log:printError(io:sprintf("Unable to delete the image \'%s/%s\' from db", orgName, imageName),
+                err = deletedRowCount);
+                resp = buildUnknownErrorResponse();
+                abort;
+            }
+        } onretry {
+            log:printInfo(io:sprintf("Retrying deleting image \'%s/%s\' for transaction %s", orgName, imageName,
+            transactions:getCurrentTransactionId()));
+        } committed {
+            log:printDebug(io:sprintf("Successfuly commited the transaction %s for deleting the image \'%s/%s\'",
+            transactions:getCurrentTransactionId(), orgName, imageName));
+        } aborted {
+            log:printError(io:sprintf("Deleting image \'%s/%s\' aborted for transaction %s", orgName, imageName,
+            transactions:getCurrentTransactionId()));
+        }
+        return resp;
+    } else {
+        log:printDebug("Unauthenticated request for delete image: Username is not found");
+        return buildErrorResponse(http:UNAUTHORIZED_401, constants:API_ERROR_CODE, "Unable to delete image",
+        "Unauthenticated request. Auth token is not provided");
+    }
+}
+
+# Delete an organization
+#
+# + deleteOrganizationReq - received request which contains header
+# + orgName - organization name that expected to delete
+# + return - http resonce (200 if success, 401, 403 or 500 otherwise)
+public function deleteOrganization(http:Request deleteOrganizationReq, string orgName) returns http:Response {
+    if (deleteOrganizationReq.hasHeader(constants:AUTHENTICATED_USER)) {
+        string userId = deleteOrganizationReq.getHeader(constants:AUTHENTICATED_USER);
+        log:printDebug(io:sprintf("User \'%s\' is attempting to delete the organization \'%s\'", userId, orgName));
+        http:Response resp;
+        transaction {
+            var transactionId = transactions:getCurrentTransactionId();
+            log:printDebug(io:sprintf("Started transaction \'%s\' for deleting the organization \'%s\'", transactionId,
+            orgName));
+            int | error? deletedRowCount = db:deleteOrganizationFromDb(userId, orgName);
+            if (deletedRowCount is int) {
+                if (deletedRowCount == 1) {
+                    var deleteResult = deleteOrganizationFromResitry(orgName);
+                    if (deleteResult is error) {
+                        log:printError(io:sprintf("Failed to delete the organization \'%s\' from the registry", orgName)
+                        , err = deleteResult);
+                        resp = buildUnknownErrorResponse();
+                        abort;
+                    } else {
+                        log:printInfo(io:sprintf("Successfully deleted the organization \'%s\' by user \'%s\'", orgName,
+                        userId));
+                        resp = buildSuccessResponse();
+                    }
+                } else if (deletedRowCount == 0) {
+                    log:printDebug(io:sprintf("Failed to delete the organization \'%s\'. No matching records found",
+                    orgName));
+                    resp = buildErrorResponse(http:FORBIDDEN_403, constants:ACTION_NOT_ALLOWED_ERROR_CODE, "Unable to "+
+                    "delete organization", "Deletion is not allowed");
+                } else {
+                    log:printError(io:sprintf("Failed to delete the organization \'%s\'. More than one matching records "+
+                    "found", orgName));
+                    resp = buildUnknownErrorResponse();
+                }
+            } else {
+                log:printError(io:sprintf("Unable to delete the organization \'%s\' from db", orgName),
+                err = deletedRowCount);
+                resp = buildUnknownErrorResponse();
+                abort;
+            }
+        } onretry {
+            log:printInfo(io:sprintf("Retrying deleting organization \'%s\' for transaction %s", orgName,
+            transactions:getCurrentTransactionId()));
+        } committed {
+            log:printDebug(io:sprintf("Successfuly commited the transaction %s for deleting the organization \'%s\'",
+            transactions:getCurrentTransactionId(), orgName));
+        } aborted {
+            log:printError(io:sprintf("Deleting organization \'%s\' aborted for transaction %s", orgName,
+            transactions:getCurrentTransactionId()));
+        }
+        return resp;
+    } else {
+        log:printDebug("Unauthenticated request for delete organization: Username is not found");
+        return buildErrorResponse(http:UNAUTHORIZED_401, constants:API_ERROR_CODE, "Unable to delete organization",
+        "Unauthenticated request. Auth token is not provided");
     }
 }

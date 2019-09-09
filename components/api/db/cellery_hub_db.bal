@@ -528,6 +528,45 @@ returns json | error {
     return check json.convert(imagesListResponse);
 }
 
+public function deleteArtifactFromDb(string userId, string orgName, string imageName, string artifactVersion) returns
+int | error? {
+    log:printDebug(io:sprintf("Deleting the artifact \'%s/%s:%s\', user : \'%s\'", orgName, imageName, artifactVersion,
+    userId));
+    sql:UpdateResult | error res = connection->update(DELETE_ARTIFACT_QUERY, imageName, userId, orgName,
+    artifactVersion);
+    if res is sql:UpdateResult {
+        log:printDebug(io:sprintf("Updated %d rows to delete the artifact \'%s/%s:%s\', user : %s", res.updatedRowCount,
+        orgName, imageName, artifactVersion, userId));
+        return res.updatedRowCount;
+    } else {
+        return res;
+    }        
+}
+
+public function deleteImageFromDb(string userId, string orgName, string imageName) returns int | error? {
+    log:printDebug(io:sprintf("Deleting the image \'%s/%s\', user : \'%s\'", orgName, imageName, userId));
+    sql:UpdateResult | error res = connection->update(DELETE_IMAGE_QUERY, imageName, userId, orgName);
+    if res is sql:UpdateResult {
+        log:printDebug(io:sprintf("Updated %d rows in REGISTRY_ARTIFACT_IMAGE table to delete the image \'%s/%s\',"+
+        "user : %s", res.updatedRowCount, orgName, imageName, userId));
+        return res.updatedRowCount;
+    } else {
+        return res;
+    }        
+}
+
+public function deleteOrganizationFromDb(string userId, string orgName) returns int | error? {
+    log:printDebug(io:sprintf("Deleting the organization \'%s\', user : \'%s\'", orgName, userId));
+    sql:UpdateResult | error res = connection->update(DELETE_ORGANIZATION_QUERY, userId, orgName);
+    if res is sql:UpdateResult {
+        log:printDebug(io:sprintf("Updated %d rows in REGISTRY_ORGANIZATION table to delete the organization \'%s\',"+
+        "user : %s", res.updatedRowCount, orgName, userId));
+        return res.updatedRowCount;
+    } else {
+        return res;
+    }        
+}
+
 public function getArtifactListLength(string imageId, string artifactVersion) returns int | error {
     log:printDebug(io:sprintf("Retriving artifact count for image ID : %s and image version %s", imageId, artifactVersion));
     table<gen:Count> res = check connection->select(GET_ARTIFACT_COUNT, gen:Count, imageId, artifactVersion, loadToMemory = true);
@@ -555,11 +594,11 @@ function buildJsonPayloadForGetArtifact(table<gen:Artifact> res, string orgName,
 }
 
 function getArtifactImageID(string orgName, string imageName) returns string | error {
-    log:printDebug(io:sprintf("Retrieving Artifact Image Id of image %s/%s", orgName, imageName));
+    log:printDebug(io:sprintf("Retrieving Artifact Image Id of image \'%s/%s\'", orgName, imageName));
     table<record {}> imageIdRes = check connection->select(GET_ARTIFACT_IMAGE_ID, RegistryArtifactImage, imageName, orgName);
     json imageIdRecord = check json.convert(imageIdRes);
     string imageId = check string.convert(imageIdRecord[0]["ARTIFACT_IMAGE_ID"]);
-    log:printDebug(io:sprintf("Artifact Image Id of %s/%s is %s ", orgName, imageName, imageId));
+    log:printDebug(io:sprintf("Artifact Image Id of \'%s/%s\' is %s ", orgName, imageName, imageId));
     return imageId;
 }
 

@@ -27,6 +27,7 @@ public const int API_ERROR_CODE = 1;
 public const int ENTRY_ALREADY_EXISTING_ERROR_CODE = 2;
 public const int ALLOWED_LIMIT_EXCEEDED_ERROR_CODE = 3;
 public const int ENTRY_NOT_FOUND_ERROR_CODE = 4;
+public const int ACTION_NOT_ALLOWED_ERROR_CODE = 5;
 
 public const string VALIDATE_USER = "validateUser";
 public const string OFFSET = "offset";
@@ -47,6 +48,7 @@ public const string IDP_DEFAULT_USERNAME = "admin";
 
 public const string AUTHORIZATION_HEADER = "Authorization";
 public const string COOKIE_HEADER = "Cookie";
+public const string BEARER_HEADER = "Bearer";
 public const string TOKEN_COOKIE_KEY = "chpat";
 
 public const string ROLE_ADMIN = "admin";
@@ -55,5 +57,17 @@ public const string DEFAULT_IMAGE_VISIBILITY = "PUBLIC";
 public const string PULL_COUNT = "PULL_COUNT";
 public const string UPDATED_DATE = "UPDATED_DATE";
 
+public const string DELETE_ACTION = "delete";
+public const string PULL_ACTION = "pull";
+
 public const string CACHE_EXPIRY_VAR = "token.cache.expiry";
 public const string CACHE_CAPACITY_VAR = "token.cache.capacity";
+
+public const string DOCKER_REGISTRY_SERVICE_NAME = "Docker registry";
+public const string DOCKER_REGISTRY_REPOSITORIES_FILEPATH = "/var/lib/registry/docker/registry/v2/repositories";
+public const string REGISTRY_RESPONSE_ERRORS_FIELD = "errors";
+public const string REGISTRY_RESPONSE_DETAIL_FIELD = "detail";
+public const string REGISTRY_RESPONSE_TYPE_FIELD = "Type";
+public const string REGISTRY_RESPONSE_NAME_FIELD = "Name";
+public const string REGISTRY_RESPONSE_ACTION_FIELD = "Action";
+public const string REGISTRY_DIGEST_HEADER = "Docker-Content-Digest";

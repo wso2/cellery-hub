@@ -381,7 +381,8 @@ service CelleryHubAPI on ep {
         methods: ["GET"],
         path: "/artifacts/{orgName}/{imageName}/{artifactVersion}"
     }
-    resource function getArtifact(http:Caller outboundEp, http:Request _getArtifactReq, string orgName, string imageName, string artifactVersion) returns error? {
+    resource function getArtifact(http:Caller outboundEp, http:Request _getArtifactReq, string orgName, string imageName, string artifactVersion)
+    returns error? {
         http:Response _getArtifactRes = getArtifact(_getArtifactReq, untaint orgName, untaint imageName, untaint artifactVersion);
         error? x = outboundEp->respond(_getArtifactRes);
     }
@@ -878,5 +879,96 @@ service CelleryHubAPI on ep {
         http:Response _listUserImagesRes = listUserImages(_listUserImagesReq, userId, orgName, imageName, untaint orderBy, 
         untaint offset, untaint resultLimit);
         error? x = outboundEp->respond(_listUserImagesRes);
+    }
+
+    @openapi:ResourceInfo {
+        summary: "Delete an artifact",
+        parameters: [
+            {
+                name: "orgName",
+                inInfo: "path",
+                paramType: "string",
+                description: "Name of the organization",
+                required: true,
+                allowEmptyValue: ""
+            },
+            {
+                name: "imageName",
+                inInfo: "path",
+                paramType: "string",
+                description: "Name of the image",
+                required: true,
+                allowEmptyValue: ""
+            },
+            {
+                name: "artifactVersion",
+                inInfo: "path",
+                paramType: "string",
+                description: "Version of the artifact",
+                required: true,
+                allowEmptyValue: ""
+            }
+        ]
+    }
+    @http:ResourceConfig {
+        methods:["DELETE"],
+        path:"/artifacts/{orgName}/{imageName}/{artifactVersion}"
+    }
+    resource function deleteArtifact (http:Caller outboundEp, http:Request _deleteArtifactReq, string orgName, string imageName, string artifactVersion)
+    returns error? {
+        http:Response _deleteArtifactRes = deleteArtifact(_deleteArtifactReq, orgName, imageName, artifactVersion);
+        error? x = outboundEp->respond(_deleteArtifactRes);
+    }
+
+    @openapi:ResourceInfo {
+        summary: "Delete an image",
+        parameters: [
+            {
+                name: "orgName",
+                inInfo: "path",
+                paramType: "string",
+                description: "Name of the organization",
+                required: true,
+                allowEmptyValue: ""
+            },
+            {
+                name: "imageName",
+                inInfo: "path",
+                paramType: "string",
+                description: "Name of the image",
+                required: true,
+                allowEmptyValue: ""
+            }
+        ]
+    }
+    @http:ResourceConfig {
+        methods:["DELETE"],
+        path:"/images/{orgName}/{imageName}"
+    }
+    resource function deleteImage (http:Caller outboundEp, http:Request _deleteImageReq, string orgName, string imageName) returns error? {
+        http:Response _deleteImageRes = deleteImage(_deleteImageReq, orgName, imageName);
+        error? x = outboundEp->respond(_deleteImageRes);
+    }
+
+    @openapi:ResourceInfo {
+        summary: "Delete an organization",
+        parameters: [
+            {
+                name: "orgName",
+                inInfo: "path",
+                paramType: "string",
+                description: "Name of the organization",
+                required: true,
+                allowEmptyValue: ""
+            }
+        ]
+    }
+    @http:ResourceConfig {
+        methods:["DELETE"],
+        path:"/orgs/{orgName}"
+    }
+    resource function deleteOrganization (http:Caller outboundEp, http:Request _deleteOrganizationReq, string orgName) returns error? {
+        http:Response _deleteOrganizationRes = deleteOrganization(_deleteOrganizationReq, orgName);
+        error? x = outboundEp->respond(_deleteOrganizationRes);
     }
 }

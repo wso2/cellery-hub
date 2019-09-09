@@ -118,6 +118,24 @@ paths:
           description: "Internal Server Error"
           schema:
             $ref: "#/definitions/ErrorResponse"
+    delete:
+      operationId: "deleteOrganization"
+      summary: "Delete an organization"
+      produces:
+      - "application/json"
+      parameters:
+      - $ref: "#/parameters/orgNamePathParam"
+      responses:
+        200:
+          description: "OK"
+        405:
+          description: "Invalid Input"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+        500:
+          description: "Internal Server Error"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
   /orgs/users/{userId}:
     get:
       operationId: "getUserOrgs"
@@ -213,6 +231,26 @@ paths:
           description: "Internal Server Error"
           schema:
             $ref: "#/definitions/ErrorResponse"
+    delete:
+      operationId: "deleteImage"
+      summary: "Delete an image"
+      produces:
+      - "application/json"
+      parameters:
+      - $ref: "#/parameters/orgNamePathParam"
+      - $ref: "#/parameters/imageNamePathParam"
+      - $ref: "#/parameters/imageUpdateBody"
+      responses:
+        200:
+          description: "OK"
+        405:
+          description: "Invalid Input"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+        500:
+          description: "Internal Server Error"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
   /images/users/{userId}:
     get:
       operationId: "listUserImages"
@@ -272,6 +310,26 @@ paths:
       - $ref: "#/parameters/imageNamePathParam"
       - $ref: "#/parameters/artifactVersionPathParam"
       - $ref: "#/parameters/artifactUpdateBody"
+      responses:
+        200:
+          description: "OK"
+        405:
+          description: "Invalid Input"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+        500:
+          description: "Internal Server Error"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+    delete:
+      operationId: "deleteArtifact"
+      summary: "Delete an existing artifact"
+      produces:
+      - "application/json"
+      parameters:
+      - $ref: "#/parameters/orgNamePathParam"
+      - $ref: "#/parameters/imageNamePathParam"
+      - $ref: "#/parameters/artifactVersionPathParam"
       responses:
         200:
           description: "OK"
