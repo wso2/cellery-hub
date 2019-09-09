@@ -145,7 +145,7 @@ func getImageVisibility(db *sql.DB, image string, organization string, execId st
 	return visibility, nil
 }
 
-func isUserAvailable(db *sql.DB, organization, user string, execId string) (bool, error) {
+func isUserAvailable(db *sql.DB, organization string, user string, execId string) (bool, error) {
 	log.Printf("[%s] Checking whether the user %s exists in the organization %s\n", execId, user, organization)
 	results, err := db.Query(getUserAvailabilityQuery, user, organization)
 	defer func() {
@@ -164,7 +164,7 @@ func isUserAvailable(db *sql.DB, organization, user string, execId string) (bool
 	}
 }
 
-func isAuthorizedToPull(db *sql.DB, user string, organization, image string, execId string) (bool, error) {
+func isAuthorizedToPull(db *sql.DB, user string, organization string, image string, execId string) (bool, error) {
 	log.Printf("[%s] ACL is checking whether the user %s is authorized to pull the image %s in the "+
 		" organization %s.\n", execId, user, image, organization)
 

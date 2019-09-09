@@ -21,25 +21,13 @@ import ballerina/http;
 import ballerina/io;
 import ballerina/log;
 
-http:Client dockerRegistryClientEP = new(config:getAsString("docker.registry.url"), config = {
-    secureSocket: {
-        trustStore: {
-            path: config:getAsString("security.truststore"),
-            password: config:getAsString("security.truststorepass")
-        },
-        verifyHostname: false
-    }
-});
-
 public function getManifestDigest(string orgName, string imageName, string artifactVersion, string bearerToken)
 returns string | error {
-    log:printDebug(io:sprintf("Invoking getManifest end point of registry API with a docker auth token. orgName: %s,
-    imageName: %s, artifactVersion: %s",
-    orgName, imageName, artifactVersion));
-    http:Request dockerRegistryRequest = new;
-    dockerRegistryRequest.addHeader(constants:AUTHORIZATION_HEADER, constants:BEARER_HEADER + " " + bearerToken);
+    log:printDebug(io:sprintf("Invoking getManifest end point of registry API with a docker auth token. orgName: %s, "+
+    "imageName: %s, artifactVersion: %s", orgName, imageName, artifactVersion));
     string getManifestEndPoint = io:sprintf("/v2/%s/%s/manifests/%s", orgName, imageName, artifactVersion);
-    var responseForGetManifest = dockerRegistryClientEP->get(getManifestEndPoint, message = dockerRegistryRequest);
+    http:Client dockerRegistryClient = getOAuth2RegistryClient(bearerToken);
+    var responseForGetManifest = dockerRegistryClient->get(getManifestEndPoint, message = "");
 
     if (responseForGetManifest is http:Response) {
         log:printDebug(io:sprintf("Received status code for getManifestDigest request: %d",
@@ -49,7 +37,8 @@ returns string | error {
             imageName, artifactVersion));
             return responseForGetManifest.getHeader(constants:REGISTRY_DIGEST_HEADER);
         } else {
-            error er = error("Failed to fetch the digest of docker manifest. This may be due to an unknown manifest");
+            error er = error(io:sprintf("Failed to fetch the digest of docker manifest. This may be due to an unknown "+
+            "manifest. Status Code : %s", responseForGetManifest.statusCode));
             return er;
         }
     } else {
@@ -60,13 +49,11 @@ returns string | error {
 
 public function deleteManifest(string orgName, string imageName, string manifestdigest, string bearerToken)
 returns error? {
-    log:printDebug(io:sprintf("Invoking deleteManifest end point of registry API with a docker auth token. orgName: %s,
-    imageName: %s, digest: %s",
-    orgName, imageName, manifestdigest));
-    http:Request dockerRegistryRequest = new;
-    dockerRegistryRequest.addHeader(constants:AUTHORIZATION_HEADER, constants:BEARER_HEADER + " " + bearerToken);
+    log:printDebug(io:sprintf("Invoking deleteManifest end point of registry API with a docker auth token. orgName: %s, "+
+    "imageName: %s, digest: %s", orgName, imageName, manifestdigest));
+    http:Client dockerRegistryClient = getOAuth2RegistryClient(bearerToken);
     string deleteEndPoint = io:sprintf("/v2/%s/%s/manifests/%s", orgName, imageName, manifestdigest);
-    var responseForDeleteManifest = dockerRegistryClientEP->delete(deleteEndPoint, dockerRegistryRequest);
+    var responseForDeleteManifest = dockerRegistryClient->delete(deleteEndPoint, "");
 
     if (responseForDeleteManifest is http:Response) {
         log:printDebug(io:sprintf("Received status code for deleteManifes request: %d",

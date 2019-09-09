@@ -850,25 +850,22 @@ returns http:Response {
                     userToken);
                     if (deleteResult is error) {
                         log:printError(io:sprintf("Failed to delete the artifact \'%s/%s:%s\' from the registry",
-                        orgName, imageName, artifactVersion),
-                        err = deleteResult);
+                        orgName, imageName, artifactVersion), err = deleteResult);
                         resp = buildUnknownErrorResponse();
                         abort;
                     } else {
                         log:printInfo(io:sprintf("Successfully deleted the artifact \'%s/%s:%s\' by user \'%s\'",
-                        orgName, imageName,
-                        artifactVersion, userId));
+                        orgName, imageName, artifactVersion, userId));
                         resp = buildSuccessResponse();
                     }
                 } else if (deletedRowCount == 0) {
-                    log:printDebug(io:sprintf("Failed to delete the artifact \'%s/%s:%s\' from db. No matching records
-                    found", orgName, imageName, artifactVersion));
-                    resp = buildErrorResponse(http:FORBIDDEN_403, constants:ACTION_NOT_ALLOWED_ERROR_CODE, "Unable to
-                    delete artifact", "Deletion is not allowed");
+                    log:printDebug(io:sprintf("Failed to delete the artifact \'%s/%s:%s\' from db. No matching records "+
+                    "found", orgName, imageName, artifactVersion));
+                    resp = buildErrorResponse(http:FORBIDDEN_403, constants:ACTION_NOT_ALLOWED_ERROR_CODE, "Unable to "+
+                    "delete artifact", "Deletion is not allowed");
                 } else {
-                    log:printError(io:sprintf("Failed to delete the artifact \'%s/%s:%s\' from db. More than one
-                    matching records found", orgName,
-                    imageName, artifactVersion));
+                    log:printError(io:sprintf("Failed to delete the artifact \'%s/%s:%s\' from db. More than one "+
+                    "matching records found", orgName, imageName, artifactVersion));
                     resp = buildUnknownErrorResponse();
                 }
             } else {
@@ -879,8 +876,7 @@ returns http:Response {
             }
         } onretry {
             log:printInfo(io:sprintf("Retrying deleting artifact \'%s/%s:%s\' for transaction %s", orgName, imageName,
-            artifactVersion,
-            transactions:getCurrentTransactionId()));
+            artifactVersion, transactions:getCurrentTransactionId()));
         } committed {
             log:printDebug(io:sprintf("Successfuly commited the transaction %s for deleting the artifact \'%s/%s:%s\'",
             transactions:getCurrentTransactionId(), orgName, imageName, artifactVersion));
@@ -929,12 +925,11 @@ public function deleteImage(http:Request deleteImageReq, string orgName, string 
                 } else if (deletedRowCount == 0) {
                     log:printDebug(io:sprintf("Failed to delete the image \'%s/%s\'. No matching records found",
                     orgName, imageName));
-                    resp = buildErrorResponse(http:FORBIDDEN_403, constants:ACTION_NOT_ALLOWED_ERROR_CODE, "Unable to 
-                    delete image", "Deletion is not allowed");
+                    resp = buildErrorResponse(http:FORBIDDEN_403, constants:ACTION_NOT_ALLOWED_ERROR_CODE, "Unable to "+ 
+                    "delete image", "Deletion is not allowed");
                 } else {
-                    log:printError(io:sprintf("Failed to delete the image \'%s/%s\' from db. More than one matching
-                     records found", orgName,
-                    imageName));
+                    log:printError(io:sprintf("Failed to delete the image \'%s/%s\' from db. More than one matching "+ 
+                    "records found", orgName, imageName));
                     resp = buildUnknownErrorResponse();
                 }
             } else {
@@ -992,11 +987,11 @@ public function deleteOrganization(http:Request deleteOrganizationReq, string or
                 } else if (deletedRowCount == 0) {
                     log:printDebug(io:sprintf("Failed to delete the organization \'%s\'. No matching records found",
                     orgName));
-                    resp = buildErrorResponse(http:FORBIDDEN_403, constants:ACTION_NOT_ALLOWED_ERROR_CODE, "Unable to
-                    delete organization", "Deletion is not allowed");
+                    resp = buildErrorResponse(http:FORBIDDEN_403, constants:ACTION_NOT_ALLOWED_ERROR_CODE, "Unable to "+
+                    "delete organization", "Deletion is not allowed");
                 } else {
-                    log:printError(io:sprintf("Failed to delete the organization \'%s\'. More than one matching records
-                    found", orgName));
+                    log:printError(io:sprintf("Failed to delete the organization \'%s\'. More than one matching records "+
+                    "found", orgName));
                     resp = buildUnknownErrorResponse();
                 }
             } else {
