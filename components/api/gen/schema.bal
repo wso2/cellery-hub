@@ -40,9 +40,9 @@ public type OrgResponse record {
 // Uses for get a specific artifact
 public type Artifact record {
     byte[]? description;
-    int pullCount;
+    int? pullCount;
     string lastAuthor;
-    string updatedTimestamp;
+    string? updatedTimestamp;
     byte[] metadata;
     string userRole;
 };
@@ -57,9 +57,9 @@ public type ArtifactDatum record {
     string artifactImageId;
     string artifactId;
     byte[]? description;
-    int pullCount;
+    int? pullCount;
     string lastAuthor;
-    string updatedTimestamp;
+    string? updatedTimestamp;
     string artifactVersion;
 };
 
@@ -67,9 +67,9 @@ public type ArtifactDatumResponse record {
     string artifactImageId;
     string artifactId;
     string description;
-    int pullCount;
+    int? pullCount;
     string lastAuthor;
-    string updatedTimestamp;
+    string? updatedTimestamp;
     string artifactVersion;
 };
 
@@ -86,8 +86,8 @@ public type Image record {
     byte[]? description;
     string firstAuthor;
     string visibility;
-    decimal pushCount;
-    decimal pullCount;
+    decimal? pushCount;
+    decimal? pullCount;
     string userRole;
 };
 
@@ -99,8 +99,8 @@ public type ImageResponse record {
     string description;
     string firstAuthor;
     string visibility;
-    decimal pushCount;
-    decimal pullCount;
+    decimal? pushCount;
+    decimal? pullCount;
     string[] keywords;
 };
 
@@ -173,8 +173,8 @@ public type ImagesListAtom record {
     string imageName;
     string summary;
     byte[]? description;
-    decimal pullCount;
-    string updatedTimestamp;
+    decimal? pullCount;
+    string? updatedTimestamp;
     string visibility;
 };
 
@@ -183,8 +183,8 @@ public type ImagesListResponseAtom record {
     string imageName;
     string summary;
     string description;
-    decimal pullCount;
-    string updatedTimestamp;
+    decimal? pullCount;
+    string? updatedTimestamp;
     string visibility;
 };
 
@@ -192,8 +192,8 @@ public type OrgImagesListAtom record {
     string imageName;
     string summary;
     byte[]? description;
-    decimal pullCount;
-    string updatedTimestamp;
+    decimal? pullCount;
+    string? updatedTimestamp;
     string visibility;
 };
 
@@ -201,8 +201,8 @@ public type OrgImagesListResponseAtom record {
     string imageName;
     string summary;
     string description;
-    decimal pullCount;
-    string updatedTimestamp;
+    decimal? pullCount;
+    string? updatedTimestamp;
     string visibility;
 };
 
