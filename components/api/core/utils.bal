@@ -42,27 +42,36 @@ function updatePayloadWithUserInfo(json payload, string field) returns error? {
     }
 }
 
-function deleteArtifactFromRegistry(string orgName, string imageName, string artifactVersion, string userId, string userToken) returns error? {
-    log:printInfo(io:sprintf("Attempting to delete the artifact \'%s/%s:%s\' from the registry", orgName, imageName, artifactVersion));
-    string registryScopeForGetNDeleteManifest = io:sprintf("repository:%s/%s:%s,%s", orgName, imageName, constants:DELETE_ACTION, constants:PULL_ACTION);
+function deleteArtifactFromRegistry(string orgName, string imageName, string artifactVersion, string userId, string
+userToken) returns error? {
+    log:printInfo(io:sprintf("Attempting to delete the artifact \'%s/%s:%s\' from the registry", orgName, imageName,
+    artifactVersion));
+    string registryScopeForGetNDeleteManifest = io:sprintf("repository:%s/%s:%s,%s", orgName, imageName,
+    constants:DELETE_ACTION, constants:PULL_ACTION);
 
-    log:printDebug(io:sprintf("Registry scope for get and delete manifest digest from registry api : %s", registryScopeForGetNDeleteManifest));
+    log:printDebug(io:sprintf("Registry scope for get and delete manifest digest from registry api : %s",
+    registryScopeForGetNDeleteManifest));
 
-    string | error? getTokenResult = docker_registry:getTokenFromDockerAuth(userId, userToken, registryScopeForGetNDeleteManifest);
+    string | error? getTokenResult = docker_registry:getTokenFromDockerAuth(userId, userToken,
+    registryScopeForGetNDeleteManifest);
 
     if (getTokenResult is string) {
         log:printDebug("Retrived a token from docker auth to invoke getManifestDigest and deleteManifest endpoints");
 
-        string | error getManifestDigestResult = docker_registry:getManifestDigest(orgName, imageName, artifactVersion, getTokenResult);
+        string | error getManifestDigestResult = docker_registry:getManifestDigest(orgName, imageName, artifactVersion,
+        getTokenResult);
 
         if (getManifestDigestResult is string) {
-            log:printDebug(io:sprintf("Received digest of the artifact \'%s/%s:%s\': %s", orgName, imageName, artifactVersion, getManifestDigestResult));
-            error? artifactDeleteResult = docker_registry:deleteManifest(orgName, imageName, getManifestDigestResult, getTokenResult);
+            log:printDebug(io:sprintf("Received digest of the artifact \'%s/%s:%s\': %s", orgName, imageName,
+            artifactVersion, getManifestDigestResult));
+            error? artifactDeleteResult = docker_registry:deleteManifest(orgName, imageName, getManifestDigestResult,
+            getTokenResult);
 
             if (artifactDeleteResult is error) {
                 return artifactDeleteResult;
             } else {
-                log:printDebug(io:sprintf("Artifact \'%s/%s:%s\' is successfully deleted from the registry", orgName, imageName, artifactVersion));
+                log:printDebug(io:sprintf("Artifact \'%s/%s:%s\' is successfully deleted from the registry", orgName,
+                imageName, artifactVersion));
             }
         } else {
             return getManifestDigestResult;
@@ -74,8 +83,10 @@ function deleteArtifactFromRegistry(string orgName, string imageName, string art
 
 public function deleteImageFromResitry(string orgName, string imageName) returns error? {
     if (orgName != "" && imageName != "") {
-        string imageDirectoryPath = io:sprintf("%s/%s/%s", constants:DOCKER_REGISTRY_REPOSITORIES_FILEPATH, orgName, imageName);
-        log:printInfo(io:sprintf("Deleting the image \'%s/%s\' from the registry. Image directory : %s", orgName, imageName, imageDirectoryPath));
+        string imageDirectoryPath = io:sprintf("%s/%s/%s", constants:DOCKER_REGISTRY_REPOSITORIES_FILEPATH, orgName,
+        imageName);
+        log:printInfo(io:sprintf("Deleting the image \'%s/%s\' from the registry. Image directory : %s", orgName,
+        imageName, imageDirectoryPath));
         internal:Path directoryToBeDeleted = new (imageDirectoryPath);
 
         if (directoryToBeDeleted.isDirectory()) {
@@ -84,7 +95,8 @@ public function deleteImageFromResitry(string orgName, string imageName) returns
                 error er = error("Unexpected error while deleting the image from the registry");
                 return er;
             } else {
-                log:printDebug(io:sprintf("Image \'%s/%s\' is successfully deleted from the registry", orgName, imageName));
+                log:printDebug(io:sprintf("Image \'%s/%s\' is successfully deleted from the registry", orgName,
+                imageName));
             }
         } else {
             error er = error(io:sprintf("Image directory \'%s\' is not found in the registry", imageDirectoryPath));
@@ -99,7 +111,8 @@ public function deleteImageFromResitry(string orgName, string imageName) returns
 public function deleteOrganizationFromResitry(string orgName) returns error? {
     if (orgName != "") {
         string orgDirectoryPath = io:sprintf("%s/%s", constants:DOCKER_REGISTRY_REPOSITORIES_FILEPATH, orgName);
-        log:printInfo(io:sprintf("Deleting the organization \'%s\' from the registry. Organization directory : %s", orgName, orgDirectoryPath));
+        log:printInfo(io:sprintf("Deleting the organization \'%s\' from the registry. Organization directory : %s",
+        orgName, orgDirectoryPath));
         internal:Path directoryToBeDeleted = new (orgDirectoryPath);
 
         if (directoryToBeDeleted.isDirectory()) {

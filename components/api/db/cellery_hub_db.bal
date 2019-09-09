@@ -528,11 +528,15 @@ returns json | error {
     return check json.convert(imagesListResponse);
 }
 
-public function deleteArtifactFromDb(string userId, string orgName, string imageName, string artifactVersion) returns int | error? {
-    log:printDebug(io:sprintf("Deleting the artifact \'%s/%s:%s\', user : \'%s\'", orgName, imageName, artifactVersion, userId));
-    sql:UpdateResult | error res = connection->update(DELETE_ARTIFACT_QUERY, imageName, userId, orgName, artifactVersion);
+public function deleteArtifactFromDb(string userId, string orgName, string imageName, string artifactVersion) returns
+int | error? {
+    log:printDebug(io:sprintf("Deleting the artifact \'%s/%s:%s\', user : \'%s\'", orgName, imageName, artifactVersion,
+    userId));
+    sql:UpdateResult | error res = connection->update(DELETE_ARTIFACT_QUERY, imageName, userId, orgName,
+    artifactVersion);
     if res is sql:UpdateResult {
-        log:printDebug(io:sprintf("Updated %d rows to delete the artifact \'%s/%s:%s\', user : %s", res.updatedRowCount, orgName,
+        log:printDebug(io:sprintf("Updated %d rows to delete the artifact \'%s/%s:%s\', user : %s", res.updatedRowCount,
+        orgName,
         imageName, artifactVersion, userId));
         return res.updatedRowCount;
     } else {
@@ -544,7 +548,8 @@ public function deleteImageFromDb(string userId, string orgName, string imageNam
     log:printDebug(io:sprintf("Deleting the image \'%s/%s\', user : \'%s\'", orgName, imageName, userId));
     sql:UpdateResult | error res = connection->update(DELETE_IMAGE_QUERY, imageName, userId, orgName);
     if res is sql:UpdateResult {
-        log:printDebug(io:sprintf("Updated %d rows in REGISTRY_ARTIFACT_IMAGE table to delete the image \'%s/%s\', user : %s", 
+        log:printDebug(io:sprintf("Updated %d rows in REGISTRY_ARTIFACT_IMAGE table to delete the image \'%s/%s\',
+        user : %s",
         res.updatedRowCount, orgName, imageName, userId));
         return res.updatedRowCount;
     } else {
@@ -556,7 +561,8 @@ public function deleteOrganizationFromDb(string userId, string orgName) returns 
     log:printDebug(io:sprintf("Deleting the organization \'%s\', user : \'%s\'", orgName, userId));
     sql:UpdateResult | error res = connection->update(DELETE_ORGANIZATION_QUERY, userId, orgName);
     if res is sql:UpdateResult {
-        log:printDebug(io:sprintf("Updated %d rows in REGISTRY_ORGANIZATION table to delete the organization \'%s\', user : %s", 
+        log:printDebug(io:sprintf("Updated %d rows in REGISTRY_ORGANIZATION table to delete the organization \'%s\',
+        user : %s",
         res.updatedRowCount, orgName, userId));
         return res.updatedRowCount;
     } else {

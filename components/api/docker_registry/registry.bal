@@ -42,9 +42,11 @@ returns string | error {
     var responseForGetManifest = dockerRegistryClientEP->get(getManifestEndPoint, message = dockerRegistryRequest);
 
     if (responseForGetManifest is http:Response) {
-        log:printDebug(io:sprintf("Received status code for getManifestDigest request: %d", responseForGetManifest.statusCode));
+        log:printDebug(io:sprintf("Received status code for getManifestDigest request: %d",
+        responseForGetManifest.statusCode));
         if (responseForGetManifest.statusCode == http:OK_200) {
-            log:printDebug(io:sprintf("Successfully retrieved the digest of the atifact \'%s/%s:%s\'. ", orgName, imageName, artifactVersion));
+            log:printDebug(io:sprintf("Successfully retrieved the digest of the atifact \'%s/%s:%s\'. ", orgName,
+            imageName, artifactVersion));
             return responseForGetManifest.getHeader(constants:REGISTRY_DIGEST_HEADER);
         } else {
             error er = error("Failed to fetch the digest of docker manifest. This may be due to an unknown manifest");
@@ -58,7 +60,8 @@ returns string | error {
 
 public function deleteManifest(string orgName, string imageName, string manifestdigest, string bearerToken)
 returns error? {
-    log:printDebug(io:sprintf("Invoking deleteManifest end point of registry API with a docker auth token. orgName: %s, imageName: %s, digest: %s",
+    log:printDebug(io:sprintf("Invoking deleteManifest end point of registry API with a docker auth token. orgName: %s,
+    imageName: %s, digest: %s",
     orgName, imageName, manifestdigest));
     http:Request dockerRegistryRequest = new;
     dockerRegistryRequest.addHeader(constants:AUTHORIZATION_HEADER, constants:BEARER_HEADER + " " + bearerToken);
@@ -66,9 +69,11 @@ returns error? {
     var responseForDeleteManifest = dockerRegistryClientEP->delete(deleteEndPoint, dockerRegistryRequest);
 
     if (responseForDeleteManifest is http:Response) {
-        log:printDebug(io:sprintf("Received status code for deleteManifes request: %d", responseForDeleteManifest.statusCode));
+        log:printDebug(io:sprintf("Received status code for deleteManifes request: %d",
+        responseForDeleteManifest.statusCode));
         if (responseForDeleteManifest.statusCode == http:ACCEPTED_202) {
-            log:printDebug(io:sprintf("Deleted the artifact \'%s/%s\'. Digest : %s", orgName, imageName, manifestdigest));
+            log:printDebug(io:sprintf("Deleted the artifact \'%s/%s\'. Digest : %s", orgName, imageName,
+            manifestdigest));
         } else {
             error er = error("Failed to delete the docker manifest. This may be due to an unknown manifest");
             return er;

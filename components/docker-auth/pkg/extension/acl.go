@@ -217,13 +217,14 @@ func isAuthorizedToPush(db *sql.DB, user string, organization string, execId str
 }
 
 func isAuthorizedToDelete(db *sql.DB, user string, organization string, execId string) (bool, error) {
-	log.Printf("[%s] User %s is trying to perform delete action on organization :%s\n", execId, user, organization)
+	log.Printf("[%s] User %s is trying to perform delete action on organization :%s\n", execId, user,
+		organization)
 	results, err := db.Query(getUserRoleQuery, user, organization)
 	defer func() {
 		closeResultSet(results, "isAuthorizedToDelete", execId)
 	}()
 	if err != nil {
-		log.Printf("[%s] Error while calling the mysql query getUserRoleQuery :%s\n", execId, err)
+		log.Printf("[%s] Error while calling the mysql query for getting the user role :%s\n", execId, err)
 		return false, err
 	}
 	if results.Next() {
@@ -231,15 +232,16 @@ func isAuthorizedToDelete(db *sql.DB, user string, organization string, execId s
 		// for each row, scan the result into our tag composite object
 		err = results.Scan(&userRole)
 		if err != nil {
-			log.Printf("[%s] Error in retrieving the username role from the database :%s\n", execId, err)
+			log.Printf("[%s] Error in retrieving the user role from the database :%s\n", execId, err)
 			return false, err
 		}
-		log.Printf("[%s] User role is declared as %s\n", execId, userRole)
+		log.Printf("[%s] User role is declared as %s for the organization %s", execId, userRole, organization)
 		if userRole == userAdminRole {
-			log.Printf("[%s] User is allowed to delete the image\n", execId)
+			log.Printf("[%s] User is allowed to delete the image under organization %s", execId, organization)
 			return true, nil
 		} else {
-			log.Printf("[%s] User does not have delete rights\n", execId)
+			log.Printf("[%s] User does not have delete rights to delete images of organization %s", execId,
+				organization)
 			return false, err
 		}
 	}
