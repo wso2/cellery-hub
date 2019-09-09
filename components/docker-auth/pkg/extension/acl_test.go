@@ -109,7 +109,7 @@ func TestMain(m *testing.M) {
 	fmt.Println("Acl test started to run")
 	// make target dir
 	makedir("../../target/test/mysql_scripts")
-	moveFiles("../../../../deployment/mysql/dbscripts/init.sql", "../../target/test/mysql_scripts/1_init.sql")
+	moveFiles("../../test/init.sql", "../../target/test/mysql_scripts/1_init.sql")
 	moveFiles("../../test/data.sql", "../../target/test/mysql_scripts/2_data.sql")
 	setEnv()
 	fmt.Println("User:", os.Getenv(MYSQL_USER_ENV_VAR), "pass:", os.Getenv(MYSQL_PASSWORD_ENV_VAR), "host::",
