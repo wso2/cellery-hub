@@ -24,7 +24,7 @@ import CellImage from "../../../img/CellImage";
 import Constants from "../../../utils/constants";
 import CustomizedTabs from "../../common/CustomizedTabs";
 import DataUtils from "../../../utils/api/dataUtils";
-// Import DeleteOutline from "@material-ui/icons/DeleteOutline";
+import DeleteOutline from "@material-ui/icons/DeleteOutline";
 import DependencyDiagram from "../dependencyDiagram/index";
 import Description from "../../common/Description";
 import Divider from "@material-ui/core/Divider";
@@ -382,21 +382,21 @@ class ImageVersion extends React.Component {
                                             }}>
                                                 <EditOutlined className={classes.menuIcon}/> Edit
                                             </MenuItem>
-                                            {/* {*/}
-                                            {/* (versionData.userRole === Constants.Permission.ADMIN)*/}
-                                            {/* ? (*/}
-                                            {/* <React.Fragment>*/}
-                                            {/* <Divider/>*/}
-                                            {/* <MenuItem onClick={() => {*/}
-                                            {/* This.handleDeleteDialogOpen();*/}
-                                            {/* This.handleMorePopoverClose();*/}
-                                            {/* }}>*/}
-                                            {/* <DeleteOutline className={classes.menuIcon}/> Delete*/}
-                                            {/* </MenuItem>*/}
-                                            {/* </React.Fragment>*/}
-                                            {/* )*/}
-                                            {/* : null*/}
-                                            {/* }*/}
+                                            {
+                                                (versionData.userRole === Constants.Permission.ADMIN)
+                                                    ? (
+                                                        <React.Fragment>
+                                                            <Divider/>
+                                                            <MenuItem onClick={() => {
+                                                                this.handleDeleteDialogOpen();
+                                                                this.handleMorePopoverClose();
+                                                            }}>
+                                                                <DeleteOutline className={classes.menuIcon}/> Delete
+                                                            </MenuItem>
+                                                        </React.Fragment>
+                                                    )
+                                                    : null
+                                            }
                                         </Menu>
                                     </React.Fragment>
                                 )

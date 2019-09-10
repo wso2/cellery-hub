@@ -20,7 +20,7 @@ import ArrowBack from "@material-ui/icons/ArrowBack";
 import Constants from "../../utils/constants";
 import CustomizedTabs from "../common/CustomizedTabs";
 import DataUtils from "../../utils/api/dataUtils";
-// Import DeleteOutline from "@material-ui/icons/DeleteOutline";
+import DeleteOutline from "@material-ui/icons/DeleteOutline";
 import Description from "../common/Description";
 import Divider from "@material-ui/core/Divider";
 import EditOutlined from "@material-ui/icons/EditOutlined";
@@ -257,13 +257,13 @@ class Org extends React.Component {
                                             }}>
                                                 <EditOutlined className={classes.menuIcon}/> Edit
                                             </MenuItem>
-                                            {/* <Divider/>*/}
-                                            {/* <MenuItem onClick={() => {*/}
-                                            {/* This.handleDeleteDialogOpen();*/}
-                                            {/* This.handleMorePopoverClose();*/}
-                                            {/* }}>*/}
-                                            {/* <DeleteOutline className={classes.menuIcon}/> Delete*/}
-                                            {/* </MenuItem>*/}
+                                            <Divider/>
+                                            <MenuItem onClick={() => {
+                                                this.handleDeleteDialogOpen();
+                                                this.handleMorePopoverClose();
+                                            }}>
+                                                <DeleteOutline className={classes.menuIcon}/> Delete
+                                            </MenuItem>
                                         </Menu>
                                     </React.Fragment>
                                 )

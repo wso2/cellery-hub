@@ -22,6 +22,7 @@ import CellImage from "../../img/CellImage";
 import Constants from "../../utils/constants";
 import Divider from "@material-ui/core/Divider";
 import GetApp from "@material-ui/icons/GetApp";
+import InfoOutlined from "@material-ui/icons/InfoOutlined";
 import Language from "@material-ui/icons/Language";
 import List from "@material-ui/core/List";
 import ListItem from "@material-ui/core/ListItem";
@@ -119,21 +120,40 @@ class ImageList extends React.Component {
                                             secondary={
                                                 <React.Fragment>
                                                     {image.summary}
-                                                    <Typography variant={"caption"} className={classes.block}
-                                                        color={"textPrimary"}>
-                                                        <AccessTime className={classes.updated}/> Last Updated on&nbsp;
-                                                        {
-                                                            moment(image.updatedTimestamp)
-                                                                .format(Constants.Format.DATE_TIME)
-                                                        }
-                                                    </Typography>
+                                                    {
+                                                        image.updatedTimestamp
+                                                            ? (
+                                                                <Typography variant={"caption"} color={"textPrimary"}
+                                                                    className={classes.block}>
+                                                                    <AccessTime className={classes.updated}/>
+                                                                              &nbsp;Last Updated on&nbsp;
+                                                                    {
+                                                                        moment(image.updatedTimestamp)
+                                                                            .format(Constants.Format.DATE_TIME)
+                                                                    }
+                                                                </Typography>
+                                                            )
+                                                            : <Typography variant={"caption"} color={"textPrimary"}
+                                                                className={classes.block}>
+                                                                <InfoOutlined className={classes.updated}/>
+                                                                          &nbsp;No versions available
+                                                            </Typography>
+                                                    }
                                                 </React.Fragment>
                                             }/>
-                                        <GetApp className={classes.elementIcon}/>
-                                        <Typography variant={"subtitle2"} color={"inherit"}
-                                            className={classes.elementText}>
-                                            {image.pullCount}
-                                        </Typography>
+                                        {
+                                            image.pullCount === null
+                                                ? null
+                                                : (
+                                                    <React.Fragment>
+                                                        <GetApp className={classes.elementIcon}/>
+                                                        <Typography variant={"subtitle2"} color={"inherit"}
+                                                            className={classes.elementText}>
+                                                            {image.pullCount}
+                                                        </Typography>
+                                                    </React.Fragment>
+                                                )
+                                        }
                                         {
                                             image.visibility.toUpperCase() === Constants.Visibility.PUBLIC
                                                 ? <Language className={classes.elementIcon}/>
