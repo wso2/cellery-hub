@@ -142,7 +142,7 @@ class ImageList extends React.Component {
                                                 </React.Fragment>
                                             }/>
                                         {
-                                            image.pullCount === null
+                                            !image.pullCount && image.pullCount !== 0
                                                 ? null
                                                 : (
                                                     <React.Fragment>

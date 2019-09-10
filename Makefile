@@ -176,7 +176,7 @@ build.$(API): clean.$(API) init.$(API)
 
 .PHONY: build.$(IDENTITY_SERVER_CUSTOMIZATION)
 build.$(IDENTITY_SERVER_CUSTOMIZATION): clean.$(IDENTITY_SERVER_CUSTOMIZATION) init.$(IDENTITY_SERVER_CUSTOMIZATION)
-	mvn clean install -f -q components/$(IDENTITY_SERVER_CUSTOMIZATION)/cellery-identity-customizations/pom.xml
+	mvn clean install -f components/$(IDENTITY_SERVER_CUSTOMIZATION)/cellery-identity-customizations/pom.xml
 
 .PHONY: test.$(PROXY)
 test.$(PROXY): build.$(PROXY)
