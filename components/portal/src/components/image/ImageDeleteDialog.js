@@ -24,6 +24,7 @@ import DialogContentText from "@material-ui/core/DialogContentText";
 import DialogTitle from "@material-ui/core/DialogTitle";
 import NotificationUtils from "../../utils/common/notificationUtils";
 import React from "react";
+import {withRouter} from "react-router-dom";
 import {withStyles} from "@material-ui/core/styles/index";
 import HttpUtils, {HubApiError} from "../../utils/api/httpUtils";
 import withGlobalState, {StateHolder} from "../common/state";
@@ -44,17 +45,22 @@ class ImageDeleteDialog extends React.Component {
 
     handleDeleteImage = () => {
         const self = this;
-        const {globalState, image, org} = self.props;
+        const {globalState, image, org, history} = self.props;
         NotificationUtils.showLoadingOverlay(`Deleting image ${org}/${image}`, globalState);
         HttpUtils.callHubAPI(
             {
-                url: `/images/${org}/${image}}`,
+                url: `/images/${org}/${image}`,
                 method: "DELETE"
             },
             globalState
         ).then(() => {
             self.handleClose();
             NotificationUtils.hideLoadingOverlay(globalState);
+            if (history.length > 2) {
+                history.goBack();
+            } else {
+                history.push("/my-images");
+            }
         }).catch((err) => {
             let errorMessage;
             if (err instanceof HubApiError) {
@@ -83,7 +89,7 @@ class ImageDeleteDialog extends React.Component {
             <div>
                 <Dialog open={open} onClose={this.handleClose} aria-labelledby={"form-dialog-title"} fullWidth>
                     <DialogTitle id={"alert-dialog-title"}>
-                        Do you really want to delete image - ${org}/${image}?
+                        Do you really want to delete image - {org}/{image}?
                     </DialogTitle>
                     <DialogContent>
                         <DialogContentText id={"alert-dialog-description"}>
@@ -109,7 +115,12 @@ ImageDeleteDialog.propTypes = {
     open: PropTypes.bool.isRequired,
     onClose: PropTypes.func.isRequired,
     image: PropTypes.string.isRequired,
-    org: PropTypes.string.isRequired
+    org: PropTypes.string.isRequired,
+    history: PropTypes.shape({
+        goBack: PropTypes.func.isRequired,
+        length: PropTypes.number.isRequired,
+        push: PropTypes.func.isRequired
+    })
 };
 
-export default withStyles(styles)(withGlobalState(ImageDeleteDialog));
+export default withStyles(styles)(withRouter(withGlobalState(ImageDeleteDialog)));

@@ -24,6 +24,7 @@ import DialogContentText from "@material-ui/core/DialogContentText";
 import DialogTitle from "@material-ui/core/DialogTitle";
 import NotificationUtils from "../../utils/common/notificationUtils";
 import React from "react";
+import {withRouter} from "react-router-dom";
 import {withStyles} from "@material-ui/core/styles/index";
 import HttpUtils, {HubApiError} from "../../utils/api/httpUtils";
 import withGlobalState, {StateHolder} from "../common/state";
@@ -44,7 +45,7 @@ class OrgDeleteDialog extends React.Component {
 
     handleDeleteOrg = () => {
         const self = this;
-        const {globalState, org} = self.props;
+        const {globalState, org, history} = self.props;
         NotificationUtils.showLoadingOverlay(`Deleting organization ${org}`, globalState);
         HttpUtils.callHubAPI(
             {
@@ -55,6 +56,11 @@ class OrgDeleteDialog extends React.Component {
         ).then(() => {
             self.handleClose();
             NotificationUtils.hideLoadingOverlay(globalState);
+            if (history.length > 2) {
+                history.goBack();
+            } else {
+                history.push("/my-orgs");
+            }
         }).catch((err) => {
             let errorMessage;
             if (err instanceof HubApiError) {
@@ -108,7 +114,12 @@ OrgDeleteDialog.propTypes = {
     globalState: PropTypes.instanceOf(StateHolder).isRequired,
     open: PropTypes.bool.isRequired,
     onClose: PropTypes.func.isRequired,
-    org: PropTypes.string.isRequired
+    org: PropTypes.string.isRequired,
+    history: PropTypes.shape({
+        goBack: PropTypes.func.isRequired,
+        length: PropTypes.number.isRequired,
+        push: PropTypes.func.isRequired
+    })
 };
 
-export default withStyles(styles)(withGlobalState(OrgDeleteDialog));
+export default withStyles(styles)(withRouter(withGlobalState(OrgDeleteDialog)));

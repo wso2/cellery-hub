@@ -24,6 +24,7 @@ import DialogContentText from "@material-ui/core/DialogContentText";
 import DialogTitle from "@material-ui/core/DialogTitle";
 import NotificationUtils from "../../../utils/common/notificationUtils";
 import React from "react";
+import {withRouter} from "react-router-dom";
 import {withStyles} from "@material-ui/core/styles/index";
 import HttpUtils, {HubApiError} from "../../../utils/api/httpUtils";
 import withGlobalState, {StateHolder} from "../../common/state/index";
@@ -44,7 +45,7 @@ class VersionDeleteDialog extends React.Component {
 
     handleDeleteVersion = () => {
         const self = this;
-        const {globalState, org, image, version} = self.props;
+        const {globalState, org, image, version, history} = self.props;
         NotificationUtils.showLoadingOverlay(`Deleting image ${org}/${image}`, globalState);
         HttpUtils.callHubAPI(
             {
@@ -55,6 +56,11 @@ class VersionDeleteDialog extends React.Component {
         ).then(() => {
             self.handleClose();
             NotificationUtils.hideLoadingOverlay(globalState);
+            if (history.length > 2) {
+                history.goBack();
+            } else {
+                history.push(`/images/${org}/${image}`);
+            }
         }).catch((err) => {
             let errorMessage;
             if (err instanceof HubApiError) {
@@ -110,7 +116,12 @@ VersionDeleteDialog.propTypes = {
     onClose: PropTypes.func.isRequired,
     org: PropTypes.string.isRequired,
     image: PropTypes.string.isRequired,
-    version: PropTypes.string.isRequired
+    version: PropTypes.string.isRequired,
+    history: PropTypes.shape({
+        goBack: PropTypes.func.isRequired,
+        length: PropTypes.number.isRequired,
+        push: PropTypes.func.isRequired
+    })
 };
 
-export default withStyles(styles)(withGlobalState(VersionDeleteDialog));
+export default withStyles(styles)(withRouter(withGlobalState(VersionDeleteDialog)));
