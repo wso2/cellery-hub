@@ -29,21 +29,23 @@ import (
 	"github.com/cellery-io/cellery-hub/components/docker-auth/pkg/extension"
 )
 
+var logger *zap.SugaredLogger
+
 type PluginAuthz struct {
-	Authz api.Authorizer
 }
 
-func (c *PluginAuthz) Stop() {
+func (*PluginAuthz) Stop() {
 }
 
-func (c *PluginAuthz) Name() string {
+func (*PluginAuthz) Name() string {
 	return "plugin authz"
 }
 
 func (c *PluginAuthz) Authorize(ai *api.AuthRequestInfo) ([]string, error) {
-	logger := zap.NewExample().Sugar()
-	slogger := logger.Named("authorization")
-	return doAuthorize(ai, slogger)
+	if logger == nil {
+		logger = extension.NewLogger()
+	}
+	return doAuthorize(ai, logger)
 }
 
 var Authz PluginAuthz
@@ -56,11 +58,11 @@ func doAuthorize(ai *api.AuthRequestInfo, logger *zap.SugaredLogger) ([]string, 
 	logger.Debugf("Authorization logic reached. User will be authorized")
 	dbConnectionPool, err := db.GetDbConnectionPool(logger)
 	if err != nil {
-		return nil, fmt.Errorf("error while establishing database connection pool")
+		return nil, fmt.Errorf("error while establishing database connection pool: %v", err)
 	}
 	authorized, err := auth.Authorization(dbConnectionPool, ai, logger, execId)
 	if err != nil {
-		return nil, fmt.Errorf("error while executing authorization logic")
+		return nil, fmt.Errorf("error while executing authorization logic: %v", err)
 	}
 	if !authorized {
 		logger.Debugf("[%s] User : %s is unauthorized for %s actions", execId, ai.Account, ai.Actions)

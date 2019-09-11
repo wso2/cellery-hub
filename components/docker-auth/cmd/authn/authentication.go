@@ -30,20 +30,22 @@ import (
 	"github.com/cellery-io/cellery-hub/components/docker-auth/pkg/extension"
 )
 
+var logger *zap.SugaredLogger
+
 type PluginAuthn struct {
-	cfg *api.Authenticator
 }
 
-func (c *PluginAuthn) Authenticate(user string, password api.PasswordString) (bool, api.Labels, error) {
-	logger := zap.NewExample().Sugar()
-	slogger := logger.Named("authentication")
-	return doAuthentication(user, string(password), slogger)
+func (*PluginAuthn) Authenticate(user string, password api.PasswordString) (bool, api.Labels, error) {
+	if logger == nil {
+		logger = extension.NewLogger()
+	}
+	return doAuthentication(user, string(password), logger)
 }
 
-func (c *PluginAuthn) Stop() {
+func (*PluginAuthn) Stop() {
 }
 
-func (c *PluginAuthn) Name() string {
+func (*PluginAuthn) Name() string {
 	return "plugin auth"
 }
 
@@ -55,7 +57,7 @@ func doAuthentication(user, incomingToken string, logger *zap.SugaredLogger) (bo
 		return false, nil, fmt.Errorf("error in generating the execId : %s", err)
 	}
 
-	logger.Debugf("[%s] Username (%s) and password received from CLI", execId, user)
+	logger.Debugf("[%s] Username %q and password received from CLI", execId, user)
 
 	tokenArray := strings.Split(incomingToken, ":")
 	token := tokenArray[0]
@@ -67,7 +69,7 @@ func doAuthentication(user, incomingToken string, logger *zap.SugaredLogger) (bo
 
 	isAuthenticated, err := auth.Authenticate(user, token, logger, execId)
 	if err != nil {
-		return false, nil, fmt.Errorf("something went wrong while authenticating %v", err)
+		return false, nil, fmt.Errorf("error while authenticating %v", err)
 	}
 	if !isAuthenticated {
 		logger.Debugf("[%s] User access token failed to authenticate. Evaluating ping", execId)
@@ -76,20 +78,17 @@ func doAuthentication(user, incomingToken string, logger *zap.SugaredLogger) (bo
 				"without passing to authorization filter")
 		} else {
 			logger.Debugf("[%s] Failed authentication. But passing to authorization filter", execId)
-			return true, addAuthenticationLabel(false, execId), nil
+			return true, makeAuthenticationLabel(false), nil
 		}
 	} else {
-		logger.Debugf("[%s] User successfully authenticated by validating token. Exiting with success "+
-			"exit code", execId)
-		return true, addAuthenticationLabel(true, execId), nil
+		logger.Debugf("[%s] User successfully authenticated by validating token", execId)
+		return true, makeAuthenticationLabel(true), nil
 	}
 }
 
-func addAuthenticationLabel(isAuthenticated bool, execId string) api.Labels {
+func makeAuthenticationLabel(isAuthenticated bool) api.Labels {
 	authResultString := strconv.FormatBool(isAuthenticated)
-	label := make([]string, 1)
-	label[0] = authResultString
 	authLabels := api.Labels{}
-	authLabels["isAuthSuccess"] = label
+	authLabels["isAuthSuccess"] = []string{authResultString}
 	return authLabels
 }

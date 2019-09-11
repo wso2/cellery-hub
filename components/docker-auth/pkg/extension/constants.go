@@ -37,8 +37,6 @@ const pushAction = "push"
 const deleteAction = "delete"
 const publicVisibility = "PUBLIC"
 
-const ExecIdHeaderName = "x-cellery-hub-exec-id"
-
 // db queries
 const getVisibilityQuery = "SELECT VISIBILITY FROM REGISTRY_ARTIFACT_IMAGE " +
 	"INNER JOIN REGISTRY_ORGANIZATION ON REGISTRY_ORGANIZATION.ORG_NAME=REGISTRY_ARTIFACT_IMAGE.ORG_NAME " +

@@ -19,4 +19,5 @@
 FROM golang:1.12.9
 RUN mkdir -p /go/src/github.com/cesanta
 RUN cd /go/src/github.com && cd cesanta && git clone https://github.com/cesanta/docker_auth.git
+COPY ./target/docker_auth/ /go/src/github.com/cesanta/
 RUN export GO111MODULE=on && cd /go/src/github.com/cesanta/docker_auth/auth_server && git checkout 82573a5f102c2d886428415bf6fcb8d94706834a && sed -i 's/Version/"1.0.0"/g' main.go && sed -i 's/BuildId/"1.0.0"/g' main.go && go build main.go

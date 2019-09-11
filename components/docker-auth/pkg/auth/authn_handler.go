@@ -25,6 +25,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 
@@ -90,15 +91,15 @@ func validateToken(inToken string, cert []byte, logger *zap.SugaredLogger, execI
 
 func Authenticate(uName string, token string, logger *zap.SugaredLogger, execId string) (bool, error) {
 	logger.Debugf("[%s] Authentication logic handler reached and token will be validated", execId)
-	isJwt, err := isJWT(logger, execId)
+	isJwt, err := isJWT()
 	if err != nil {
-		return false, fmt.Errorf("something went wrong while reading 'IS_JWT' environment variable")
+		return false, fmt.Errorf("error occured while reading 'IS_JWT' environment variable")
 	}
 	if isJwt {
 		logger.Debugf("[%s] Performing authentication by using JWT", execId)
 		jwtValidity, err := validateJWT(token, uName, logger, execId)
 		if err != nil {
-			return false, fmt.Errorf("something went wrong while validating JWT")
+			return false, fmt.Errorf("eroor occured while validating JWT")
 		}
 		if jwtValidity {
 			logger.Debugf("[%s] User successfully authenticated. Returning success status code", execId)
@@ -111,7 +112,7 @@ func Authenticate(uName string, token string, logger *zap.SugaredLogger, execId 
 		logger.Debugf("[%s] Performing authentication by using access token", execId)
 		accessTokenValidity, err := validateAccessToken(token, uName, logger, execId)
 		if err != nil {
-			return false, fmt.Errorf("something went wrong while validating access token")
+			return false, fmt.Errorf("error occured while validating access token : %s", err)
 		}
 		if accessTokenValidity {
 			logger.Debugf("[%s] User successfully authenticated. Returning success status code", execId)
@@ -164,19 +165,15 @@ func validateJWT(token string, username string, logger *zap.SugaredLogger, execI
 }
 
 // isJWT checks whether the token is jwt token or access token.
-func isJWT(logger *zap.SugaredLogger, execId string) (bool, error) {
+func isJWT() (bool, error) {
 	isJWTEnv := os.Getenv("IS_JWT")
 	var isJWT bool
 	if len(isJWTEnv) == 0 {
 		return false, fmt.Errorf("error: IS_JWT environment variable is empty")
 	} else {
-		if isJWTEnv == "true" {
-			logger.Debugf("[%s] Received a JWT token", execId)
-			isJWT = true
-		} else if isJWTEnv == "false" {
-			logger.Debugf("[%s] Received an access token", execId)
-			isJWT = false
-		} else {
+		var err error
+		isJWT, err = strconv.ParseBool(isJWTEnv)
+		if err != nil {
 			return false, fmt.Errorf("wrong environment value given. The value should be either true or false")
 		}
 	}
@@ -188,7 +185,7 @@ func validateAccessToken(token string, providedUsername string, logger *zap.Suga
 	execId string) (bool, error) {
 	introspectionUrl, urlAvailability, err := resolveIntrospectionUrl(logger, execId)
 	if err != nil {
-		return false, fmt.Errorf("something went wrong while resolving introspection url")
+		return false, fmt.Errorf("error occured while resolving introspection url: %v", err)
 	}
 	if !urlAvailability {
 		return false, nil
@@ -230,28 +227,29 @@ func validateAccessToken(token string, providedUsername string, logger *zap.Suga
 		return false, fmt.Errorf("error reading the response from introspection endpoint. Returing without "+
 			"authorization : %s", err)
 	} else {
-		logger.Debugf("[%s] Response recieved from introspection endpoint : %s", execId, body)
+		logger.Debugf("[%s] Response received from introspection endpoint : %s", execId, body)
 	}
 
-	var result map[string]interface{}
-	err = json.Unmarshal([]byte(string(body)), &result)
+	type Response struct {
+		Active   bool   `json:"active"`
+		Username string `json:"username"`
+		Exp      int64  `json:"exp"`
+	}
+	var response Response
+	err = json.Unmarshal(body, &response)
 	if err != nil {
-		return false, fmt.Errorf("error un marshalling the json : %s", err)
+		return false, fmt.Errorf("error unmarshalling the json. This may be due to a invalid token : %s", err)
 	}
-	isActive, ok := (result["active"]).(bool)
-	if !ok {
-		return false, fmt.Errorf("error casting active to boolean. This may be due to a invalid token")
-	}
-	logger.Debugf("[%s] Resolved acess token validity", execId)
-	isExpired, err := isExpired(result["exp"], logger, execId)
-	if err != nil {
-		return false, err
-	}
-	isValidUser, err := isValidUser(result["username"], providedUsername, logger, execId)
+	logger.Debugf("[%s] Resolved access token validity", execId)
+	isExpired, err := isExpired(response.Exp, logger, execId)
 	if err != nil {
 		return false, err
 	}
-	return isExpired && isActive && isValidUser, nil
+	isValidUser, err := isValidUser(response.Username, providedUsername, logger, execId)
+	if err != nil {
+		return false, err
+	}
+	return isExpired && response.Active && isValidUser, nil
 }
 
 // resolves the IS host and port from the environment variables.
@@ -302,19 +300,15 @@ func isValidUser(tokenUsername interface{}, providedUsername string, logger *zap
 }
 
 // isExpired validated whether the username is expired
-func isExpired(timestamp interface{}, logger *zap.SugaredLogger, execId string) (bool, error) {
-	if validity, ok := timestamp.(float64); ok {
-		tm := time.Unix(int64(validity), 0)
-		remainder := tm.Sub(time.Now())
-		if remainder > 0 {
-			logger.Debugf("[%s] Token received is not expired", execId)
-			return true, nil
-		}
-		logger.Debugf("[%s] Token received is expired. Token expiry time is %s, while the system time is %s",
-			execId, tm, time.Now())
-	} else {
-		return false, fmt.Errorf("error casting timestamp %s to string. This may be due to a invalid token",
-			timestamp)
+func isExpired(expTime int64, logger *zap.SugaredLogger, execId string) (bool, error) {
+	tm := time.Unix(expTime, 0)
+	remainder := tm.Sub(time.Now())
+	if remainder > 0 {
+		logger.Debugf("[%s] Token received is not expired", execId)
+		return true, nil
 	}
+	logger.Debugf("[%s] Token received is expired. Token expiry time is %s, while the system time is %s",
+		execId, tm, time.Now())
+
 	return false, nil
 }
