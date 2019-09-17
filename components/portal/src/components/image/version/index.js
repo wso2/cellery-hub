@@ -342,6 +342,14 @@ class ImageVersion extends React.Component {
                 render: () => <Description data={versionData.description}/>
             }
         ];
+        const dependencies = {};
+        if (versionData) {
+            Object.values(versionData.metadata.components).forEach((component) => {
+                Object.entries(component.dependencies.cells).forEach((dependencyEntry) => {
+                    dependencies[dependencyEntry[0]] = dependencyEntry[1];
+                });
+            });
+        }
 
         return (
             <React.Fragment>
@@ -484,7 +492,7 @@ class ImageVersion extends React.Component {
                                                         value={
                                                             `${`cellery run ${orgName}/${imageName}:${version}`
                                                             + ` -n ${imageName}-inst`}${
-                                                                Object.entries(versionData.metadata.dependencies).map(
+                                                                Object.entries(dependencies).map(
                                                                     (dependencyEntry) => ` -l ${dependencyEntry[0]}`
                                                                         + `:${dependencyEntry[1].name}-inst`)} -d`
                                                         }
@@ -508,8 +516,9 @@ class ImageVersion extends React.Component {
                                                 <div className={classes.sidePanelContent}>
                                                     <Typography variant={"body2"}>
                                                         {
-                                                            Object.entries(versionData.metadata.labels)
-                                                                .map(([key, value]) => `${key}=${value}`)
+                                                            Object.values(versionData.metadata.components).map(
+                                                                (component) => Object.entries(component.labels).map(
+                                                                    ([key, value]) => `${key}=${value}`))
                                                         }
                                                     </Typography>
                                                 </div>
