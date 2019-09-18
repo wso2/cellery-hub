@@ -94,8 +94,7 @@ const SDK = ({match}) => (
     <AppLayout>
         <ErrorBoundary>
             <Switch>
-                {/* TODO: Remove "/fidp-select" route after releasing 0.4.0 SDK */}
-                <Route exact path={[`${match.path}/fidp-select`, `${match.path}/sign-in`]} component={SignIn}/>
+                <Route exact path={`${match.path}/sign-in`} component={SignIn}/>
                 <Route component={ProtectedSDKPortal}/>
             </Switch>
         </ErrorBoundary>
