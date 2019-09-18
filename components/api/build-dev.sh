@@ -18,4 +18,3 @@
 # ------------------------------------------------------------------------
 
 ballerina build --experimental
-cp ../../deployment/api/conf/api.toml target/ballerina.conf

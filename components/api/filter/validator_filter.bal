@@ -26,8 +26,8 @@ import ballerina/cache;
 import cellery_hub_api/idp;
 import cellery_hub_api/constants;
 
-int tokenCacheExpiaryTime = config:getAsInt(constants:CACHE_EXPIRY_VAR);
-cache:Cache cache = new(capacity = config:getAsInt(constants:CACHE_CAPACITY_VAR), 
+int tokenCacheExpiaryTime = config:getAsInt(constants:TOKEN_CACHE_EXPIRY_VAR);
+cache:Cache cache = new(capacity = config:getAsInt(constants:TOKEN_CACHE_CAPACITY_VAR),
                         expiryTimeMillis = tokenCacheExpiaryTime);
 
 public type validateRequestFilter object {
