@@ -21,8 +21,6 @@ import Avatar from "@material-ui/core/Avatar";
 import Button from "@material-ui/core/Button";
 import ButtonAppBarCollapse from "./ButtonAppBarCollapse";
 import Divider from "@material-ui/core/Divider";
-import GithubLogo from "../../img/GithubLogo";
-import GoogleLogo from "../../img/GoogleLogo";
 import HttpUtils from "../../utils/api/httpUtils";
 import Link from "@material-ui/core/Link";
 import ListItem from "@material-ui/core/ListItem";
@@ -154,18 +152,11 @@ class NavBar extends React.Component {
     };
 
     /**
-     * @typedef {AuthUtils.FederatedIdP.GOOGLE|AuthUtils.FederatedIdP.GITHUB} FederatedIdPType
-     */
-
-    /**
      * Handle sign-in to Cellery Hub.
-     *
-     * @param {FederatedIdPType} fidp The federated IdP to be used
      */
-    handleSignIn = (fidp) => {
+    handleSignIn = () => {
         const {history, location} = this.props;
         const search = HttpUtils.generateQueryParamString({
-            fidp: fidp,
             callback: location.pathname + location.search
         });
         history.push(`/sign-in${search}`);
@@ -311,25 +302,8 @@ class NavBar extends React.Component {
                                     <Button disableTouchRipple={true} color={"inherit"} aria-haspopup={"true"}
                                         onClick={this.handleAccountPopoverOpen}
                                         className={classNames(classes.navButton, classes.navButtonCollapse)}>
-                                        SIGN IN/ SIGN UP</Button>
-                                    <Menu id={"user-info-appbar"} anchorEl={accountPopoverElement}
-                                        anchorOrigin={{vertical: "top", horizontal: "right"}}
-                                        transformOrigin={{vertical: "top", horizontal: "right"}}
-                                        open={isAccountPopoverOpen}
-                                        onClose={this.handleAccountPopoverClose}>
-                                        <MenuItem onClick={() => {
-                                            this.handleSignIn(AuthUtils.FederatedIdP.GITHUB);
-                                            this.handleAccountPopoverClose();
-                                        }}>
-                                            <GithubLogo className={classes.leftIcon}/> Github
-                                        </MenuItem>
-                                        <MenuItem onClick={() => {
-                                            this.handleSignIn(AuthUtils.FederatedIdP.GOOGLE);
-                                            this.handleAccountPopoverClose();
-                                        }}>
-                                            <GoogleLogo className={classes.leftIcon}/> Google
-                                        </MenuItem>
-                                    </Menu>
+                                        SIGN IN/ SIGN UP
+                                    </Button>
                                 </React.Fragment>
                             )
                     }
@@ -449,25 +423,9 @@ class NavBar extends React.Component {
                                 <React.Fragment>
                                     <Button disableTouchRipple={true} color={"inherit"}
                                         className={classes.navButton} aria-haspopup={"true"}
-                                        onClick={this.handleAccountPopoverOpen}>SIGN IN/ SIGN UP</Button>
-                                    <Menu id={"user-info-appbar"} anchorEl={accountPopoverElement}
-                                        anchorOrigin={{vertical: "top", horizontal: "right"}}
-                                        transformOrigin={{vertical: "top", horizontal: "right"}}
-                                        open={isAccountPopoverOpen}
-                                        onClose={this.handleAccountPopoverClose}>
-                                        <MenuItem onClick={() => {
-                                            this.handleSignIn(AuthUtils.FederatedIdP.GITHUB);
-                                            this.handleAccountPopoverClose();
-                                        }}>
-                                            <GithubLogo className={classes.leftIcon}/> Github
-                                        </MenuItem>
-                                        <MenuItem onClick={() => {
-                                            this.handleSignIn(AuthUtils.FederatedIdP.GOOGLE);
-                                            this.handleAccountPopoverClose();
-                                        }}>
-                                            <GoogleLogo className={classes.leftIcon}/> Google
-                                        </MenuItem>
-                                    </Menu>
+                                        onClick={this.handleSignIn}>
+                                        SIGN IN/ SIGN UP
+                                    </Button>
                                 </React.Fragment>
                             )
                     }

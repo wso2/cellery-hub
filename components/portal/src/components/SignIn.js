@@ -93,7 +93,7 @@ class SignIn extends React.Component {
             if (searchParams.callback) {
                 sessionStorage.setItem(SignIn.CALLBACK, searchParams.callback);
             }
-            AuthUtils.initiateHubLoginFlow(globalState, searchParams.fidp);
+            AuthUtils.initiateHubLoginFlow(globalState);
         }
     }
 

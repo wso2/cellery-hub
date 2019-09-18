@@ -161,7 +161,7 @@ class OrgCreate extends React.Component {
             },
             globalState
         ).then(() => {
-            self.handleContinue(false);
+            self.handleContinue();
         }).catch((err) => {
             let errorMessage;
             if (err instanceof HubApiError) {
@@ -185,13 +185,11 @@ class OrgCreate extends React.Component {
 
     /**
      * Handle continuing the authentication flow.
-     *
-     * @param {boolean} skipOrgCheck Whether to skip checking for organizations
      */
-    handleContinue = (skipOrgCheck) => {
+    handleContinue = () => {
         const {globalState, location} = this.props;
         const params = HttpUtils.parseQueryParams(location.search);
-        AuthUtils.continueLoginFlow(globalState, params.sessionDataKey, skipOrgCheck);
+        AuthUtils.initiateSdkLoginFlow(globalState, params.redirectUrl);
     };
 
     render = () => {
@@ -245,7 +243,7 @@ class OrgCreate extends React.Component {
                                     </Button>
                                     <Button color={"primary"} autoFocus onClick={() => {
                                         this.handleSkipConfirmDialogClose();
-                                        this.handleContinue(true);
+                                        this.handleContinue();
                                     }}>
                                         Yes
                                     </Button>

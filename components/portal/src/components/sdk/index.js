@@ -18,10 +18,10 @@
 
 import AppLayout from "./appLayout";
 import ErrorBoundary from "../common/error/ErrorBoundary";
-import FederatedIdpSelect from "./FederatedIdpSelect";
 import NotFound from "../common/error/NotFound";
 import OrgCreate from "./OrgCreate";
 import React from "react";
+import SignIn from "./SignIn";
 import SignInFailure from "./SignInFailure";
 import SignInRequired from "../common/error/SignInRequired";
 import SignInSuccess from "./SignInSuccess";
@@ -94,7 +94,7 @@ const SDK = ({match}) => (
     <AppLayout>
         <ErrorBoundary>
             <Switch>
-                <Route exact path={`${match.path}/fidp-select`} component={FederatedIdpSelect}/>
+                <Route exact path={`${match.path}/sign-in`} component={SignIn}/>
                 <Route component={ProtectedSDKPortal}/>
             </Switch>
         </ErrorBoundary>

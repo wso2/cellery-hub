@@ -17,7 +17,6 @@
  */
 
 import AppBar from "@material-ui/core/AppBar";
-import AuthUtils from "../utils/api/authUtils";
 import BgImg from "../img/celleryOverviewBg.png";
 import Button from "@material-ui/core/Button";
 import CellImage from "../img/CellImage";
@@ -25,8 +24,6 @@ import CelleryLogo from "../img/celleryLogo.svg";
 import CelleryOverview from "../img/celleryOverview.jpg";
 import Container from "@material-ui/core/Container";
 import Footer from "./appLayout/Footer";
-import GithubLogo from "../img/GithubLogo";
-import GoogleLogo from "../img/GoogleLogo";
 import Grid from "@material-ui/core/Grid";
 import HttpUtils from "../utils/api/httpUtils";
 import Link from "@material-ui/core/Link";
@@ -144,18 +141,11 @@ const styles = (theme) => ({
 class Home extends React.Component {
 
     /**
-     * @typedef {AuthUtils.FederatedIdP.GOOGLE|AuthUtils.FederatedIdP.GITHUB} FederatedIdPType
-     */
-
-    /**
      * Handle sign-in to Cellery Hub.
-     *
-     * @param {FederatedIdPType} fidp The federated IdP to be used
      */
-    handleSignIn = (fidp) => {
+    handleSignIn = () => {
         const {history, location} = this.props;
         const search = HttpUtils.generateQueryParamString({
-            fidp: fidp,
             callback: location.pathname + location.search
         });
         history.push(`/sign-in${search}`);
@@ -204,22 +194,10 @@ class Home extends React.Component {
                                     can be shared with other users. Users with neccessary permissions can pull, push
                                     images and manage users and organizations.
                                 </Typography>
-                                <Typography variant={"h6"} color={"inherit"} className={classes.loginText}>
-                                    Sign In/ Sign Up with
-                                </Typography>
                                 <div className={classes.signInContent}>
                                     <Button variant={"outlined"} color={"inherit"} className={classes.button}
-                                        onClick={() => this.handleSignIn(AuthUtils.FederatedIdP.GITHUB)}>
-                                        <GithubLogo className={classes.leftIcon}/>
-                                        Github
-                                    </Button>
-                                    <Typography variant={"subtitle2"} color={"inherit"} className={classes.connector}>
-                                        or
-                                    </Typography>
-                                    <Button variant={"outlined"} color={"inherit"} className={classes.button}
-                                        onClick={() => this.handleSignIn(AuthUtils.FederatedIdP.GOOGLE)}>
-                                        <GoogleLogo className={classes.leftIcon}/>
-                                        Google
+                                        onClick={this.handleSignIn}>
+                                        Sign In/ Sign Up
                                     </Button>
                                 </div>
                                 <div>
