@@ -60,8 +60,10 @@ public const string UPDATED_DATE = "UPDATED_DATE";
 public const string DELETE_ACTION = "delete";
 public const string PULL_ACTION = "pull";
 
-public const string CACHE_EXPIRY_VAR = "token.cache.expiry";
-public const string CACHE_CAPACITY_VAR = "token.cache.capacity";
+public const string TOKEN_CACHE_EXPIRY_VAR = "token.cache.expiry";
+public const string TOKEN_CACHE_CAPACITY_VAR = "token.cache.capacity";
+public const string USERINFO_CACHE_EXPIRY_VAR = "userinfo.cache.expiry";
+public const string USERINFO_CACHE_CAPACITY_VAR = "userinfo.cache.capacity";
 
 public const string DOCKER_REGISTRY_SERVICE_NAME = "Docker registry";
 public const string DOCKER_REGISTRY_REPOSITORIES_FILEPATH = "/var/lib/registry/docker/registry/v2/repositories";

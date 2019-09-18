@@ -18,6 +18,8 @@
 
 import ballerina/http;
 import ballerina/log;
+import ballerina/cache;
+
 public type UserInfo record {
     string userId;
     string firstName;
@@ -26,10 +28,20 @@ public type UserInfo record {
     string email;
 };
 
+int userInfoCacheExpiryTime = config:getAsInt(constants:USERINFO_CACHE_EXPIRY_VAR, defaultValue = 1800000);
+cache:Cache userInfoCache = new(capacity = config:getAsInt(constants:USERINFO_CACHE_CAPACITY_VAR, defaultValue = 500),
+                        expiryTimeMillis = userInfoCacheExpiryTime);
+
 public function getUserInfo(string userId) returns UserInfo? | error {
-    log:printDebug(io:sprintf("Retriving userInformation organiations for user : \'%s\'", userId));
+
+    log:printDebug(io:sprintf("Retrieving userInformation organizations for user : \'%s\'", userId));
+    if(userInfoCache.hasKey(userId)) {
+        log:printDebug(io:sprintf("Found cached userinfo for user : \'%s\'", userId));
+        return <UserInfo>userInfoCache.get(userId);
+    }
     // TODO There is a bug on ballerina that when there are more than one global client endpoints,
     // we have to reinitialize the endpoint. Need to remove this after the bug on this in ballerina is fixed
+    log:printDebug(io:sprintf("User info not found in cache for user : \'%s\'. Hence calling IDP", userId));
     http:Client idpClientEP = getBasicAuthIDPClient(config:getAsString("idp.username"),config:getAsString("idp.password"));
     var response = check idpClientEP->get(config:getAsString("idp.scim2.user.endpoint") +
     "?filter=username+eq+" + userId);
@@ -77,6 +89,7 @@ public function getUserInfo(string userId) returns UserInfo? | error {
             email: email
         };
         log:printDebug("Returning user info recieved from IDP");
+        userInfoCache.put(userId, userInfo);
         return userInfo;
     }
     log:printDebug(io:sprintf("More than 1 user found for the given user ID hence not returning user info for user
