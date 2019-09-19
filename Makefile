@@ -261,7 +261,7 @@ docker-push.$(API):
 
 .PHONY: docker-push.$(IDENTITY_SERVER_CUSTOMIZATION)
 docker-push.$(IDENTITY_SERVER_CUSTOMIZATION):
-	docker push $(DOCKER_REPO)/cellery-hub-idp-570:$(VERSION)
+	docker push $(DOCKER_REPO)/cellery-hub-idp-580:$(VERSION)
 
 .PHONY: deploy
 deploy:
