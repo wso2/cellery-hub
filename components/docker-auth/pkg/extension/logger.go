@@ -19,15 +19,17 @@
 package extension
 
 import (
-	"bufio"
-	"os"
-	"strings"
+	"go.uber.org/zap"
 )
 
-// Read Standard input stream
-func ReadStdIn() string {
-	reader := bufio.NewReader(os.Stdin)
-	text, _ := reader.ReadString('\n')
-	text = strings.Replace(text, "\n", "", -1)
-	return text
+func NewLogger() *zap.SugaredLogger {
+	config := zap.NewDevelopmentConfig()
+	config.OutputPaths = []string{"stdout"}
+	config.DisableStacktrace = true
+	logger, err := config.Build()
+	if err != nil {
+		zap.NewExample().Sugar().Errorf("Error while creating the logger: %s", err)
+		return nil
+	}
+	return logger.Sugar()
 }

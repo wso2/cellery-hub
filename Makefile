@@ -18,13 +18,14 @@ PROJECT_ROOT := $(realpath $(dir $(abspath $(lastword $(MAKEFILE_LIST)))))
 PROJECT_PKG := github.com/cellery-io/cellery-hub
 DOCKER_REPO ?= wso2cellery
 VERSION ?= latest
+DOCKER_AUTH_BASE_HASH := 82573a5f102c2d886428415bf6fcb8d94706834a
 
 PROXY := proxy
 DOCKER_AUTH := docker-auth
 PORTAL := portal
 API := api
 IDENTITY_SERVER_CUSTOMIZATION := identity-server-customization
-AUTH_SERVER := auth-server
+DOCKER_AUTH_BASE := docker-auth-base
 COMPONENTS := $(PROXY) $(DOCKER_AUTH) $(PORTAL) $(API) $(IDENTITY_SERVER_CUSTOMIZATION)
 
 CLEAN_TARGETS := $(addprefix clean., $(COMPONENTS))
@@ -161,9 +162,7 @@ build.$(PROXY): clean.$(PROXY) init.$(PROXY)
 
 .PHONY: build.$(DOCKER_AUTH)
 build.$(DOCKER_AUTH): clean.$(DOCKER_AUTH) init.$(DOCKER_AUTH)
-	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o ./components/$(DOCKER_AUTH)/target/authentication ./components/$(DOCKER_AUTH)/cmd/authn/authentication.go
-	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o ./components/$(DOCKER_AUTH)/target/authorization ./components/$(DOCKER_AUTH)/cmd/authz/authorization.go
-	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o ./components/$(DOCKER_AUTH)/target/auth_server ./components/$(DOCKER_AUTH)/cmd/authserver/
+	@:
 
 .PHONY: build.$(PORTAL)
 build.$(PORTAL): clean.$(PORTAL) init.$(PORTAL)
@@ -209,19 +208,23 @@ docker.$(PROXY): build.$(PROXY)
 	cd ./docker/$(PROXY); \
 	docker build -t $(DOCKER_REPO)/cellery-hub-proxy:$(VERSION) .
 
+.PHONY: docker.$(DOCKER_AUTH_BASE)
+docker.$(DOCKER_AUTH_BASE):
+	rm -rf ./docker/$(DOCKER_AUTH)/$(DOCKER_AUTH_BASE)/target
+	mkdir -p ./docker/$(DOCKER_AUTH)/$(DOCKER_AUTH_BASE)/target
+	cd ./docker/$(DOCKER_AUTH)/$(DOCKER_AUTH_BASE)/target; \
+	git clone https://github.com/cesanta/docker_auth.git
+	cd ./docker/$(DOCKER_AUTH)/$(DOCKER_AUTH_BASE)/target/docker_auth; \
+	git checkout $(DOCKER_AUTH_BASE_HASH)
+	cd ./docker/$(DOCKER_AUTH)/$(DOCKER_AUTH_BASE); \
+	docker build -t $(DOCKER_REPO)/$(DOCKER_AUTH_BASE):$(DOCKER_AUTH_BASE_HASH) .
+
 .PHONY: docker.$(DOCKER_AUTH)
-docker.$(DOCKER_AUTH): build.$(DOCKER_AUTH)
+docker.$(DOCKER_AUTH):
 	rm -rf ./docker/$(DOCKER_AUTH)/target
-	rm -rf ./docker/$(DOCKER_AUTH)/$(AUTH_SERVER)/target
-	mkdir ./docker/$(DOCKER_AUTH)/target/
-	cp ./components/$(DOCKER_AUTH)/target/authentication ./docker/$(DOCKER_AUTH)/target/
-	cp ./components/$(DOCKER_AUTH)/target/authorization ./docker/$(DOCKER_AUTH)/target/
-	mkdir ./docker/$(DOCKER_AUTH)/$(AUTH_SERVER)/target/
-	cp ./components/$(DOCKER_AUTH)/target/auth_server ./docker/$(DOCKER_AUTH)/$(AUTH_SERVER)/target/
+	cp -r ./components/docker-auth ./docker/$(DOCKER_AUTH)/target/
 	cd ./docker/$(DOCKER_AUTH); \
 	docker build -t $(DOCKER_REPO)/cellery-hub-docker-auth:$(VERSION) .
-	cd ./docker/$(DOCKER_AUTH)/$(AUTH_SERVER); \
-	docker build -t $(DOCKER_REPO)/cellery-hub-docker-auth-server:$(VERSION) .
 
 .PHONY: docker.$(PORTAL)
 docker.$(PORTAL): build.$(PORTAL)
@@ -246,10 +249,13 @@ docker.$(IDENTITY_SERVER_CUSTOMIZATION): build.$(IDENTITY_SERVER_CUSTOMIZATION)
 docker-push.$(PROXY):
 	docker push $(DOCKER_REPO)/cellery-hub-proxy:$(VERSION)
 
+.PHONY: docker-push.$(DOCKER_AUTH_BASE)
+docker-push.$(DOCKER_AUTH_BASE):
+	docker push $(DOCKER_REPO)/$(DOCKER_AUTH_BASE):$(DOCKER_AUTH_BASE_HASH)
+
 .PHONY: docker-push.$(DOCKER_AUTH)
 docker-push.$(DOCKER_AUTH):
 	docker push $(DOCKER_REPO)/cellery-hub-docker-auth:$(VERSION)
-	docker push $(DOCKER_REPO)/cellery-hub-docker-auth-server:$(VERSION)
 
 .PHONY: docker-push.$(PORTAL)
 docker-push.$(PORTAL):

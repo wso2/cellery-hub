@@ -19,88 +19,56 @@
 package main
 
 import (
-	"log"
-	"net/http"
-	"os"
-	"strings"
+	"fmt"
 
+	"github.com/cesanta/docker_auth/auth_server/api"
+	"go.uber.org/zap"
+
+	"github.com/cellery-io/cellery-hub/components/docker-auth/pkg/auth"
+	"github.com/cellery-io/cellery-hub/components/docker-auth/pkg/db"
 	"github.com/cellery-io/cellery-hub/components/docker-auth/pkg/extension"
 )
 
-const (
-	logFile = "/extension-logs/authz-ext.log"
-)
+var logger *zap.SugaredLogger
 
-func main() {
-	err := os.MkdirAll("/extension-logs", os.ModePerm)
-	file, err := os.OpenFile(logFile, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
-	defer func() {
-		err = file.Close()
-		if err != nil {
-			log.Printf("Error while closing the file : %s\n", err)
-			os.Exit(2)
-		}
-	}()
-	if err != nil {
-		log.Println("Error creating the file :", err)
-		os.Exit(1)
-	}
-	log.SetOutput(file)
-
-	execId, err := extension.GetExecID()
-	if err != nil {
-		log.Printf("Error in generating the execId : %s\n", err)
-		os.Exit(extension.ErrorExitCode)
-	}
-
-	accessToken := extension.ReadStdIn()
-	log.Printf("[%s] Access token received\n", execId)
-
-	url := resolveAuthorizationUrl(execId)
-	if url == "" {
-		log.Printf("[%s] Authorization end point not found. Exiting with error exit code", execId)
-		os.Exit(extension.ErrorExitCode)
-	}
-
-	payload := strings.NewReader(accessToken)
-	log.Printf("[%s] Calling %s with accessToken : %s as payload", execId, url, accessToken)
-
-	req, _ := http.NewRequest("POST", url, payload)
-	req.Header.Add(extension.ExecIdHeaderName, execId)
-
-	res, _ := http.DefaultClient.Do(req)
-
-	defer func() {
-		err := res.Body.Close()
-		if err != nil {
-			log.Printf("[%s] Error occured while closing the response received from auth server "+
-				" : %v\n", execId, err)
-		}
-	}()
-
-	log.Printf("[%s] Response received from the auth server with the status code : %d", execId, res.StatusCode)
-
-	if res.StatusCode == http.StatusUnauthorized {
-		log.Printf("[%s] Unauthorized request. Exiting with error exit code", execId)
-		os.Exit(extension.ErrorExitCode)
-	}
-	if res.StatusCode == http.StatusOK {
-		log.Printf("[%s] Authorized request. Exiting with success exit code", execId)
-		os.Exit(extension.SuccessExitCode)
-	}
+type PluginAuthz struct {
 }
 
-// resolves the authorization end point from the environment variables.
-func resolveAuthorizationUrl(execId string) string {
-	authServer := os.Getenv("AUTH_SERVER_URL")
-	authorizationEP := os.Getenv("AUTHORIZATION_END_POINT")
-	if len(authServer) == 0 {
-		log.Printf("[%s] Error: AUTH_SERVER environment variable is empty\n", execId)
-		return ""
+func (*PluginAuthz) Stop() {
+}
+
+func (*PluginAuthz) Name() string {
+	return "plugin authz"
+}
+
+func (c *PluginAuthz) Authorize(ai *api.AuthRequestInfo) ([]string, error) {
+	if logger == nil {
+		logger = extension.NewLogger()
 	}
-	if len(authorizationEP) == 0 {
-		log.Printf("[%s] Error: AUTHORIZATION_END_POINT environment variable is empty\n", execId)
-		return ""
+	return doAuthorize(ai, logger)
+}
+
+var Authz PluginAuthz
+
+func doAuthorize(ai *api.AuthRequestInfo, logger *zap.SugaredLogger) ([]string, error) {
+	execId, err := extension.GetExecID(logger)
+	if err != nil {
+		return nil, fmt.Errorf("error in generating the execId : %s", err)
 	}
-	return authServer + authorizationEP
+	logger.Debugf("Authorization logic reached. User will be authorized")
+	dbConnectionPool, err := db.GetDbConnectionPool(logger)
+	if err != nil {
+		return nil, fmt.Errorf("error while establishing database connection pool: %v", err)
+	}
+	authorized, err := auth.Authorization(dbConnectionPool, ai, logger, execId)
+	if err != nil {
+		return nil, fmt.Errorf("error while executing authorization logic: %v", err)
+	}
+	if !authorized {
+		logger.Debugf("[%s] User : %s is unauthorized for %s actions", execId, ai.Account, ai.Actions)
+		return nil, nil
+	} else {
+		logger.Debugf("[%s] User : %s is authorized for %s actions", execId, ai.Account, ai.Actions)
+		return ai.Actions, nil
+	}
 }

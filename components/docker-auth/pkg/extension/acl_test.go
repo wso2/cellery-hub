@@ -30,6 +30,11 @@ import (
 	"strings"
 	"testing"
 	"time"
+
+	"go.uber.org/zap"
+
+	"github.com/cesanta/docker_auth/auth_server/api"
+	_ "github.com/go-sql-driver/mysql"
 )
 
 var dbConnection *sql.DB
@@ -47,7 +52,7 @@ func createConn() bool {
 	dbConnection, err = sql.Open(dbDriver, dbUser+":"+dbPass+"@tcp("+host+":"+port+")/"+dbName)
 	if err != nil {
 		fmt.Println("Error while connecting to the database")
-		os.Exit(ErrorExitCode)
+		os.Exit(1)
 	}
 	err = dbConnection.Ping()
 	if err != nil {
@@ -104,7 +109,7 @@ func TestMain(m *testing.M) {
 	fmt.Println("Acl test started to run")
 	// make target dir
 	makedir("../../target/test/mysql_scripts")
-	moveFiles("../../../../deployment/mysql/dbscripts/init.sql", "../../target/test/mysql_scripts/1_init.sql")
+	moveFiles("../../test/init.sql", "../../target/test/mysql_scripts/1_init.sql")
 	moveFiles("../../test/data.sql", "../../target/test/mysql_scripts/2_data.sql")
 	setEnv()
 	fmt.Println("User:", os.Getenv(MYSQL_USER_ENV_VAR), "pass:", os.Getenv(MYSQL_PASSWORD_ENV_VAR), "host::",
@@ -122,8 +127,8 @@ func TestMain(m *testing.M) {
 
 	// Wait until the mysql db is up
 	for {
-		ln, _ := net.Listen("tcp", ":"+"3308")
-		if ln != nil {
+		_, err := net.Listen("tcp", ":"+"3308")
+		if err != nil {
 			break
 		}
 	}
@@ -140,78 +145,71 @@ func TestMain(m *testing.M) {
 }
 
 func TestValidateAccess(t *testing.T) {
+	label := make([]string, 1)
+	label[0] = "true"
+	authLabels := api.Labels{}
+	authLabels["isAuthSuccess"] = label
 
 	values := []struct {
-		text string
+		actions    []string
+		username   string
+		repository string
+		labels     api.Labels
 	}{
-		{"{\"Account\":\"wso2.com\",\"Type\":\"repository\",\"Name\":\"cellery/newImage\",\"Service\":" +
-			"\"Docker registry\",\"IP\":\"172.25.0.1\",\"Actions\":[\"pull\"],\"labels\": " +
-			"{\"isAuthSuccess\":[\"true\"]}}"},
-		{"{\"Account\":\"admin@wso2.com\",\"Type\":\"repository\",\"Name\":\"cellery/image\",\"Service\":" +
-			"\"Docker registry\",\"IP\":\"172.25.0.1\",\"Actions\":[\"pull\"],\"labels\": " +
-			" {\"isAuthSuccess\":[\"true\"]}}"},
-		{"{\"Account\":\"admin.com\",\"Type\":\"repository\",\"Name\":\"cellery/image\",\"Service\":" +
-			"\"Docker registry\",\"IP\":\"172.25.0.1\",\"Actions\":[\"pull\",\"push\"],\"labels\": " +
-			" {\"isAuthSuccess\":[\"true\"]}}"},
+		{[]string{"pull"}, "wso2.com", "cellery/newImag", authLabels},
+		{[]string{"pull"}, "admin@wso2.com", "cellery/image", authLabels},
+		{[]string{"pull", "push"}, "admin.com", "cellery/image", authLabels},
 		//	user trying to push with a new image which does not exists in the db
-		{"{\"Account\":\"admin.com\",\"Type\":\"repository\",\"Name\":\"cellery/sample\",\"Service\":" +
-			"\"Docker registry\",\"IP\":\"172.25.0.1\",\"Actions\":[\"pull\",\"push\"],\"labels\": " +
-			" {\"isAuthSuccess\":[\"true\"]}}"},
+		{[]string{"pull", "push"}, "admin.com", "cellery/sample", authLabels},
 		//	user that is not in the db trying to pull a public image
-		{"{\"Account\":\"user.com\",\"Type\":\"repository\",\"Name\":\"cellery/image\",\"Service\":" +
-			"\"Docker registry\",\"IP\":\"172.25.0.1\",\"Actions\":[\"pull\"],\"labels\": " +
-			" {\"isAuthSuccess\":[\"true\"]}}"},
-		{"{\"Account\":\"other.com\",\"Type\":\"repository\",\"Name\":\"cellery/image\",\"Service\":" +
-			"\"Docker registry\",\"IP\":\"172.25.0.1\",\"Actions\":[\"pull\"],\"labels\": " +
-			" {\"isAuthSuccess\":[\"true\"]}}"},
-		{"{\"Account\":\"wso2.com\",\"Type\":\"repository\",\"Name\":\"cellery/newImage\",\"Service\":" +
-			"\"Docker registry\",\"IP\":\"172.25.0.1\",\"Actions\":[\"pull\",\"push\"],\"labels\": " +
-			" {\"isAuthSuccess\":[\"true\"]}}"},
-		{"{\"Account\":\"wso2.com\",\"Type\":\"repository\",\"Name\":\"cellery/newImage\",\"Service\":" +
-			"\"Docker registry\",\"IP\":\"172.25.0.1\",\"Actions\":[\"pull\"],\"labels\": " +
-			" {\"isAuthSuccess\":[\"true\"]}}"},
+		{[]string{"pull"}, "user.com", "cellery/image", authLabels},
+		{[]string{"pull"}, "other.com", "cellery/image", authLabels},
+		{[]string{"pull", "push"}, "wso2.com", "cellery/newImage", authLabels},
+		{[]string{"pull"}, "wso2.com", "cellery/newImage", authLabels},
 	}
+	logger := zap.NewExample().Sugar()
 	for _, value := range values {
-		isAuthorized, err := ValidateAccess(dbConnection, value.text, testUser)
+		isAuthorized, err := ValidateAccess(dbConnection, value.actions, value.username, value.repository, value.labels,
+			logger, testUser)
 		if err != nil {
 			log.Println("Error while validating the access token :", err)
 		}
 		if !isAuthorized {
-			t.Error("Access is not allowed for text :", value.text)
+			t.Error("Access is not allowed for username :", value.username)
 		}
 	}
 }
 
 func TestInvalidAccess(t *testing.T) {
+	label := make([]string, 1)
+	label[0] = "true"
+	authLabels := api.Labels{}
+	authLabels["isAuthSuccess"] = label
+
 	values := []struct {
-		text string
+		actions    []string
+		username   string
+		repository string
+		labels     api.Labels
 	}{
 		// new user trying to pull a private image
-		{"{\"Account\":\"user.com\",\"Type\":\"repository\",\"Name\":\"cellery/newImage\",\"Service\":" +
-			"\"Docker registry\",\"IP\":\"172.25.0.1\",\"Actions\":[\"pull\"],\"labels\": " +
-			" {\"isAuthSuccess\":[\"true\"]}}"},
+		{[]string{"pull"}, "user.com", "cellery/newImag", authLabels},
 		//	a user with pull permission trying to push
-		{"{\"Account\":\"pull.com\",\"Type\":\"repository\",\"Name\":\"cellery/image\",\"Service\":" +
-			"\"Docker registry\",\"IP\":\"172.25.0.1\",\"Actions\":[\"pull\",\"push\"],\"labels\": " +
-			" {\"isAuthSuccess\":[\"true\"]}}"},
+		{[]string{"pull", "push"}, "pull.com", "cellery/image", authLabels},
 		//	user trying to pull a public image
-		{"{\"Account\":\"other.com\",\"Type\":\"repository\",\"Name\":\"cellery/newImage\",\"Service\":" +
-			"\"Docker registry\",\"IP\":\"172.25.0.1\",\"Actions\":[\"pull\"],\"labels\": " +
-			" {\"isAuthSuccess\":[\"true\"]}}"},
-		{"{\"Account\":\"other.com\",\"Type\":\"repository\",\"Name\":\"cellery/image\",\"Service\":" +
-			"\"Docker registry\",\"IP\":\"172.25.0.1\",\"Actions\":[\"push\",\"pull\"],\"labels\": " +
-			" {\"isAuthSuccess\":[\"true\"]}}"},
-		{"{\"Account\":\"other.com\",\"Type\":\"repository\",\"Name\":\"cellery1/pqr\",\"Service\":" +
-			"\"Docker registry\",\"IP\":\"172.25.0.1\",\"Actions\":[\"push\",\"pull\"],\"labels\": " +
-			" {\"isAuthSuccess\":[\"true\"]}}"},
+		{[]string{"pull"}, "other.com", "cellery/newImage", authLabels},
+		{[]string{"pull", "push"}, "other.com", "cellery/image", authLabels},
+		{[]string{"pull", "push"}, "other.com", "cellery/pqr", authLabels},
 	}
+	logger := zap.NewExample().Sugar()
 	for _, value := range values {
-		isAuthorized, err := ValidateAccess(dbConnection, value.text, testUser)
+		isAuthorized, err := ValidateAccess(dbConnection, value.actions, value.username, value.repository, value.labels,
+			logger, testUser)
 		if err != nil {
 			log.Println("Error while validating the access token :", err)
 		}
 		if isAuthorized {
-			t.Error("Access is should not be allowed for text :", value.text)
+			t.Error("Access is not allowed for username :", value.username)
 		}
 	}
 }
@@ -224,8 +222,9 @@ func TestIsAuthorizedToPush(t *testing.T) {
 		{"wso2.com", "cellery"},
 		{"admin.com", "cellery"},
 	}
+	logger := zap.NewExample().Sugar()
 	for _, value := range values {
-		isAuthorized, err := isAuthorizedToPush(dbConnection, value.username, value.organization, testUser)
+		isAuthorized, err := isAuthorizedToPush(dbConnection, value.username, value.organization, logger, testUser)
 		if !isAuthorized {
 			t.Error("Cannot authorize ", value.username, "for ", value.organization, " organization")
 		}
@@ -245,8 +244,10 @@ func TestIsAuthorizedToPull(t *testing.T) {
 		{"wso2.com", "cellery", "newImage"},
 		{"ibm.com", "cellery", "image"},
 	}
+	logger := zap.NewExample().Sugar()
 	for _, value := range values {
-		isAuthorized, err := isAuthorizedToPull(dbConnection, value.username, value.organization, value.image, testUser)
+		isAuthorized, err := isAuthorizedToPull(dbConnection, value.username, value.organization, value.image,
+			logger, testUser)
 		if err != nil {
 			log.Println("Error while validating the access token :", err)
 		}
@@ -265,8 +266,9 @@ func TestIsUserAvailable(t *testing.T) {
 		{"cellery", "wso2.com"},
 		{"cellery", "admin.com"},
 	}
+	logger := zap.NewExample().Sugar()
 	for _, value := range values {
-		isAvailable, err := isUserAvailable(dbConnection, value.organization, value.username, testUser)
+		isAvailable, err := isUserAvailable(dbConnection, value.organization, value.username, logger, testUser)
 		if !isAvailable {
 			t.Error("For username " + value.username + " user is " + value.organization + " invalid")
 		}
@@ -285,8 +287,9 @@ func TestGetImageVisibility(t *testing.T) {
 		{"cellery", "image", "public"},
 		{"is", "pqr", "private"},
 	}
+	logger := zap.NewExample().Sugar()
 	for _, value := range values {
-		visibility, err := getImageVisibility(dbConnection, value.image, value.organization, testUser)
+		visibility, err := getImageVisibility(dbConnection, value.image, value.organization, logger, testUser)
 		if err != nil {
 			log.Println("Error while validating the access token :", err)
 		}
