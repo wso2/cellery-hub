@@ -95,7 +95,7 @@ public function exchangeJWTWithToken(string jwt, string userId) returns (gen:Tok
               401));
             return err;
         }
-        log:printInfo("Subject derieved from ID Token:" + subject);
+        log:printDebug("Subject derieved from ID Token:" + subject);
         gen:TokensResponse tokens = {
             accessToken: <string>responsePayload.access_token,
             idToken: ""

@@ -528,7 +528,7 @@ returns http:Response {
             };
             json | error resPayload =  json.convert(userInfoListResponse);
             if (resPayload is json) {
-                log:printInfo(resPayload.toString());
+                log:printDebug(io:sprintf("Users payload of organization \'%s\': %s", orgName, resPayload.toString()));
                 return buildSuccessResponse(jsonResponse = resPayload);
             } else {
                 log:printError("Error while converting payload to json for organization's user request", err = resPayload);
@@ -854,7 +854,7 @@ returns http:Response {
                         resp = buildUnknownErrorResponse();
                         abort;
                     } else {
-                        log:printInfo(io:sprintf("Successfully deleted the artifact \'%s/%s:%s\' by user \'%s\'",
+                        log:printDebug(io:sprintf("Successfully deleted the artifact \'%s/%s:%s\' by user \'%s\'",
                         orgName, imageName, artifactVersion, userId));
                         resp = buildSuccessResponse();
                     }
@@ -918,7 +918,7 @@ public function deleteImage(http:Request deleteImageReq, string orgName, string 
                         resp = buildUnknownErrorResponse();
                         abort;
                     } else {
-                        log:printInfo(io:sprintf("Successfully deleted the image \'%s/%s\' by user \'%s\'", orgName,
+                        log:printDebug(io:sprintf("Successfully deleted the image \'%s/%s\' by user \'%s\'", orgName,
                         imageName, userId));
                         resp = buildSuccessResponse();
                     }
@@ -980,7 +980,7 @@ public function deleteOrganization(http:Request deleteOrganizationReq, string or
                         resp = buildUnknownErrorResponse();
                         abort;
                     } else {
-                        log:printInfo(io:sprintf("Successfully deleted the organization \'%s\' by user \'%s\'", orgName,
+                        log:printDebug(io:sprintf("Successfully deleted the organization \'%s\' by user \'%s\'", orgName,
                         userId));
                         resp = buildSuccessResponse();
                     }

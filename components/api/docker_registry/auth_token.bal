@@ -21,7 +21,7 @@ import ballerina/io;
 import cellery_hub_api/constants;
 
 public function getTokenFromDockerAuth(string userName, string token, string registryScope) returns string | error? {
-    log:printInfo(io:sprintf("Invoking docker auth API for get token for scope : %s", registryScope));
+    log:printDebug(io:sprintf("Invoking docker auth API for get token for scope : %s", registryScope));
 
     string | error registryServiceName = http:encode(constants:DOCKER_REGISTRY_SERVICE_NAME, "utf-8");
 
