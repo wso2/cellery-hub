@@ -44,7 +44,7 @@ function updatePayloadWithUserInfo(json payload, string field) returns error? {
 
 function deleteArtifactFromRegistry(string orgName, string imageName, string artifactVersion, string userId, string
 userToken) returns error? {
-    log:printInfo(io:sprintf("Attempting to delete the artifact \'%s/%s:%s\' from the registry", orgName, imageName,
+    log:printDebug(io:sprintf("Attempting to delete the artifact \'%s/%s:%s\' from the registry", orgName, imageName,
     artifactVersion));
     string registryScopeForGetNDeleteManifest = io:sprintf("repository:%s/%s:%s,%s", orgName, imageName,
     constants:DELETE_ACTION, constants:PULL_ACTION);
@@ -85,7 +85,7 @@ public function deleteImageFromResitry(string orgName, string imageName) returns
     if (orgName != "" && imageName != "") {
         string imageDirectoryPath = io:sprintf("%s/%s/%s", constants:DOCKER_REGISTRY_REPOSITORIES_FILEPATH, orgName,
         imageName);
-        log:printInfo(io:sprintf("Deleting the image \'%s/%s\' from the registry. Image directory : %s", orgName,
+        log:printDebug(io:sprintf("Deleting the image \'%s/%s\' from the registry. Image directory : %s", orgName,
         imageName, imageDirectoryPath));
         internal:Path directoryToBeDeleted = new (imageDirectoryPath);
 
@@ -111,7 +111,7 @@ public function deleteImageFromResitry(string orgName, string imageName) returns
 public function deleteOrganizationFromResitry(string orgName) returns error? {
     if (orgName != "") {
         string orgDirectoryPath = io:sprintf("%s/%s", constants:DOCKER_REGISTRY_REPOSITORIES_FILEPATH, orgName);
-        log:printInfo(io:sprintf("Deleting the organization \'%s\' from the registry. Organization directory : %s",
+        log:printDebug(io:sprintf("Deleting the organization \'%s\' from the registry. Organization directory : %s",
         orgName, orgDirectoryPath));
         internal:Path directoryToBeDeleted = new (orgDirectoryPath);
 
@@ -121,10 +121,10 @@ public function deleteOrganizationFromResitry(string orgName) returns error? {
                 error er = error("Unexpected error while deleting the organization from the registry");
                 return er;
             } else {
-                log:printInfo(io:sprintf("Organization \'%s\' is successfully deleted from the registry", orgName));
+                log:printDebug(io:sprintf("Organization \'%s\' is successfully deleted from the registry", orgName));
             }
         } else {
-            log:printInfo(io:sprintf("Organization directory \'%s\' is not found in the registry", orgDirectoryPath));
+            log:printDebug(io:sprintf("Organization directory \'%s\' is not found in the registry", orgDirectoryPath));
         }
     } else {
         error er = error("Received org name is empty");

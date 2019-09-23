@@ -416,30 +416,30 @@ returns json | error {
 }
 
 public function updateImageDescriptionNSummary(string orgName, string imageName, string description, string summary, string userId) returns sql:UpdateResult | error? {
-    log:printInfo(io:sprintf("Updating description and summary of the image %s/%s", orgName, imageName));
+    log:printDebug(io:sprintf("Updating description and summary of the image %s/%s", orgName, imageName));
     sql:UpdateResult res = check connection->update(UPDATE_IMAGE_DESCRIPTION_N_SUMMARY_QUERY, description, summary, imageName, orgName, userId);
     return res;
 }
 
 public function updateOrgInfo(string description, string summary, string url, string orgName, string userId) returns sql:UpdateResult | error? {
-    log:printInfo(io:sprintf("Updating description, summary and url of the organization \'%s\'", orgName));
+    log:printDebug(io:sprintf("Updating description, summary and url of the organization \'%s\'", orgName));
     sql:UpdateResult res = check connection->update(UPDATE_ORG_INFO_QUERY, description, summary, url, orgName, userId);
     return res;
 }
 
 public function updateArtifactDescription(string description, string orgName, string imageName, string artifactVersion, string userId)
 returns sql:UpdateResult | error? {
-    log:printInfo(io:sprintf("Updating description of the artifact \'%s/%s:%s\'", orgName, imageName, artifactVersion));
+    log:printDebug(io:sprintf("Updating description of the artifact \'%s/%s:%s\'", orgName, imageName, artifactVersion));
     sql:UpdateResult res = check connection->update(UPDATE_ARTIFACT_DESCRIPTION_QUERY, description, artifactVersion, imageName, orgName, userId);
     return res;
 }
 
 public function updateImageKeywords(string orgName, string imageName, string[] keywords, string userId) returns error? {
-    log:printInfo(io:sprintf("User %s is updating keywords of the image %s/%s", userId, orgName, imageName));
+    log:printDebug(io:sprintf("User %s is updating keywords of the image %s/%s", userId, orgName, imageName));
     string imageId = check getArtifactImageID(orgName, imageName);
     if imageId != "" {
         _ = check connection->update(DELETE_IMAGE_KEYWORDS_QUERY, imageId);
-        log:printInfo(io:sprintf("Successfully deleted keywords of the image %s/%s", orgName, imageName));
+        log:printDebug(io:sprintf("Successfully deleted keywords of the image %s/%s", orgName, imageName));
 
         string[][] dataBatch = [];
         int i = 0;
@@ -451,7 +451,7 @@ public function updateImageKeywords(string orgName, string imageName, string[] k
         }
         if i > 0 {
             _ = check connection->batchUpdate(INSERT_IMAGE_KEYWORDS_QUERY, ...dataBatch);
-            log:printInfo(io:sprintf("Successfully inserted keywords for the image %s/%s", orgName, imageName));
+            log:printDebug(io:sprintf("Successfully inserted keywords for the image %s/%s", orgName, imageName));
         } else {
             log:printDebug(io:sprintf("No keywords found. Hence not perform keyword insertion for image %s/%s", orgName, imageName));
         }
