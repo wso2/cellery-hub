@@ -32,12 +32,12 @@ import (
 )
 
 func GetDbConnectionPool(logger *zap.SugaredLogger) (*sql.DB, error) {
-	dbDriver := extension.MYSQL_DRIVER
-	dbUser := os.Getenv(extension.MYSQL_USER_ENV_VAR)
-	dbPass := os.Getenv(extension.MYSQL_PASSWORD_ENV_VAR)
-	dbName := extension.DB_NAME
-	host := os.Getenv(extension.MYSQL_HOST_ENV_VAR)
-	port := os.Getenv(extension.MYSQL_PORT_ENV_VAR)
+	dbDriver := extension.MysqlDriver
+	dbUser := os.Getenv(extension.MysqlUserEnvVar)
+	dbPass := os.Getenv(extension.MysqlPasswordEnvVar)
+	dbName := extension.DbName
+	host := os.Getenv(extension.MysqlHostEnvVar)
+	port := os.Getenv(extension.MysqlPortEnvVar)
 	dbPoolConfigurations, err := resolvePoolingConfigurations(logger)
 	if err != nil {
 		logger.Debugf("No db connection pooling configurations found : %s", err)

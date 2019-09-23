@@ -25,177 +25,42 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
-	"strconv"
 	"strings"
 	"time"
 
-	"github.com/dgrijalva/jwt-go"
+	"github.com/cellery-io/cellery-hub/components/docker-auth/pkg/extension"
+
 	"go.uber.org/zap"
 )
 
-const (
-	issuerClaim           = "iss"
-	subjectClaim          = "sub"
-	authTokenIssuerEnvVar = "REGISTRY_AUTH_TOKEN_ISSUER"
-	idpCertEnvVar         = "IDP_CERT"
-	dockerAuthCertEnvVar  = "REGISTRY_AUTH_TOKEN_ROOTCERTBUNDLE"
-)
-
-func readCert(certPathEnv string, logger *zap.SugaredLogger, execId string) ([]byte, error) {
-	key, err := ioutil.ReadFile(os.Getenv(certPathEnv))
-	if err != nil {
-		return nil, fmt.Errorf("error occured while reading the cert %s", err)
-	}
-	logger.Debugf("[%s] Read cert successfully", execId)
-	return key, nil
-}
-
-func getJWTClaims(token string, logger *zap.SugaredLogger, execId string) jwt.MapClaims {
-	jwtToken, _ := jwt.Parse(token, nil)
-	claims, ok := jwtToken.Claims.(jwt.MapClaims)
-	if ok {
-		logger.Debugf("[%s] Received JWT claims successfully", execId)
-		return claims
-	}
-	return nil
-}
-
-func getClaimValue(claim jwt.MapClaims, claimKey string, logger *zap.SugaredLogger, execId string) string {
-	value, ok := claim[claimKey].(string)
-	if ok {
-		logger.Debugf("[%s] Received JWT claim for the claim key %s successfully", execId, claimKey)
-		return value
-	}
-	return ""
-}
-
-func validateToken(inToken string, cert []byte, logger *zap.SugaredLogger, execId string) (bool, error) {
-	publicRSA, err := jwt.ParseRSAPublicKeyFromPEM(cert)
-	if err != nil {
-		return false, fmt.Errorf("error occured while parsing the cert : %s", err)
-	}
-	token, err := jwt.Parse(inToken, func(token *jwt.Token) (interface{}, error) {
-		if _, ok := token.Method.(*jwt.SigningMethodRSA); !ok {
-			return nil, fmt.Errorf("[%s] Unexpected signing method: %s", execId, token.Header["alg"])
-		}
-		return publicRSA, err
-	})
-	if token != nil && token.Valid {
-		logger.Debugf("[%s] Token received is valid", execId)
-
-		return true, nil
-	}
-	logger.Debugf("[%s] Token received is invalid", execId)
-	return false, err
-}
-
 func Authenticate(uName string, token string, logger *zap.SugaredLogger, execId string) (bool, error) {
-	logger.Debugf("[%s] Authentication logic handler reached and token will be validated", execId)
-	isJwt, err := isJWT()
+	logger.Debugf("[%s] Authentication logic handler reached and token will be validated. "+
+		"Performing authentication by using access token", execId)
+	accessTokenValidity, err := validateAccessToken(token, uName, logger, execId)
 	if err != nil {
-		return false, fmt.Errorf("error occured while reading 'IS_JWT' environment variable")
+		return false, fmt.Errorf("error occured while validating access token : %s", err)
 	}
-	if isJwt {
-		logger.Debugf("[%s] Performing authentication by using JWT", execId)
-		jwtValidity, err := validateJWT(token, uName, logger, execId)
-		if err != nil {
-			return false, fmt.Errorf("eroor occured while validating JWT")
-		}
-		if jwtValidity {
-			logger.Debugf("[%s] User successfully authenticated. Returning success status code", execId)
-			return true, nil
-		} else {
-			logger.Debugf("[%s] User failed to authenticate. Returning error status code", execId)
-			return false, nil
-		}
-	} else {
-		logger.Debugf("[%s] Performing authentication by using access token", execId)
-		accessTokenValidity, err := validateAccessToken(token, uName, logger, execId)
-		if err != nil {
-			return false, fmt.Errorf("error occured while validating access token : %s", err)
-		}
-		if accessTokenValidity {
-			logger.Debugf("[%s] User successfully authenticated. Returning success status code", execId)
-			return true, nil
-		} else {
-			logger.Debugf("[%s] User failed to authenticate. Returning error status code", execId)
-			return false, nil
-		}
-	}
-}
-
-func validateJWT(token string, username string, logger *zap.SugaredLogger, execId string) (bool, error) {
-	claim := getJWTClaims(token, logger, execId)
-	iss := getClaimValue(claim, issuerClaim, logger, execId)
-	sub := getClaimValue(claim, subjectClaim, logger, execId)
-
-	logger.Debugf("[%s] Token issuer : %s", execId, iss)
-	logger.Debugf("[%s] Subject : %s", execId, sub)
-
-	if sub != username {
-		logger.Debugf("[%s] Username(%s) does not match with subject(%s) in JWT", execId, username, sub)
-		return false, nil
-	}
-
-	certificateInUse, err := readCert(idpCertEnvVar, logger, execId)
-	if err != nil {
-		return false, fmt.Errorf("unable to load idp cert file : %s", err)
-	}
-
-	if iss == authTokenIssuerEnvVar {
-		certificateInUse, err = readCert(dockerAuthCertEnvVar, logger, execId)
-		if err != nil {
-			return false, fmt.Errorf("unable to load docker auth file : %s", err)
-		}
-	}
-
-	tokenValidity, err := validateToken(token, certificateInUse, logger, execId)
-	if err != nil {
-		return false, fmt.Errorf("token is not valid : %s", err)
-	}
-	logger.Debugf("[%s] Signature verified", execId)
-
-	if tokenValidity {
+	if accessTokenValidity {
 		logger.Debugf("[%s] User successfully authenticated", execId)
 		return true, nil
 	} else {
-		logger.Debugf("[%s] Authentication failed", execId)
+		logger.Debugf("[%s] User failed to authenticate", execId)
 		return false, nil
 	}
-}
-
-// isJWT checks whether the token is jwt token or access token.
-func isJWT() (bool, error) {
-	isJWTEnv := os.Getenv("IS_JWT")
-	var isJWT bool
-	if len(isJWTEnv) == 0 {
-		return false, fmt.Errorf("error: IS_JWT environment variable is empty")
-	} else {
-		var err error
-		isJWT, err = strconv.ParseBool(isJWTEnv)
-		if err != nil {
-			return false, fmt.Errorf("wrong environment value given. The value should be either true or false")
-		}
-	}
-	return isJWT, nil
 }
 
 // validateAccessToken is used to introspect the access token
 func validateAccessToken(token string, providedUsername string, logger *zap.SugaredLogger,
 	execId string) (bool, error) {
-	introspectionUrl, urlAvailability, err := resolveIntrospectionUrl(logger, execId)
+	introspectionUrl, err := resolveIntrospectionUrl(logger, execId)
 	if err != nil {
 		return false, fmt.Errorf("error occured while resolving introspection url: %v", err)
-	}
-	if !urlAvailability {
-		return false, nil
 	}
 	payload := strings.NewReader("token=" + token)
 	req, err := http.NewRequest("POST", introspectionUrl, payload)
 	if err != nil {
 		return false, fmt.Errorf("error creating new request to the introspection endpoint : %s", err)
 	}
-	logger.Debugf("[%s] Created new request to the introspection endpoint : %s", execId, introspectionUrl)
 	username, password, err := resolveCredentials(logger, execId)
 	if err != nil {
 		return false, err
@@ -254,30 +119,30 @@ func validateAccessToken(token string, providedUsername string, logger *zap.Suga
 
 // resolves the IS host and port from the environment variables.
 // If the environment is not set the port and host will be resolved through the config file.
-func resolveIntrospectionUrl(logger *zap.SugaredLogger, execId string) (string, bool, error) {
+func resolveIntrospectionUrl(logger *zap.SugaredLogger, execId string) (string, error) {
 	idpEndPoint := os.Getenv("IDP_END_POINT")
 	introspectionEP := os.Getenv("INTROSPECTION_END_POINT")
 	if len(introspectionEP) == 0 {
-		return "", false, fmt.Errorf("'INTROSPECTION_END_POINT' environment variable is empty")
+		return "", fmt.Errorf("'INTROSPECTION_END_POINT' environment variable is empty")
 	}
 	if len(idpEndPoint) == 0 {
-		return "", false, fmt.Errorf("'IDP_END_POINT' environment variable is empty")
+		return "", fmt.Errorf("'IDP_END_POINT' environment variable is empty")
 	}
 	logger.Debugf("[%s] Successfully resolved introspection url", execId)
-	return idpEndPoint + introspectionEP, true, nil
+	return idpEndPoint + introspectionEP, nil
 }
 
 // resolveCredentials resolves the user credentials of the user that is used to communicate to introspection endpoint
 func resolveCredentials(logger *zap.SugaredLogger, execId string) (string, string, error) {
-	username := os.Getenv("USERNAME")
+	username := os.Getenv(extension.IdpUsernameEnvVar)
 	if len(username) == 0 {
 		return "", "", fmt.Errorf("'USERNAME' environment variable is empty")
 	}
-	password := os.Getenv("PASSWORD")
+	password := os.Getenv(extension.IdppasswordEnvVar)
 	if len(password) == 0 {
 		return "", "", fmt.Errorf("'PASSWORD' environment variable is empty")
 	}
-	logger.Debugf("[%s] Suceesfully received credentials", execId)
+	logger.Debugf("[%s] Successfully resolved credentials", execId)
 	return username, password, nil
 }
 
