@@ -60,7 +60,7 @@ func doAuthorize(ai *api.AuthRequestInfo, logger *zap.SugaredLogger) ([]string, 
 	if err != nil {
 		return nil, fmt.Errorf("error while establishing database connection pool: %v", err)
 	}
-	authorized, err := auth.Authorization(dbConnectionPool, ai, logger, execId)
+	authorized, err := auth.Authorize(dbConnectionPool, ai, logger, execId)
 	if err != nil {
 		return nil, fmt.Errorf("error while executing authorization logic: %v", err)
 	}

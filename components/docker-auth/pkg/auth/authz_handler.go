@@ -29,9 +29,9 @@ import (
 	"github.com/cellery-io/cellery-hub/components/docker-auth/pkg/extension"
 )
 
-func Authorization(dbConn *sql.DB, ai *api.AuthRequestInfo, logger *zap.SugaredLogger, execId string) (bool, error) {
+func Authorize(dbConn *sql.DB, ai *api.AuthRequestInfo, logger *zap.SugaredLogger, execId string) (bool, error) {
 	logger.Debugf("[%s] Authorization logic handler reached and access will be validated", execId)
-	isValid, err := extension.ValidateAccess(dbConn, ai.Actions, ai.Account, ai.Name, ai.Labels, logger, execId)
+	isValid, err := extension.IsUserAuthorized(dbConn, ai.Actions, ai.Account, ai.Name, ai.Labels, logger, execId)
 	if err != nil {
 		return false, fmt.Errorf("[%s] Error occurred while validating the user :%s", execId, err)
 	}

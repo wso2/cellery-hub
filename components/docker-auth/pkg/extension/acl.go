@@ -30,7 +30,7 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 )
 
-func ValidateAccess(db *sql.DB, actions []string, username string, repository string, labels api.Labels,
+func IsUserAuthorized(db *sql.DB, actions []string, username string, repository string, labels api.Labels,
 	logger *zap.SugaredLogger, execId string) (bool, error) {
 
 	logger.Debugf("[%s] Required actions for the username are :%s", execId, actions)
@@ -110,7 +110,7 @@ func getImageVisibility(db *sql.DB, image string, organization string, logger *z
 		closeResultSet(results, "getImageVisibility", logger, execId)
 	}()
 	if err != nil {
-		return visibility, fmt.Errorf("error while calling the mysql query getVisibilityQuery :%s", err)
+		return visibility, fmt.Errorf("error while executing the mysql query getVisibilityQuery :%s", err)
 	}
 	if results.Next() {
 		err = results.Scan(&visibility)
@@ -135,8 +135,7 @@ func isUserAvailable(db *sql.DB, organization, user string, logger *zap.SugaredL
 		closeResultSet(results, "isUserAvailable", logger, execId)
 	}()
 	if err != nil {
-		return false, fmt.Errorf("[%s] Error while calling the mysql query "+
-			"getUserAvailabilityQuery :%s\n", execId, err)
+		return false, fmt.Errorf("error while executing the mysql query getUserAvailabilityQuery :%s\n", err)
 	}
 	if results.Next() {
 		logger.Debugf("[%s] User %s is available in the organization :%s", execId, user, organization)
@@ -181,7 +180,7 @@ func isAuthorizedToPush(db *sql.DB, user string, organization string,
 		closeResultSet(results, "isAuthorizedToPush", logger, execId)
 	}()
 	if err != nil {
-		return false, fmt.Errorf("[%s] Error while calling the mysql query getUserRoleQuery :%s", execId, err)
+		return false, fmt.Errorf("error while executing the mysql query getUserRoleQuery :%s", err)
 	}
 	if results.Next() {
 		var userRole string
@@ -213,8 +212,7 @@ func isAuthorizedToDelete(db *sql.DB, user string, organization string,
 		closeResultSet(results, "isAuthorizedToDelete", logger, execId)
 	}()
 	if err != nil {
-		logger.Debugf("[%s] Error while calling the mysql query for getting the user role :%s", execId, err)
-		return false, err
+		return false, fmt.Errorf("error while executing the mysql query for getting the user role :%s", err)
 	}
 	if results.Next() {
 		var userRole string

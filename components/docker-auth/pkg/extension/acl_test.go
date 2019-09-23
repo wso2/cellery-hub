@@ -40,19 +40,20 @@ import (
 var dbConnection *sql.DB
 
 const testUser = "testUser"
+const errorExitCode = 1
 
 func createConn() bool {
-	dbDriver := MYSQL_DRIVER
+	dbDriver := MysqlDriver
 	dbUser := "root"
 	dbPass := "mysql"
-	dbName := DB_NAME
+	dbName := DbName
 	host := "localhost"
 	port := "3308"
 	var err error
 	dbConnection, err = sql.Open(dbDriver, dbUser+":"+dbPass+"@tcp("+host+":"+port+")/"+dbName)
 	if err != nil {
 		fmt.Println("Error while connecting to the database")
-		os.Exit(1)
+		os.Exit(errorExitCode)
 	}
 	err = dbConnection.Ping()
 	if err != nil {
@@ -87,21 +88,21 @@ func makedir(path string) {
 }
 
 func setEnv() {
-	err := os.Setenv(MYSQL_USER_ENV_VAR, "root")
+	err := os.Setenv(MysqlUserEnvVar, "root")
 	if err != nil {
-		fmt.Println("Error setting up the environment", MYSQL_USER_ENV_VAR, ":", err)
+		fmt.Println("Error setting up the environment", MysqlUserEnvVar, ":", err)
 	}
-	err = os.Setenv(MYSQL_PASSWORD_ENV_VAR, "mysql")
+	err = os.Setenv(MysqlPasswordEnvVar, "mysql")
 	if err != nil {
-		fmt.Println("Error setting up the environment", MYSQL_PASSWORD_ENV_VAR, ":", err)
+		fmt.Println("Error setting up the environment", MysqlPasswordEnvVar, ":", err)
 	}
-	err = os.Setenv(MYSQL_HOST_ENV_VAR, "localhost")
+	err = os.Setenv(MysqlHostEnvVar, "localhost")
 	if err != nil {
-		fmt.Println("Error setting up the environment", MYSQL_HOST_ENV_VAR, ":", err)
+		fmt.Println("Error setting up the environment", MysqlHostEnvVar, ":", err)
 	}
-	err = os.Setenv(MYSQL_PORT_ENV_VAR, "3308")
+	err = os.Setenv(MysqlPortEnvVar, "3308")
 	if err != nil {
-		fmt.Println("Error setting up the environment", MYSQL_PORT_ENV_VAR, ":", err)
+		fmt.Println("Error setting up the environment", MysqlPortEnvVar, ":", err)
 	}
 }
 
@@ -112,8 +113,6 @@ func TestMain(m *testing.M) {
 	moveFiles("../../test/init.sql", "../../target/test/mysql_scripts/1_init.sql")
 	moveFiles("../../test/data.sql", "../../target/test/mysql_scripts/2_data.sql")
 	setEnv()
-	fmt.Println("User:", os.Getenv(MYSQL_USER_ENV_VAR), "pass:", os.Getenv(MYSQL_PASSWORD_ENV_VAR), "host::",
-		os.Getenv(MYSQL_PORT_ENV_VAR))
 	path, err := filepath.Abs("../../target/test/mysql_scripts")
 	if err != nil {
 		fmt.Println("Could not resolve absolute path :", err)
@@ -169,7 +168,7 @@ func TestValidateAccess(t *testing.T) {
 	}
 	logger := zap.NewExample().Sugar()
 	for _, value := range values {
-		isAuthorized, err := ValidateAccess(dbConnection, value.actions, value.username, value.repository, value.labels,
+		isAuthorized, err := IsUserAuthorized(dbConnection, value.actions, value.username, value.repository, value.labels,
 			logger, testUser)
 		if err != nil {
 			log.Println("Error while validating the access token :", err)
@@ -203,7 +202,7 @@ func TestInvalidAccess(t *testing.T) {
 	}
 	logger := zap.NewExample().Sugar()
 	for _, value := range values {
-		isAuthorized, err := ValidateAccess(dbConnection, value.actions, value.username, value.repository, value.labels,
+		isAuthorized, err := IsUserAuthorized(dbConnection, value.actions, value.username, value.repository, value.labels,
 			logger, testUser)
 		if err != nil {
 			log.Println("Error while validating the access token :", err)
