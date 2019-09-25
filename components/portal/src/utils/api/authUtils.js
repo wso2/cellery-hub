@@ -152,12 +152,19 @@ class AuthUtils {
             window.location.assign(`${signOutEndpoint}${HttpUtils.generateQueryParamString(params)}`);
             resolve();
         };
+        NotificationUtils.showLoadingOverlay("Logging Out", globalState);
         HttpUtils.callHubAPI(
             {
                 url: "/auth/revoke",
                 method: "GET"
             },
-            globalState).then(logout).catch(logout);
+            globalState).then(() => {
+            logout();
+            NotificationUtils.hideLoadingOverlay(globalState);
+        }).catch(() => {
+            logout();
+            NotificationUtils.hideLoadingOverlay(globalState);
+        });
     });
 
     /**
