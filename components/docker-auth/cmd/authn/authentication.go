@@ -67,9 +67,15 @@ func doAuthentication(user, incomingToken string, logger *zap.SugaredLogger) (bo
 		logger.Debugf("[%s] Ping request received", execId)
 	}
 
-	isAuthenticated, err := auth.Authenticate(user, token, logger, execId)
-	if err != nil {
-		return false, nil, fmt.Errorf("error while authenticating %v", err)
+	// This logic is to allow users to pull public images without credentials. So that only if credentials are
+	// present, IDP is called. If credentials are not present, through authorization logic image visibility
+	// will be evaluated.
+	var isAuthenticated bool
+	if user != "" && token != "" {
+		isAuthenticated, err = auth.Authenticate(user, token, logger, execId)
+		if err != nil {
+			return false, nil, fmt.Errorf("error while authenticating %v", err)
+		}
 	}
 	if !isAuthenticated {
 		logger.Debugf("[%s] User access token failed to authenticate. Evaluating ping", execId)
