@@ -47,7 +47,7 @@ public function getUserInfo(string userId) returns UserInfo? | error {
     "?filter=username+eq+" + userId);
 
 
-    if (response.statusCode >= 400) {
+    if (response.statusCode >= 300) {
         error err = error(io:sprintf("Failed to call IdP scim endpoint. Recieved status code ", response.statusCode));
         return err;
     }

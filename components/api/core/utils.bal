@@ -38,7 +38,7 @@ function updatePayloadWithUserInfo(json payload, string field) returns error? {
         log:printDebug(io:sprintf("Modifying response by adding userInformation for user ID : %s", userId));
     } else {
         payload[field] = {};
-        log:printDebug(io:sprintf("Response modification failed : User information not found for user : \'%s\'", userId));
+        log:printError(io:sprintf("Response modification failed : User information not found for user : \'%s\'", userId));
     }
 }
 
@@ -56,7 +56,7 @@ userToken) returns error? {
     registryScopeForGetNDeleteManifest);
 
     if (getTokenResult is string) {
-        log:printDebug("Retrived a token from docker auth to invoke getManifestDigest and deleteManifest endpoints");
+        log:printDebug("Retrieved a token from docker auth to invoke getManifestDigest and deleteManifest endpoints");
 
         string | error getManifestDigestResult = docker_registry:getManifestDigest(orgName, imageName, artifactVersion,
         getTokenResult);
