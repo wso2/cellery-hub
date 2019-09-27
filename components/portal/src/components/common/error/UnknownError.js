@@ -91,7 +91,7 @@ const UnknownError = ({classes, history, title, description, showNavigationButto
                                 Go Back
                             </Button>
                             <Button variant={"outlined"} size={"small"} className={classes.navigationButton}
-                                onClick={() => history.push("/")}>
+                                onClick={() => window.location.assign("/")}>
                                 <Home fontSize={"small"} className={classes.navigationButtonIcon}/>
                                 Home
                             </Button>
@@ -106,8 +106,7 @@ const UnknownError = ({classes, history, title, description, showNavigationButto
 UnknownError.propTypes = {
     classes: PropTypes.object.isRequired,
     history: PropTypes.shape({
-        goBack: PropTypes.func.isRequired,
-        push: PropTypes.func.isRequired
+        goBack: PropTypes.func.isRequired
     }),
     title: PropTypes.string,
     description: PropTypes.string,
