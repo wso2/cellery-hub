@@ -23,15 +23,15 @@ import ballerina/system;
 import ballerina/transactions;
 import cellery_hub/image;
 
-type RegistryOrganization record {|
+type RegistryOrganizationTable record {|
     string DEFAULT_IMAGE_VISIBILITY;
 |};
 
-type RegistryArtifactImage record {|
+type RegistryArtifactImageTable record {|
     string ARTIFACT_IMAGE_ID;
 |};
 
-type RegistryArtifact record {|
+type RegistryArtifactTable record {|
     string ARTIFACT_ID;
 |};
 
@@ -53,11 +53,11 @@ public function saveCellImageMetadata(string userId, image:CellImageMetadata met
 # + imageVersion - Version of the image
 # + return - Error if any occurred
 public function incrementPullCount(string orgName, string imageName, string imageVersion) returns error? {
-    var registryArtifactImageTable = check celleryHubDB->select(GET_ARTIFACT_IMAGE_ID_QUERY, RegistryArtifactImage,
+    var registryArtifactImageTable = check celleryHubDB->select(GET_ARTIFACT_IMAGE_ID_QUERY, RegistryArtifactImageTable,
         orgName, imageName, loadToMemory = true);
 
     if (registryArtifactImageTable.count() == 1) {
-        var registryArtifactImage = check RegistryArtifactImage.convert(registryArtifactImageTable.getNext());
+        var registryArtifactImage = check RegistryArtifactImageTable.convert(registryArtifactImageTable.getNext());
         registryArtifactImageTable.close();
         var imageUuid = registryArtifactImage.ARTIFACT_IMAGE_ID;
 
@@ -79,12 +79,12 @@ public function incrementPullCount(string orgName, string imageName, string imag
 # + imageName - Name of the Cell Image
 # + return - Image registry artifcat image ID
 function persistImageMetadata(string userId, string orgName, string imageName) returns (string|error) {
-    var registryArtifactImageTable = check celleryHubDB->select(GET_ARTIFACT_IMAGE_ID_QUERY, RegistryArtifactImage,
+    var registryArtifactImageTable = check celleryHubDB->select(GET_ARTIFACT_IMAGE_ID_QUERY, RegistryArtifactImageTable,
         orgName, imageName, loadToMemory = true);
 
     string uuid;
     if (registryArtifactImageTable.count() == 1) {
-        var registryArtifactImage = check RegistryArtifactImage.convert(registryArtifactImageTable.getNext());
+        var registryArtifactImage = check RegistryArtifactImageTable.convert(registryArtifactImageTable.getNext());
         registryArtifactImageTable.close();
         uuid = registryArtifactImage.ARTIFACT_IMAGE_ID;
         log:printDebug(io:sprintf("Using existing image %s/%s with id %s for transaction %s", orgName, imageName, uuid,
@@ -106,10 +106,10 @@ function persistImageMetadata(string userId, string orgName, string imageName) r
 # + orgName - Name of the organization
 # + return - Error or organization's default visibility
 function getOrganizationDefaultVisibility(string orgName) returns (error|string) {
-    var organizationTable = check celleryHubDB->select(GET_ORG_DEFAULT_IMAGE_VISIBILITY_QUERY, RegistryOrganization,
-        orgName, loadToMemory = true);
+    var organizationTable = check celleryHubDB->select(GET_ORG_DEFAULT_IMAGE_VISIBILITY_QUERY,
+        RegistryOrganizationTable, orgName, loadToMemory = true);
     if (organizationTable.count() == 1) {
-        var organization = check RegistryOrganization.convert(organizationTable.getNext());
+        var organization = check RegistryOrganizationTable.convert(organizationTable.getNext());
         organizationTable.close();
         return organization.DEFAULT_IMAGE_VISIBILITY;
     } else {
@@ -126,15 +126,16 @@ function getOrganizationDefaultVisibility(string orgName) returns (error|string)
 # + artifactImageId - ID of the Cell Image without considering the versions
 # + metadata - Cell Image metadata
 # + return - Error if any error occurred
-function persistImageArtifactMetadata(string userId, string artifactImageId, image:CellImageMetadata metadata) returns error? {
-    var registryArtifactTable = check celleryHubDB->select(GET_ARTIFACT_ID_QUERY, RegistryArtifact, artifactImageId,
-        metadata.ver, loadToMemory = true);
+function persistImageArtifactMetadata(string userId, string artifactImageId,
+                                      image:CellImageMetadata metadata) returns error? {
+    var registryArtifactTable = check celleryHubDB->select(GET_ARTIFACT_ID_QUERY, RegistryArtifactTable,
+        artifactImageId, metadata.ver, loadToMemory = true);
 
     var metadataJson = check json.convert(metadata);
     var metadataString = check string.convert(metadataJson);
     string artifactUuid;
     if (registryArtifactTable.count() == 1) {
-        var registryArtifact = check RegistryArtifact.convert(registryArtifactTable.getNext());
+        var registryArtifact = check RegistryArtifactTable.convert(registryArtifactTable.getNext());
         registryArtifactTable.close();
         artifactUuid = registryArtifact.ARTIFACT_ID;
         _ = check celleryHubDB->update(UPDATE_REGISTRY_ARTIFACT_QUERY, userId, metadataString, false, artifactUuid,
