@@ -16,7 +16,6 @@
  * under the License.
  */
 
-import ArrowBack from "@material-ui/icons/ArrowBack";
 import Button from "@material-ui/core/Button/Button";
 import CelleryError from "../../../img/celleryError.jpg";
 import Home from "@material-ui/icons/Home";
@@ -65,7 +64,7 @@ const styles = (theme) => ({
     }
 });
 
-const UnknownError = ({classes, history, title, description, showNavigationButtons}) => (
+const UnknownError = ({classes, title, description, showNavigationButtons}) => (
     <div className={classes.unknownErrorContainer}>
         <div className={classes.unknownError}>
             <img src={CelleryError} className={classes.unknownErrorImg} alt={"Unknown Error"}/>
@@ -86,11 +85,6 @@ const UnknownError = ({classes, history, title, description, showNavigationButto
                     ? (
                         <div className={classes.navigationButtonsContainer}>
                             <Button variant={"outlined"} size={"small"} className={classes.navigationButton}
-                                onClick={() => history.goBack()}>
-                                <ArrowBack className={classes.navigationButtonIcon}/>
-                                Go Back
-                            </Button>
-                            <Button variant={"outlined"} size={"small"} className={classes.navigationButton}
                                 onClick={() => window.location.assign("/")}>
                                 <Home fontSize={"small"} className={classes.navigationButtonIcon}/>
                                 Home
@@ -105,9 +99,6 @@ const UnknownError = ({classes, history, title, description, showNavigationButto
 
 UnknownError.propTypes = {
     classes: PropTypes.object.isRequired,
-    history: PropTypes.shape({
-        goBack: PropTypes.func.isRequired
-    }),
     title: PropTypes.string,
     description: PropTypes.string,
     showNavigationButtons: PropTypes.bool
