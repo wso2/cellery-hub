@@ -299,7 +299,10 @@ class Images extends React.Component {
                                 <Grid item xs={12} sm={12} md={12}>
                                     <ImageList pageData={images} onPageChange={this.handlePageChange}
                                         totalCount={totalCount} rowsPerPage={pagination.rowsPerPage}
-                                        pageNo={pagination.pageNo}/>
+                                        pageNo={pagination.pageNo}
+                                        errorMessages={{
+                                            noImagesFound: "No Results Found"
+                                        }}/>
                                 </Grid>
                             )
                     }

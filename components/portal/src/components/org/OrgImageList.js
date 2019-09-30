@@ -286,7 +286,10 @@ class OrgImageList extends React.Component {
                                 <Grid item xs={12} sm={12} md={12}>
                                     <ImageList pageData={images.map((image) => ({...image, orgName: orgName}))}
                                         onPageChange={this.handlePageChange} totalCount={totalCount}
-                                        rowsPerPage={pagination.rowsPerPage} pageNo={pagination.pageNo}/>
+                                        rowsPerPage={pagination.rowsPerPage} pageNo={pagination.pageNo}
+                                        errorMessages={{
+                                            noImagesFound: "No Results Found"
+                                        }}/>
                                 </Grid>
                             )
                     }

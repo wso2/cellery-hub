@@ -309,7 +309,7 @@ class MyOrgs extends React.Component {
                         ? (
                             <div className={classes.content}>
                                 <Typography variant={"h5"} color={"inherit"}>
-                                    Organizations
+                                    My Organizations
                                 </Typography>
                                 <Divider/>
                                 <div className={classes.container}>

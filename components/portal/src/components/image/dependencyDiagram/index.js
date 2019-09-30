@@ -141,11 +141,13 @@ const DependencyDiagram = ({data, classes, history}) => {
     extractData(data);
 
     return (
-        <CellDiagram data={diagramData} focusedNode={`${data.org}/${data.name}:${data.ver}`}
-            onClickNode={(nodeId) => {
-                const nodeUrl = nodeId.replace(/:/g, "/");
-                history.push(`/images/${nodeUrl}`);
-            }}/>
+        <div className={classes.content}>
+            <CellDiagram data={diagramData} focusedNode={`${data.org}/${data.name}:${data.ver}`}
+                onClickNode={(nodeId) => {
+                    const nodeUrl = nodeId.replace(/:/g, "/");
+                    history.push(`/images/${nodeUrl}`);
+                }}/>
+        </div>
     );
 };
 
