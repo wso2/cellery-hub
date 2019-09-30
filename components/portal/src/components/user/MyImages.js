@@ -313,7 +313,7 @@ class MyImages extends React.Component {
         return (
             <div className={classes.content}>
                 <Typography variant={"h5"} color={"inherit"}>
-                    Images
+                    My Images
                 </Typography>
                 <Divider/>
                 <div className={classes.container}>
@@ -384,7 +384,10 @@ class MyImages extends React.Component {
                         ? null
                         : (
                             <ImageList pageData={images} onPageChange={this.handlePageChange} totalCount={totalCount}
-                                rowsPerPage={pagination.rowsPerPage} pageNo={pagination.pageNo}/>
+                                rowsPerPage={pagination.rowsPerPage} pageNo={pagination.pageNo}
+                                errorMessages={{
+                                    noImagesFound: "You haven't pushed any images matching your search filters"
+                                }}/>
                         )
                 }
             </div>

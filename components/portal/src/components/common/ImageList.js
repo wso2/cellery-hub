@@ -101,7 +101,7 @@ class ImageList extends React.Component {
     };
 
     render = () => {
-        const {classes, totalCount, pageNo, rowsPerPage, pageData} = this.props;
+        const {classes, totalCount, pageNo, rowsPerPage, pageData, errorMessages} = this.props;
         return (
             totalCount
                 ? (
@@ -173,7 +173,7 @@ class ImageList extends React.Component {
                     <div className={classes.noImagesMsgContainer}>
                         <img src={SearchImages} alt={"no results found"} className={classes.searchIcon}/>
                         <Typography component={"div"} className={classes.noResultsMsg}>
-                            No Results Found
+                            {errorMessages.noImagesFound}
                         </Typography>
                     </div>
                 )
@@ -199,7 +199,10 @@ ImageList.propTypes = {
         lastAuthor: PropTypes.string.isRequired,
         updatedTimestamp: PropTypes.number.isRequired,
         visibility: PropTypes.string.isRequired
-    })).isRequired
+    })).isRequired,
+    errorMessages: PropTypes.shape({
+        noImagesFound: PropTypes.string.isRequired
+    }).isRequired
 };
 
 export default withStyles(styles)(withRouter(ImageList));
