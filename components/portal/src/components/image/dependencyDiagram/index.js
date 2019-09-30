@@ -120,7 +120,7 @@ const DependencyDiagram = ({data, classes, history}) => {
                             to: dependentComponent
                         });
                     });
-                    if (node.kind === Constants.Type.CELL && component.exposed) {
+                    if (node.kind === Constants.Type.CELL && component.ingressTypes.length > 0) {
                         nodeMetaInfo.componentDependencyLinks.push({
                             from: "gateway",
                             to: componentName
