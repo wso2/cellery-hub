@@ -114,39 +114,31 @@ service registryProxy on new http:Listener(9090, config = registryProxyServiceEP
                                             log:printDebug(io:sprintf("Pulled Docker file layer %s for transaction %s",
                                                 dockerFileLayer, transactionId));
 
-                                            var metadata = image:extractMetadataFromImage(fileLayerBytes);
-                                            if (metadata is image:CellImageMetadata) {
-                                                log:printDebug("Extracted Cell image metadata for transaction "
-                                                    + transactionId);
-
-                                                var err = hub_database:saveCellImageMetadata(userId, metadata);
-                                                if (err is error) {
-                                                    log:printError(io:sprintf(
-                                                        "Failed to save metadata for image %s pushed by user %s for transaction %s",
-                                                            imageFQN, userId, transactionId), err = err);
-                                                    handleApiError(caller, untaint apiErrorMessage);
-                                                    abort;
-                                                }
-                                                log:printDebug("Successfull saved image metadata for transaction "
-                                                    + transactionId);
-                                            } else {
-                                                log:printError(io:sprintf(
-                                                    "Failed to extract metadata from Cell Image %s pushed by user %s for transaction %s",
-                                                        imageFQN, userId, transactionId), err = metadata);
+                                            var err = image:saveMetadataFromImage(userId, fileLayerBytes);
+                                            if (err is error) {
+                                                log:printError(
+                                                    io:sprintf("Failed to save Cell image metadata from Cell Image "
+                                                        + "%s pushed by user %s for transaction %s",
+                                                    imageFQN, userId, transactionId), err = err);
                                                 handleApiError(caller, untaint apiErrorMessage);
                                                 abort;
+                                            } else {
+                                                log:printDebug("Saved Cell image metadata for transaction "
+                                                    + transactionId);
                                             }
                                         } else {
-                                            log:printError(io:sprintf(
-                                                "Failed to fetch file layer from Docker Registry for image %s pushed by user %s for transaction %s",
-                                                    imageFQN, userId, transactionId), err = fileLayerBytes);
+                                            log:printError(
+                                                io:sprintf( "Failed to fetch file layer from Docker Registry for "
+                                                    + "image %s pushed by user %s for transaction %s",
+                                                imageFQN, userId, transactionId), err = fileLayerBytes);
                                             handleApiError(caller, untaint apiErrorMessage);
                                             abort;
                                         }
                                     } else {
-                                        log:printError(io:sprintf(
-                                            "Failed to parse Docker Manifest for Image %s pushed by user %s for transaction %s",
-                                                imageFQN, userId, transactionId), err = dockerManifest);
+                                        log:printError(
+                                            io:sprintf("Failed to parse Docker Manifest for Image %s pushed by user %s "
+                                                + "for transaction %s", imageFQN, userId, transactionId),
+                                            err = dockerManifest);
                                         handleApiError(caller, untaint apiErrorMessage);
                                         abort;
                                     }

@@ -21,52 +21,17 @@ import ballerina/internal;
 import ballerina/io;
 import ballerina/log;
 import ballerina/transactions;
-
-public type CellImageMetadata record {
-	string org;
-	string name;
-	string ver;
-	string schemaVersion;
-	string kind;
-	map<ComponentMetadata> components;
-	int buildTimestamp;
-	string buildCelleryVersion;
-	boolean zeroScalingRequired;
-	boolean autoScalingRequired;
-};
-
-public type ComponentMetadata record {
-	string dockerImage;
-	boolean isDockerPushRequired;
-	map<string> labels;
-	string[] ingressTypes;
-	ComponentDependencies dependencies;
-};
-
-public type ComponentDependencies record {
-	map<CellImageMetadata> cells;
-	map<CellImageMetadata> composites;
-	string[] components;
-};
-
-const string IMAGE_KIND_CELL = "Cell";
-const string IMAGE_KIND_COMPOSITE = "Composite";
-string[] IMAGE_KINDS = [IMAGE_KIND_CELL, IMAGE_KIND_COMPOSITE];
-
-const string INGRESS_TYPE_TCP = "TCP";
-const string INGRESS_TYPE_HTTP = "HTTP";
-const string INGRESS_TYPE_GRPC = "GRPC";
-const string INGRESS_TYPE_WEB = "WEB";
-string[] INGRESS_TYPES = [INGRESS_TYPE_TCP, INGRESS_TYPE_HTTP, INGRESS_TYPE_GRPC, INGRESS_TYPE_WEB];
+import cellery_hub/database;
 
 # Extract the metadata for the cell iamge file layer.
 #
 # + cellImageBytes - Cell Image Zip bytes
 # + return - metadata or an error
-public function extractMetadataFromImage(byte[] cellImageBytes) returns (CellImageMetadata|error) {
+public function saveMetadataFromImage(string userId, byte[] cellImageBytes) returns error? {
     var transactionId = transactions:getCurrentTransactionId();
     var extractedCellImageDir = filepath:build("/", "tmp", "cell-image-" + transactionId);
 
+    json metadataJson;
     if (extractedCellImageDir is error) {
         error err = error("failed to resolve extract location due to " + extractedCellImageDir.reason());
         return err;
@@ -105,43 +70,7 @@ public function extractMetadataFromImage(byte[] cellImageBytes) returns (CellIma
                     } else {
                         log:printDebug("Cleaned up extracted Cell Image for transaction " + transactionId);
                     }
-                    var cellImageMetadata = CellImageMetadata.convert(parsedMetadata);
-                    if (cellImageMetadata is error) {
-                        var stringConvertedMetadata = string.convert(parsedMetadata);
-                        string metadataPayloadMessage;
-                        if (stringConvertedMetadata is string) {
-                            metadataPayloadMessage = " with metadata: " + stringConvertedMetadata;
-                        } else {
-                            metadataPayloadMessage = "";
-                        }
-
-                        var isForeignFormat = true;
-                        if (parsedMetadata["buildCelleryVersion"] != ()) {
-                            var buildCelleryVersion = string.convert(parsedMetadata["buildCelleryVersion"]);
-                            var schemaVersion = string.convert(parsedMetadata["schemaVersion"]);
-                            if (buildCelleryVersion is string && schemaVersion is string) {
-                                log:printError("Format of the received metadata of Schema Version "
-                                    + schemaVersion +  " built using Cellery "
-                                    + buildCelleryVersion + " does not match Cellery Hub supported metadata "
-                                    + "format for transaction " + transactionId + metadataPayloadMessage);
-                                isForeignFormat = false;
-                            }
-                        }
-                        if (isForeignFormat) {
-                            log:printDebug("Format of the received metadata does not match Cellery Hub "
-                                + "supported metadata format for transaction " + transactionId
-                                + metadataPayloadMessage);
-                        }
-                        return cellImageMetadata;
-                    } else {
-                        var validationResult = validateMetadata(cellImageMetadata);
-                        if (validationResult is error) {
-                            log:printError("Invalid metadata format", err = validationResult);
-                            return validationResult;
-                        } else {
-                            return cellImageMetadata;
-                        }
-                    }
+                    metadataJson = parsedMetadata;
                 } else {
                     error err = error("failed to parse metadata.json due to " + parsedMetadata.reason());
                     var extracedCellImageDeleteResult = zipDest.delete();
@@ -172,41 +101,18 @@ public function extractMetadataFromImage(byte[] cellImageBytes) returns (CellIma
             }
         }
     }
-}
 
-# Validate the metadata values and return error if invalid.
-#
-# + cellImageMetadata - cellImageMetadata Metadata to be validated
-# + return - Error if invalid
-function validateMetadata(CellImageMetadata cellImageMetadata) returns error? {
-    // TODO: Update this validation to a ballerina enum based validation after migrating to Ballerina 1.0.0
-    if (!isValidEnum(cellImageMetadata.kind, IMAGE_KINDS)) {
-        error err = error(io:sprintf("invalid kind \"%s\" found", cellImageMetadata.kind));
-        return err;
-    }
-
-    foreach var (componentName, component) in cellImageMetadata.components {
-        foreach var ingressType in component.ingressTypes {
-            if (!isValidEnum(ingressType, INGRESS_TYPES)) {
-                error err = error(io:sprintf("invalid ingress type \"%s\" found", ingressType));
-                return err;
-            }
+    var cellImage = buildCellImage(metadataJson);
+    if (cellImage is database:CellImage) {
+        var saveResult = database:saveCellImage(userId, cellImage);
+        if (saveResult is error) {
+            log:printError(io:sprintf("Failed to store Cell image %s/%s:%s", cellImage.org, cellImage.name,
+                    cellImage.ver),
+                err = saveResult);
+            return saveResult;
         }
+    } else {
+        log:printError("Failed to build Cell Image data from metadata", err = cellImage);
+        return cellImage;
     }
-}
-
-# Validate a enum value using an array of valid values.
-#
-# + actualValue - actualValue The actual value which should match the array of values
-# + validValues - validValues The array of valid values for the enum value
-# + return - Return Value Description
-function isValidEnum(string actualValue, string[] validValues) returns boolean {
-    var isValid = false;
-    foreach var validValue in validValues {
-        if (validValue == actualValue) {
-            isValid = true;
-            break;
-        }
-    }
-    return isValid;
 }
