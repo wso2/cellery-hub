@@ -21,29 +21,53 @@ import ballerina/log;
 import ballerina/sql;
 import ballerina/system;
 import ballerina/transactions;
-import cellery_hub/image;
 
-type RegistryOrganization record {|
+//
+// Records for holding the Cell Image information starts here
+//
+
+public type CellImage record {|
+    string org;
+    string name;
+    string ver;
+    map<string> labels;
+    string[] ingresses;
+    json metadata;
+|};
+
+//
+// Records for holding the Cell Image information ends here
+//
+
+//
+// Records representing the actual DB tables starts here
+//
+
+type RegistryOrganizationRow record {|
     string DEFAULT_IMAGE_VISIBILITY;
 |};
 
-type RegistryArtifactImage record {|
+type RegistryArtifactImageRow record {|
     string ARTIFACT_IMAGE_ID;
 |};
 
-type RegistryArtifact record {|
+type RegistryArtifactRow record {|
     string ARTIFACT_ID;
 |};
 
-# Save Cell Image Metadata to the Cellery Hub Database.
+//
+// Records representing the actual DB tables ends here
+//
+
+# Save Cell Image to the Cellery Hub Database.
 # This also incremenets the push count of the artifact by one.
 #
 # + userId - The UUID of the user trying to push the Cell Image
-# + metadata - Metadata of the Cell Image
+# + cellImage - Cell Image to be persisted
 # + return - Error if any error occurred
-public function saveCellImageMetadata(string userId, image:CellImageMetadata metadata) returns error? {
-    var imageUuid = check persistImageMetadata(userId, metadata.org, metadata.name);
-    _ = check persistImageArtifactMetadata(userId, imageUuid, metadata);
+public function saveCellImage(string userId, CellImage cellImage) returns error? {
+    var imageUuid = check persistImage(userId, cellImage.org, cellImage.name);
+    _ = check persistImageArtifact(userId, imageUuid, cellImage);
 }
 
 # Increment the pull count for a specific image.
@@ -53,11 +77,11 @@ public function saveCellImageMetadata(string userId, image:CellImageMetadata met
 # + imageVersion - Version of the image
 # + return - Error if any occurred
 public function incrementPullCount(string orgName, string imageName, string imageVersion) returns error? {
-    var registryArtifactImageTable = check celleryHubDB->select(GET_ARTIFACT_IMAGE_ID_QUERY, RegistryArtifactImage,
+    var registryArtifactImageTable = check celleryHubDB->select(GET_ARTIFACT_IMAGE_ID_QUERY, RegistryArtifactImageRow,
         orgName, imageName, loadToMemory = true);
 
     if (registryArtifactImageTable.count() == 1) {
-        var registryArtifactImage = check RegistryArtifactImage.convert(registryArtifactImageTable.getNext());
+        var registryArtifactImage = check RegistryArtifactImageRow.convert(registryArtifactImageTable.getNext());
         registryArtifactImageTable.close();
         var imageUuid = registryArtifactImage.ARTIFACT_IMAGE_ID;
 
@@ -72,19 +96,19 @@ public function incrementPullCount(string orgName, string imageName, string imag
     }
 }
 
-# Persist Image metadata in the Cellery Hub database.
+# Persist Image in the Cellery Hub database.
 #
 # + userId - The UUID of the user who is pushing the image
 # + orgName - Name of the organization of the Cell Image
 # + imageName - Name of the Cell Image
 # + return - Image registry artifcat image ID
-function persistImageMetadata(string userId, string orgName, string imageName) returns (string|error) {
-    var registryArtifactImageTable = check celleryHubDB->select(GET_ARTIFACT_IMAGE_ID_QUERY, RegistryArtifactImage,
+function persistImage(string userId, string orgName, string imageName) returns (string|error) {
+    var registryArtifactImageTable = check celleryHubDB->select(GET_ARTIFACT_IMAGE_ID_QUERY, RegistryArtifactImageRow,
         orgName, imageName, loadToMemory = true);
 
     string uuid;
     if (registryArtifactImageTable.count() == 1) {
-        var registryArtifactImage = check RegistryArtifactImage.convert(registryArtifactImageTable.getNext());
+        var registryArtifactImage = check RegistryArtifactImageRow.convert(registryArtifactImageTable.getNext());
         registryArtifactImageTable.close();
         uuid = registryArtifactImage.ARTIFACT_IMAGE_ID;
         log:printDebug(io:sprintf("Using existing image %s/%s with id %s for transaction %s", orgName, imageName, uuid,
@@ -106,10 +130,10 @@ function persistImageMetadata(string userId, string orgName, string imageName) r
 # + orgName - Name of the organization
 # + return - Error or organization's default visibility
 function getOrganizationDefaultVisibility(string orgName) returns (error|string) {
-    var organizationTable = check celleryHubDB->select(GET_ORG_DEFAULT_IMAGE_VISIBILITY_QUERY, RegistryOrganization,
-        orgName, loadToMemory = true);
+    var organizationTable = check celleryHubDB->select(GET_ORG_DEFAULT_IMAGE_VISIBILITY_QUERY,
+        RegistryOrganizationRow, orgName, loadToMemory = true);
     if (organizationTable.count() == 1) {
-        var organization = check RegistryOrganization.convert(organizationTable.getNext());
+        var organization = check RegistryOrganizationRow.convert(organizationTable.getNext());
         organizationTable.close();
         return organization.DEFAULT_IMAGE_VISIBILITY;
     } else {
@@ -120,41 +144,40 @@ function getOrganizationDefaultVisibility(string orgName) returns (error|string)
     }
 }
 
-# Persist Image Artifact metadata in the Cellery Hub database.
+# Persist Image Artifact in the Cellery Hub database.
 #
 # + userId - The UUID of the user who is pushing the image
 # + artifactImageId - ID of the Cell Image without considering the versions
-# + metadata - Cell Image metadata
+# + cellImage - Cell Image to be persisted
 # + return - Error if any error occurred
-function persistImageArtifactMetadata(string userId, string artifactImageId, image:CellImageMetadata metadata) returns error? {
-    var registryArtifactTable = check celleryHubDB->select(GET_ARTIFACT_ID_QUERY, RegistryArtifact, artifactImageId,
-        metadata.ver, loadToMemory = true);
+function persistImageArtifact(string userId, string artifactImageId, CellImage cellImage) returns error? {
+    var registryArtifactTable = check celleryHubDB->select(GET_ARTIFACT_ID_QUERY, RegistryArtifactRow,
+        artifactImageId, cellImage.ver, loadToMemory = true);
 
-    var metadataJson = check json.convert(metadata);
-    var metadataString = check string.convert(metadataJson);
+    var metadataString = check string.convert(cellImage.metadata);
     string artifactUuid;
     if (registryArtifactTable.count() == 1) {
-        var registryArtifact = check RegistryArtifact.convert(registryArtifactTable.getNext());
+        var registryArtifact = check RegistryArtifactRow.convert(registryArtifactTable.getNext());
         registryArtifactTable.close();
         artifactUuid = registryArtifact.ARTIFACT_ID;
         _ = check celleryHubDB->update(UPDATE_REGISTRY_ARTIFACT_QUERY, userId, metadataString, false, artifactUuid,
-            metadata.ver);
+            cellImage.ver);
         log:printDebug(io:sprintf("Updated image with image id %s and version %s for transaction %s", artifactImageId,
-            metadata.ver, transactions:getCurrentTransactionId()));
+            cellImage.ver, transactions:getCurrentTransactionId()));
 
-        // Cleanup all existing metadata related info tables
+        // Cleanup all existing related info tables
         _ = check cleanUpLabels(artifactUuid);
         _ = check cleanUpIngresses(artifactUuid);
     } else {
         registryArtifactTable.close();
         artifactUuid = system:uuid();
         _ = check celleryHubDB->update(INSERT_REGISTRY_ARTIFACT_QUERY, artifactUuid, artifactImageId,
-            metadata.ver, userId, userId, metadataString, false);
+            cellImage.ver, userId, userId, metadataString, false);
         log:printDebug(io:sprintf("Created new image with image id %s and version %s for transaction %s",
-            artifactImageId, metadata.ver, transactions:getCurrentTransactionId()));
+            artifactImageId, cellImage.ver, transactions:getCurrentTransactionId()));
     }
-    _ = check persistImageArtifactLabels(artifactUuid, metadata);
-    _ = check persistImageArtifactIngresses(artifactUuid, metadata);
+    _ = check persistImageArtifactLabels(artifactUuid, cellImage.labels);
+    _ = check persistImageArtifactIngresses(artifactUuid, cellImage.ingresses);
 }
 
 # Cleanup labels for an artifact.
@@ -170,16 +193,9 @@ function cleanUpLabels(string artifactId) returns error? {
 # Persist Image Artifact labels in the Cellery Hub database.
 #
 # + artifactId - ID of the Cell Image without considering the versions
-# + metadata - metadata of the image of which the labels are to be added
+# + labels - labels to be added
 # + return - Error if any occurred
-function persistImageArtifactLabels(string artifactId, image:CellImageMetadata metadata) returns error? {
-    map<string> labels = {};
-    foreach var (componentName, component) in metadata.components {
-        foreach var (labelKey, labelValue) in component.labels {
-            labels[labelKey] = labelValue;
-        }
-    }
-
+function persistImageArtifactLabels(string artifactId, map<string> labels) returns error? {
     if (labels.length() > 0) {
         string[][] dataBatch = [];
         int i = 0;
@@ -206,27 +222,9 @@ function cleanUpIngresses(string artifactId) returns error? {
 # Persist Image Artifact ingresses in the Cellery Hub database.
 #
 # + artifactId - ID of the Cell Image
-# + metadata - metadata of the image of which the ingresses are to be added
+# + ingresses - ingresses to be added
 # + return - Error if any occurred
-function persistImageArtifactIngresses(string artifactId, image:CellImageMetadata metadata) returns error? {
-    string[] ingresses = [];
-    int i = 0;
-    foreach var (componentName, component) in metadata.components {
-        foreach var ingressType in component.ingressTypes {
-            boolean alreadyPresent = false;
-            foreach var addedIngress in ingresses {
-                if (addedIngress == ingressType) {
-                    alreadyPresent = true;
-                    break;
-                }
-            }
-            if (!alreadyPresent) {
-                ingresses[i] = ingressType;
-                i = i + 1;
-            }
-        }
-    }
-
+function persistImageArtifactIngresses(string artifactId, string[] ingresses) returns error? {
     if (ingresses.length() > 0) {
         string[][] dataBatch = [];
         int j = 0;

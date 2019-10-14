@@ -18,4 +18,3 @@
 # ------------------------------------------------------------------------
 
 ballerina build --experimental
-cp ../../deployment/proxy/conf/proxy.toml target/ballerina.conf
