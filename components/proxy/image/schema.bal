@@ -118,6 +118,8 @@ function buildCellImage(json metadataJson) returns (database:CellImage|error) {
         foreach var rawIngressType in component.ingressTypes {
             var ingressType = rawIngressType.toUpper();
             boolean alreadyPresent = false;
+            // Ensuring that duplicates are not added.
+            // Since ballerina does not yet support Sets, need to iterate to ensure no duplicates are added.
             foreach var addedIngress in cellImage.ingresses {
                 if (addedIngress == ingressType) {
                     alreadyPresent = true;
