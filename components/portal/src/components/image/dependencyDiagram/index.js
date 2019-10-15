@@ -30,7 +30,7 @@ const styles = (theme) => ({
     }
 });
 
-const DependencyDiagram = ({data, classes, history}) => {
+const DependencyDiagram = ({data, classes, onClickNode}) => {
     const getFQN = (nodeData) => `${nodeData.org}/${nodeData.name}:${nodeData.ver}`;
     const focusedNodeFQN = getFQN(data);
     const diagramData = {
@@ -143,10 +143,7 @@ const DependencyDiagram = ({data, classes, history}) => {
     return (
         <div className={classes.content}>
             <CellDiagram data={diagramData} focusedNode={`${data.org}/${data.name}:${data.ver}`}
-                onClickNode={(nodeId) => {
-                    const nodeUrl = nodeId.replace(/:/g, "/");
-                    history.push(`/images/${nodeUrl}`);
-                }}/>
+                onClickNode={onClickNode}/>
         </div>
     );
 };
@@ -155,9 +152,7 @@ DependencyDiagram.propTypes = {
     data: PropTypes.object.isRequired,
     classes: PropTypes.object.isRequired,
     focusedNode: PropTypes.string.isRequired,
-    history: PropTypes.shape({
-        push: PropTypes.func.isRequired
-    })
+    onClickNode: PropTypes.func.isRequired
 };
 
 export default withStyles(styles)(withRouter(DependencyDiagram));

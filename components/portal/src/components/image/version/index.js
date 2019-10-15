@@ -335,7 +335,13 @@ class ImageVersion extends React.Component {
         const tabs = [
             {
                 label: "Dependencies",
-                render: () => <DependencyDiagram data={versionData.metadata}/>
+                render: () => <DependencyDiagram data={versionData.metadata} onClickNode={(nodeId) => {
+                    const nodeUrl = nodeId.replace(/:/g, "/");
+                    history.push(`/images/${nodeUrl}`);
+                    this.setState({
+                        versionData: null
+                    });
+                }}/>
             },
             {
                 label: "Description",

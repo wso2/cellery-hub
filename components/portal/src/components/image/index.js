@@ -507,7 +507,7 @@ class Image extends React.Component {
                                                 </div>
                                             </div>
                                             {
-                                                imageData.keywords
+                                                imageData.keywords && imageData.keywords.length > 0
                                                     ? (
                                                         <div className={classes.keywords}>
                                                             <Typography variant={"subtitle2"} color={"inherit"}
