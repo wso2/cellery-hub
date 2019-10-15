@@ -22,7 +22,7 @@
     "vis": "^4.21.0"
   },
   "scripts": {
-    "start": "concurrently --kill-others --names \"config-server,webpack-dev-server\" \"APP_ENV=DEV PORTAL_PORT=4000 node node-server/serve.js\" \"react-scripts start\"",
+    "start": "concurrently --kill-others --names \"config-server,webpack-dev-server\" \"APP_ENV=DEV PORTAL_PORT=4000 node node-server/serve.js\" \"HTTPS=true HOST=hub.cellery.io PORT=443 react-scripts start\"",
     "build": "react-scripts build",
     "lint": "eslint --color src/",
     "lint:fix": "eslint --color --fix src/",
