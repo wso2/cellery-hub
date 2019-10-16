@@ -324,6 +324,7 @@ service CelleryHubAPI on ep {
         int offset = 0;
         int resultLimit = 10;
         string artifactVersion = "%";
+        string orderBy = constants:PULL_COUNT;
         if (queryParams.hasKey(constants:OFFSET)) {
             int | error offsetQueryParam = int.convert(queryParams.offset);
             if (offsetQueryParam is int) {
@@ -338,13 +339,21 @@ service CelleryHubAPI on ep {
                 resultLimit = resultLimitQueryParam;
             }
         }
+        if (queryParams.hasKey(constants:ORDER_BY)) {
+            orderBy = queryParams.orderBy;
+            if (orderBy.equalsIgnoreCase("last-updated")) {
+                orderBy = constants:UPDATED_DATE;
+            } else {
+                orderBy = constants:PULL_COUNT;
+            }
+        }
         if (queryParams.hasKey(constants:ARTIFACT_VERSION)) {
             log:printDebug("artifactVersion is present");
             artifactVersion = queryParams.artifactVersion;
             artifactVersion = artifactVersion.replace("*", "%");
         }
         http:Response _getImageRes = getArtifactsOfImage(_getImageReq, untaint orgName, untaint imageName, untaint artifactVersion,
-        untaint offset, resultLimit);
+        untaint offset, resultLimit, orderBy);
         error? x = outboundEp->respond(_getImageRes);
     }
 

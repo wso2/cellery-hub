@@ -361,7 +361,7 @@ public function getImageByImageName(http:Request getImageRequest, string orgName
 # + artifactVersion - Exact Artifact version or a regex of artifact version
 # + return - Return Value Description
 public function getArtifactsOfImage(http:Request getImageRequest, string orgName, string imageName, string artifactVersion,
-int offset, int resultLimit) returns http:Response {
+int offset, int resultLimit, string orderBy) returns http:Response {
     log:printDebug(io:sprintf("Listing artifacts for organization \'%s\' imageName : \'%s\', version: \'%s\', offset: %d, limit: %d",
     orgName, imageName, artifactVersion, offset, resultLimit));
 
@@ -370,10 +370,12 @@ int offset, int resultLimit) returns http:Response {
     if (getImageRequest.hasHeader(constants:AUTHENTICATED_USER)) {
         string userId = getImageRequest.getHeader(constants:AUTHENTICATED_USER);
         log:printDebug(io:sprintf("List artifacts of image request with authenticated User  : %s", userId));
-        artifactDatumResults = db:getArtifactsOfUserImage(orgName, imageName, userId, artifactVersion, offset, resultLimit);
+        artifactDatumResults = db:getArtifactsOfUserImage(orgName, imageName, userId, artifactVersion, offset,
+        resultLimit, orderBy);
     } else {
         log:printDebug("List artifacts of image request without an authenticated user");
-        artifactDatumResults = db:getArtifactsOfPublicImage(orgName, imageName, artifactVersion, offset, resultLimit);
+        artifactDatumResults = db:getArtifactsOfPublicImage(orgName, imageName, artifactVersion, offset,
+        resultLimit, orderBy);
     }
 
     if (artifactDatumResults is table<gen:ArtifactDatum>) {
