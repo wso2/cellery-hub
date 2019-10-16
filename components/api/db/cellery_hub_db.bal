@@ -111,21 +111,23 @@ public function getPublicImage(string orgName, string imageName) returns table<g
     return res;
 }
 
-public function getArtifactsOfUserImage(string orgName, string imageName, string userId, string artifactVersion, int offset, int resultLimit)
-returns table<gen:ArtifactDatum> | error {
+public function getArtifactsOfUserImage(string orgName, string imageName, string userId, string artifactVersion,
+int offset, int resultLimit, string orderBy) returns table<gen:ArtifactDatum> | error {
     log:printDebug(io:sprintf("Performing artifact retrival from DB for org: %s, image: %s , version: %s for user: %s", orgName,
     imageName, artifactVersion, userId));
-    table<gen:ArtifactDatum> res = check connection->select(GET_ARTIFACTS_OF_IMAGE_FOR_USER, gen:ArtifactDatum,
+    string searchQuery = GET_ARTIFACTS_OF_IMAGE_FOR_USER.replace("$ORDER_BY", orderBy);
+    table<gen:ArtifactDatum> res = check connection->select(searchQuery, gen:ArtifactDatum,
     orgName, imageName, artifactVersion, userId, orgName, imageName, artifactVersion,
     resultLimit, offset, loadToMemory = true);
     return res;
 }
 
-public function getArtifactsOfPublicImage(string orgName, string imageName, string artifactVersion, int offset, int resultLimit)
-returns table<gen:ArtifactDatum> | error {
+public function getArtifactsOfPublicImage(string orgName, string imageName, string artifactVersion, int offset,
+int resultLimit, string orderBy) returns table<gen:ArtifactDatum> | error {
     log:printDebug(io:sprintf("Performing artifact retrival from DB for org: %s, image: %s , version: %s for", orgName,
     imageName, artifactVersion));
-    table<gen:ArtifactDatum> res = check connection->select(GET_ARTIFACTS_OF_PUBLIC_IMAGE, gen:ArtifactDatum, orgName, imageName,
+    string searchQuery = GET_ARTIFACTS_OF_PUBLIC_IMAGE.replace("$ORDER_BY", orderBy);
+    table<gen:ArtifactDatum> res = check connection->select(searchQuery, gen:ArtifactDatum, orgName, imageName,
     artifactVersion, resultLimit, offset, loadToMemory = true);
     return res;
 }
