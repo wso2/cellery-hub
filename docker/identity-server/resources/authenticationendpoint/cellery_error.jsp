@@ -45,7 +45,7 @@
 <header class="header header-default">
     <div class="container-fluid">
         <div class="pull-left brand float-remove-xs text-center-xs">
-            <a href="https://wso2-cellery.github.io/" target="_blank" class="header-name">
+            <a href="http://cellery.io/" target="_blank" class="header-name">
                 <img src="images/logo-inverse.svg" alt="<%=AuthenticationEndpointUtil.i18n(resourceBundle, "business.name")%>" title="<%=AuthenticationEndpointUtil.i18n(resourceBundle, "business.name")%>" class="logo">
             </a>
         </div>

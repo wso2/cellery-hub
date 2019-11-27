@@ -212,22 +212,22 @@ class NavBar extends React.Component {
                             open={isDocsPopoverOpen}
                             onClose={this.handleDocsPopoverClose}>
                             <MenuItem onClick={this.handleDocsPopoverClose} className={classes.docMenuItem}>
-                                <Link href={"https://github.com/wso2-cellery/sdk/blob/master/README.md"}
+                                <Link href={"https://github.com/wso2/cellery/blob/master/README.md"}
                                     target={"_blank"} className={classes.docLink}>Get stared with Cellery</Link>
                             </MenuItem>
                             <MenuItem onClick={this.handleDocsPopoverClose} className={classes.docMenuItem}>
-                                <Link href={"https://github.com/wso2-cellery/sdk/blob/master/docs/cellery-syntax.md"}
+                                <Link href={"https://github.com/wso2/cellery/blob/master/docs/cellery-syntax.md"}
                                     target={"_blank"} className={classes.docLink}>How to code cell</Link>
                             </MenuItem>
                             <MenuItem onClick={this.handleDocsPopoverClose} className={classes.docMenuItem}>
-                                <Link href={"https://github.com/wso2-cellery/sdk/blob/master/docs/cli-reference.md"}
+                                <Link href={"https://github.com/wso2/cellery/blob/master/docs/cli-reference.md"}
                                     target={"_blank"} className={classes.docLink}>How to use the CLI</Link>
                             </MenuItem>
                         </Menu>
                     </React.Fragment>
                     <Button disableTouchRipple={true} color={"inherit"}
                         className={classNames(classes.navButton, classes.navButtonCollapse)}
-                        href={"https://wso2-cellery.github.io/"} target={"_blank"}>Cellery.io
+                        href={"http://cellery.io/"} target={"_blank"}>Cellery.io
                     </Button>
                     {
                         user
@@ -337,20 +337,20 @@ class NavBar extends React.Component {
                         open={isDocsPopoverOpen}
                         onClose={this.handleDocsPopoverClose}>
                         <MenuItem onClick={this.handleDocsPopoverClose} className={classes.docMenuItem}>
-                            <Link href={"https://github.com/wso2-cellery/sdk/blob/master/README.md"}
+                            <Link href={"https://github.com/wso2/cellery/blob/master/README.md"}
                                 target={"_blank"} className={classes.docLink}>Get stared with Cellery</Link>
                         </MenuItem>
                         <MenuItem onClick={this.handleDocsPopoverClose} className={classes.docMenuItem}>
-                            <Link href={"https://github.com/wso2-cellery/sdk/blob/master/docs/cellery-syntax.md"}
+                            <Link href={"https://github.com/wso2/cellery/blob/master/docs/cellery-syntax.md"}
                                 target={"_blank"} className={classes.docLink}>How to code cell</Link>
                         </MenuItem>
                         <MenuItem onClick={this.handleDocsPopoverClose} className={classes.docMenuItem}>
-                            <Link href={"https://github.com/wso2-cellery/sdk/blob/master/docs/cli-reference.md"}
+                            <Link href={"https://github.com/wso2/cellery/blob/master/docs/cli-reference.md"}
                                 target={"_blank"} className={classes.docLink}>How to use the CLI</Link>
                         </MenuItem>
                     </Menu>
                     <Button disableTouchRipple={true} color={"inherit"} className={classes.navButton}
-                        href={"https://wso2-cellery.github.io/"} target={"_blank"}>Cellery.io
+                        href={"http://cellery.io/"} target={"_blank"}>Cellery.io
                     </Button>
                     {
                         user
