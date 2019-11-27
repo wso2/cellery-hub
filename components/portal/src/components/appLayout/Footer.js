@@ -93,7 +93,7 @@ const Footer = (props) => {
                         <Link className={classes.footerLink} target={"_blank"} href={"/policy/cookie"}>
                             Cookie Policy</Link>
                     </div>
-                    <Link href={"https://wso2-cellery.github.io/"} target={"_blank"}>
+                    <Link href={"http://cellery.io/"} target={"_blank"}>
                         <img src={CelleryLogo} className={classes.celleryLogoFooter} alt={"Cellery logo"}/>
                     </Link>
                 </Container>

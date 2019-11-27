@@ -52,7 +52,7 @@ const Privacy = (props) => {
             <div className={classes.body}>
                 <Typography variant={"body1"} gutterBottom className={classes.section}>
                     At WSO2, we recognize that privacy is important. This privacy policy applies to the Cellery Hub
-                    site and services offered at&nbsp;<Link target={"_blank"} href={"https://wso2-cellery.github.io/"}>
+                    site and services offered at&nbsp;<Link target={"_blank"} href={"http://cellery.io/"}>
                     Cellery</Link> and any other site to which a link to these terms may appear. We’ve set out below the
                     details of how we collect, use, share and secure the personal information you provide. “You” or
                     “Your” means the person visiting the abovementioned Cellery Hub website (the “Site”) or using any
