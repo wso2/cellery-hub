@@ -50,10 +50,9 @@ func createConn() bool {
 	host := "localhost"
 	port := "3308"
 	var err error
-	dbConnection, err = sql.Open(dbDriver, dbUser+":"+dbPass+"@tcp("+host+":"+port+")/"+dbName)
+	dbConnection, err = sql.Open(dbDriver, fmt.Sprintf("%s:%s@tcp(%s:%s)/%s", dbUser, dbPass, host, port, dbName))
 	if err != nil {
-		fmt.Println("Error while connecting to the database")
-		os.Exit(errorExitCode)
+		log.Fatal("Error while connecting to the database")
 	}
 	err = dbConnection.Ping()
 	if err != nil {
@@ -62,22 +61,23 @@ func createConn() bool {
 	return true
 }
 
-func moveFiles(from, to string) {
+func moveFiles(from, to string) error {
 	source, err := os.Open(from)
 	if err != nil {
-		log.Fatal(err)
+		return fmt.Errorf("error opening source file: %v", err)
 	}
 	defer source.Close()
 
 	destination, err := os.OpenFile(to, os.O_RDWR|os.O_CREATE, 0666)
 	if err != nil {
-		log.Fatal(err)
+		return fmt.Errorf("error opening destination file: %v", err)
 	}
 	defer destination.Close()
 	_, err = io.Copy(destination, source)
 	if err != nil {
-		log.Fatal(err)
+		return fmt.Errorf("error while copying files: %v", err)
 	}
+	return nil
 }
 
 func makedir(path string) {
@@ -110,8 +110,14 @@ func TestMain(m *testing.M) {
 	fmt.Println("Acl test started to run")
 	// make target dir
 	makedir("../../target/test/mysql_scripts")
-	moveFiles("../../test/init.sql", "../../target/test/mysql_scripts/1_init.sql")
-	moveFiles("../../test/data.sql", "../../target/test/mysql_scripts/2_data.sql")
+	err := moveFiles("../../test/init.sql", "../../target/test/mysql_scripts/1_init.sql")
+	if err != nil {
+		fmt.Println("Error while moving init.sql: ", err)
+	}
+	err = moveFiles("../../test/data.sql", "../../target/test/mysql_scripts/2_data.sql")
+	if err != nil {
+		fmt.Println("Error while moving data.sql: ", err)
+	}
 	setEnv()
 	path, err := filepath.Abs("../../target/test/mysql_scripts")
 	if err != nil {
