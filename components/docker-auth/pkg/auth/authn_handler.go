@@ -19,7 +19,6 @@
 package auth
 
 import (
-	"crypto/tls"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -66,13 +65,7 @@ func validateAccessToken(token string, providedUsername string, logger *zap.Suga
 		return false, err
 	}
 	req.SetBasicAuth(username, password)
-	// todo Remove the the host verification turning off
-	tr := &http.Transport{
-		TLSClientConfig: &tls.Config{
-			InsecureSkipVerify: true,
-		},
-	}
-	client := &http.Client{Transport: tr}
+	client := &http.Client{}
 	res, err := client.Do(req)
 	if err != nil {
 		return false, fmt.Errorf("error sending the request to the introspection endpoint : %s", err)
