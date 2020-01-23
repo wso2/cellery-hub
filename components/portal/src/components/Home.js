@@ -219,7 +219,7 @@ class Home extends React.Component {
                                     Cell-based architecture</Link> gave birth to Cellery. Last year and half was a great
                                     learning experience for us. Through Cellery, we learnt to organize services and
                                     deploy on Kubernetes at scale. We also found out that this is a common problem that
-                                    many technical communities are trying to solve and we are planning to contribute to
+                                    many technical communities are trying to solve and we are planning to contribute to 
                                     <Link href={"https://oam.dev/"} target={"_blank"} className={classes.celleryLink}>
                                         such communities
                                     </Link> in future. As for Cellery, we are no longer actively maintaining the
