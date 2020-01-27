@@ -135,6 +135,30 @@ const styles = (theme) => ({
         marginRight: theme.spacing(1 / 2),
         fontSize: 16,
         verticalAlign: "text-bottom"
+    },
+    banner: {
+        border: "1px solid #69b26d",
+        padding: 10,
+        background: "#e5eaea",
+        textAlign: "justify",
+        textJustify: "inter-word",
+        marginTop: 20
+    },
+    bannerText: {
+        fontSize: 14,
+        lineHeight: 1.8
+    },
+    celleryText: {
+        paddingTop: 10,
+        paddingBottom: 10
+    },
+    celleryLink: {
+        color: "#69b26d",
+        textDecoration: "none",
+        "&:hover, &:focus, &:active": {
+            color: "#69b26d",
+            textDecoration: "none"
+        }
     }
 });
 
@@ -158,7 +182,7 @@ class Home extends React.Component {
             <div className={classes.root}>
                 <div className={classes.mainContent}>
                     <Grid container>
-                        <Grid item xs={12} sm={6} md={6} />
+                        <Grid item xs={12} sm={6} md={6}/>
                         <Grid item xs={12} sm={6} md={6}>
                             <div className={classes.topHeaderLine}/>
                         </Grid>
@@ -184,9 +208,31 @@ class Home extends React.Component {
                             <img src={CelleryLogo} className={classes.celleryLogo} alt={"Cellery logo"}/>
                             hub
                         </div>
-                        <Typography variant={"h2"} gutterBottom className={classes.summary}>
-                            Manage and share code-first composites on Kubernetes
-                        </Typography>
+                        <div className={classes.banner}>
+                            <div className={classes.celleryMsg}>
+                                <div className={classes.celleryText}>
+                                    Cellery started off as a learning experiment. Our passion for services composition
+                                    and the need for a reference
+                                    implementation for <Link
+                                        href={"https://github.com/wso2/reference-architecture/blob/master/reference-"
+                                    + "architecture-cell-based.md"} target={"_blank"} className={classes.celleryLink}>
+                                    Cell-based architecture</Link> gave birth to Cellery. Last year and half was a great
+                                    learning experience for us. Through Cellery, we learnt to organize services and
+                                    deploy on Kubernetes at scale. We also found out that this is a common problem that
+                                    many technical communities are trying to solve and we are planning to contribute to 
+                                    <Link href={"https://oam.dev/"} target={"_blank"} className={classes.celleryLink}>
+                                        such communities
+                                    </Link> in future. As for Cellery, we are no longer actively maintaining the
+                                    codebase. If you are interested in forking Cellery and using it in your project,
+                                    please feel free to do so.
+                                </div>
+                                <div className={classes.celleryText}>You can navigate to the code base at -
+                                    <Link target={"_blank"} href={"https://github.com/wso2/cellery"}
+                                        className={classes.celleryLink}>https://github.com/wso2/cellery
+                                    </Link>.
+                                </div>
+                            </div>
+                        </div>
                         <Grid container className={classes.desContainer}>
                             <Grid item xs={12} sm={8} md={8}>
                                 <Typography gutterBottom className={classes.description}>
