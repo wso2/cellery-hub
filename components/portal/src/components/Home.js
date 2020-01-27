@@ -240,12 +240,6 @@ class Home extends React.Component {
                                     can be shared with other users. Users with neccessary permissions can pull, push
                                     images and manage users and organizations.
                                 </Typography>
-                                <div className={classes.signInContent}>
-                                    <Button variant={"outlined"} color={"inherit"} className={classes.button}
-                                        onClick={this.handleSignIn}>
-                                        Sign In/ Sign Up
-                                    </Button>
-                                </div>
                                 <div>
                                     <Typography variant={"subtitle2"}>
                                         <Link href={"/explore"} color={"inherit"} className={classes.link}>

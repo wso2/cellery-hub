@@ -299,11 +299,6 @@ class NavBar extends React.Component {
                             )
                             : (
                                 <React.Fragment>
-                                    <Button disableTouchRipple={true} color={"inherit"} aria-haspopup={"true"}
-                                        onClick={this.handleAccountPopoverOpen}
-                                        className={classNames(classes.navButton, classes.navButtonCollapse)}>
-                                        SIGN IN/ SIGN UP
-                                    </Button>
                                 </React.Fragment>
                             )
                     }
@@ -421,11 +416,6 @@ class NavBar extends React.Component {
                             )
                             : (
                                 <React.Fragment>
-                                    <Button disableTouchRipple={true} color={"inherit"}
-                                        className={classes.navButton} aria-haspopup={"true"}
-                                        onClick={this.handleSignIn}>
-                                        SIGN IN/ SIGN UP
-                                    </Button>
                                 </React.Fragment>
                             )
                     }

@@ -363,8 +363,7 @@ class VersionList extends React.Component {
                                             {
                                                 versions.map((versionDatum) => (
                                                     <div key={versionDatum.version}>
-                                                        <ListItem button onClick={() => this.handleVersionClick(
-                                                            versionDatum.artifactVersion)}>
+                                                        <ListItem>
                                                             <ListItemText primary={versionDatum.artifactVersion}
                                                                 className={classes.versionName}/>
                                                             <Typography variant={"caption"} className={classes.block}

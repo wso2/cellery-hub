@@ -17,7 +17,7 @@
 PROJECT_ROOT := $(realpath $(dir $(abspath $(lastword $(MAKEFILE_LIST)))))
 PROJECT_PKG := github.com/cellery-io/cellery-hub
 DOCKER_REPO ?= wso2cellery
-VERSION ?= latest
+VERSION ?= 0.4.4
 DOCKER_AUTH_BASE_HASH := 82573a5f102c2d886428415bf6fcb8d94706834a
 
 PROXY := proxy

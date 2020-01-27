@@ -99,7 +99,7 @@ class OrgList extends React.Component {
                         <List component={"nav"}>
                             {pageData.map((org) => (
                                 <div key={org.orgName}>
-                                    <ListItem button onClick={() => this.handleOrgClick(org.orgName)}>
+                                    <ListItem>
                                         <ListItemAvatar>
                                             <Avatar className={classes.avatar}>
                                                 {org.orgName.charAt(0)}
